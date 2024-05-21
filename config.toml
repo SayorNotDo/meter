@@ -1,0 +1,15 @@
+[http]
+host = "0.0.0.0"
+httpPort = 80
+enableHttps = false
+httpsPort = 443
+cors = [ "localhost:3000"]
+tlsCert = ""
+tlsKey = ""
+
+[jwt]
+secret = "secrer key used to sign tokens"
+expires = 24
+
+[storage]
+databaseUrl = "postgresql://postgres:testpassword@db:5432/postgres?sslmode=disable"
