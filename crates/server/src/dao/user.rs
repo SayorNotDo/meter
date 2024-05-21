@@ -1,7 +1,10 @@
 use chrono::{DateTime, Utc};
-use crypto_utils::sha::{Algorithm, CryptographicHash};
+use serde::Serialize;
 
-#[derive(, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+use crypto_utils::sha::{Algorithm, CryptographicHash};
+use uuid::Uuid;
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct User {
     pub id: i32,
     pub uuid: Uuid,
@@ -21,7 +24,7 @@ impl User {
 
         // hash the password using SHA-512 algorithm and encode it into String.
         let hashed_password = hex::encode(CryptographicHash::hash(
-            Algorithm::Sha512,
+            Algorithm::SHA512,
             password.as_bytes(),
         ));
 

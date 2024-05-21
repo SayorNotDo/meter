@@ -28,3 +28,6 @@ chrono = { version = "0.4.38", features = ["serde"] }
 hex = "0.4.3"
 crypto-utils = "0.4.1"
 
+# Database
+uuid = { version = "1.8.0", features = ["serde", "v4"] }
+

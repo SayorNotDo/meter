@@ -1,5 +1,6 @@
 mod api;
-
+mod dao;
+mod errors;
 mod logger;
 
 use axum::http::{
