@@ -2,7 +2,10 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use db::PoolError;
 use std::fmt;
+
+pub use tokio_postgres::Error as TokioPostgresError;
 
 #[derive(Debug)]
 pub enum CustomError {
@@ -36,14 +39,14 @@ impl From<axum::http::uri::InvalidUri> for CustomError {
     }
 }
 
-// impl From<TokioPostgresError> for CustomError {
-//     fn from(err: TokioPostgresError) -> CustomError {
-//         CustomError::Database(err.to_string())
-//     }
-// }
+impl From<TokioPostgresError> for CustomError {
+    fn from(err: TokioPostgresError) -> CustomError {
+        CustomError::Database(err.to_string())
+    }
+}
 
-// impl From<PoolError> for CustomError {
-//     fn from(err: PoolError) -> CustomError {
-//         CustomError::Database(err.to_string())
-//     }
-// }
+impl From<PoolError> for CustomError {
+    fn from(err: PoolError) -> CustomError {
+        CustomError::Database(err.to_string())
+    }
+}

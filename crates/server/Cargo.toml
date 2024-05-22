@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 axum = "0.7.5"
-db = { version = "0.1.0", path = "../db" }
+db = { path = "../db" }
 tokio = { version = "1.37.0", default-features = false, features = ["macros", "fs", "rt-multi-thread"] }
 
 serde = { version = "1.0.198", features = ["derive"] }
@@ -29,5 +29,6 @@ hex = "0.4.3"
 crypto-utils = "0.4.1"
 
 # Database
-uuid = { version = "1.8.0", features = ["serde", "v4"] }
+uuid = { version = "0.8.2", features = ["serde", "v4"] }
+tokio-postgres = { version="0.7.10", features = ["with-uuid-0_8"] }
 

@@ -12,4 +12,4 @@ secret = "secrer key used to sign tokens"
 expires = 24
 
 [storage]
-databaseUrl = "postgresql://postgres:testpassword@db:5432/postgres?sslmode=disable"
+databaseUrl = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable"
