@@ -3,9 +3,40 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use db::PoolError;
+use serde::Deserialize;
 use std::fmt;
+use utoipa::ToSchema;
 
 pub use tokio_postgres::Error as TokioPostgresError;
+
+pub type AppResult<T = ()> = std::result::Result<T, AppError>;
+
+#[derive(Debug, thiserror::Error, ToSchema)]
+pub enum AppError {
+    #[error("{0} not found")]
+    NotFoundError(Resource),
+}
+
+impl AppError {
+    pub fn response(self) -> (StatusCode, AppResponseError) {}
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, utoipa::ToSchema)]
+pub struct AppResponseError {
+    pub code: Option<i32>,
+    pub message: String,
+    pub details: Vec<(String, String)>,
+}
+
+impl AppResponseError {
+    pub fn new(code: Option<i32>, message: Into<String>, details: Vec<(String, String)>) -> Self {
+        Self {
+            code,
+            message: message.into(),
+            details,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum CustomError {
