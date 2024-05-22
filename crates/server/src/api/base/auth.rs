@@ -1,6 +1,7 @@
 use axum::Json;
 use serde::{Deserialize, Serialize};
-
+use tracing::info;
+USE crate::{dto::*, service};
 use crate::dao::user::User;
 
 #[derive(Debug, Deserialize)]
@@ -27,7 +28,11 @@ pub struct Response {
         (status = 500, description = "Internal server error", body = [CustomError])
     )
 )]
-pub async fn register(request: RegisterRequest) -> Json<RegisterResponse> {}
+pub async fn register(State(state): State<AppState>, request: RegisterRequest) -> Json<RegisterResponse> {
+    info!("Register new user with request: {request:?}");
+
+    request.validate(&())?;
+}
 
 pub async fn login(request: Json<Request>) -> Json<Response> {
     let user = User::new(&request.username, &request.password, false);
