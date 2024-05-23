@@ -1,8 +1,9 @@
+use crate::dao::user::User;
+use crate::errors::AppResult;
+use crate::{dto::*, service};
 use axum::Json;
 use serde::{Deserialize, Serialize};
 use tracing::info;
-USE crate::{dto::*, service};
-use crate::dao::user::User;
 
 #[derive(Debug, Deserialize)]
 pub struct Request {
@@ -28,7 +29,10 @@ pub struct Response {
         (status = 500, description = "Internal server error", body = [CustomError])
     )
 )]
-pub async fn register(State(state): State<AppState>, request: RegisterRequest) -> Json<RegisterResponse> {
+pub async fn register(
+    State(state): State<AppState>,
+    request: RegisterRequest,
+) -> Json<RegisterResponse> {
     info!("Register new user with request: {request:?}");
 
     request.validate(&())?;

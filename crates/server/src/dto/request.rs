@@ -11,11 +11,11 @@ pub struct RegisterRequest {
 }
 
 impl RegisterRequest {
-    pub fn new(username: &str, email: &str, password: &str) -> Self {
+    pub fn new(username: &str, password: &str, email: &str) -> Self {
         Self {
             username: username.to_string(),
-            email: email.to_string(),
             password: password.to_string(),
+            email: email.to_string(),
         }
     }
 
