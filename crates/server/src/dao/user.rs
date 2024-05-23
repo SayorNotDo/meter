@@ -60,6 +60,14 @@ impl UserDao {
     pub fn new(Extension(pool): Extension<db::Pool>) -> Self {
         UserDao { pool }
     }
+
+    async fn check_unique_by_username(username: &str) -> bool {
+        false
+    }
+
+    async fn check_unique_by_email(email: &str) -> bool {
+        false
+    }
 }
 
 impl BaseDao<User> for UserDao {

@@ -32,10 +32,20 @@ pub struct Response {
 pub async fn register(
     State(state): State<AppState>,
     request: RegisterRequest,
-) -> Json<RegisterResponse> {
+) -> AppResult<Json<RegisterResponse>> {
     info!("Register new user with request: {request:?}");
-
     request.validate(&())?;
+    match service::user::register(state, req).await {
+        Ok(user_id) => {
+            info!("Successfully register user: {user_id");
+            let resp = RegisterResponse { id: user_id };
+            Ok(Json(resp))
+        }
+        Err(e) => {
+            warn!("Failed to register user: {e:?}");
+            Err(e)
+        }
+    }
 }
 
 pub async fn login(request: Json<Request>) -> Json<Response> {
