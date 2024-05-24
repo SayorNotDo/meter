@@ -1,38 +1,113 @@
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
+    Json,
 };
 use db::PoolError;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
+use strum::EnumString;
 use utoipa::ToSchema;
 
 pub use tokio_postgres::Error as TokioPostgresError;
 
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Resource {
+    pub details: Vec<(String, String)>,
+    pub resource_type: ResourceType,
+}
+
+impl std::fmt::Display for Resource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // TODO
+        self.resource_type.fmt(f)
+    }
+}
+
+#[derive(Debug, EnumString, strum::Display, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ResourceType {
+    #[strum(serialize = "USER")]
+    User,
+    #[strum(serialize = "FILE")]
+    File,
+    #[strum(serialize = "SESSION")]
+    Session,
+    #[strum(serialize = "MESSAGE")]
+    Message,
+}
+
 #[derive(Debug, thiserror::Error, ToSchema)]
 pub enum AppError {
-    #[error("{0} not found")]
-    NotFoundError(Resource),
+    // #[error("{0} not found")]
+    // NotFoundError(Resource),
+    // #[error("bad request {0}")]
+    // BadRequestError(String),
+    #[error(transparent)]
+    InvalidInputError(#[from] garde::Report),
 }
 
 impl AppError {
-    pub fn response(self) -> (StatusCode, AppResponseError) {}
+    pub fn response(self) -> (StatusCode, AppResponseError) {
+        use AppError::*;
+        let message = self.to_string();
+        let (kind, code, details, status_code) = match self {
+            // NotFoundError(resource) => (
+            //     format!("{resource}_NOT_FOUND_ERROR"),
+            //     Some(resource.resource_type as i32),
+            //     resource.details.clone(),
+            //     StatusCode::NOT_FOUND,
+            // ),
+            // BadRequestError(_err) => (
+            //     "BAD_REQUEST_ERROR".to_string(),
+            //     None,
+            //     vec![],
+            //     StatusCode::BAD_REQUEST,
+            // ),
+            InvalidInputError(err) => (
+                "INVALID_INPUT_ERROR".to_string(),
+                None,
+                err.iter()
+                    .map(|(p, e)| (p.to_string(), e.to_string()))
+                    .collect(),
+                StatusCode::BAD_REQUEST,
+            ),
+        };
+
+        (
+            status_code,
+            AppResponseError::new(kind, message, code, details),
+        )
+    }
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let (status_code, body) = self.response();
+        (status_code, Json(body)).into_response()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, utoipa::ToSchema)]
 pub struct AppResponseError {
-    pub code: Option<i32>,
+    pub kind: String,
     pub message: String,
+    pub code: Option<i32>,
     pub details: Vec<(String, String)>,
 }
 
 impl AppResponseError {
-    pub fn new(code: Option<i32>, message: Into<String>, details: Vec<(String, String)>) -> Self {
+    pub fn new(
+        kind: impl Into<String>,
+        message: impl Into<String>,
+        code: Option<i32>,
+        details: Vec<(String, String)>,
+    ) -> Self {
         Self {
-            code,
+            kind: kind.into(),
             message: message.into(),
+            code,
             details,
         }
     }

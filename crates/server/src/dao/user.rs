@@ -1,5 +1,5 @@
 use crate::errors::CustomError;
-use axum::{Extension, Json};
+use axum::Extension;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use tokio_postgres::error::DbError;
@@ -61,26 +61,34 @@ impl UserDao {
         UserDao { pool }
     }
 
-    async fn check_unique_by_username(username: &str) -> bool {
-        false
+    async fn check_unique_by_username(&self, username: &str) -> bool {
+        let client = self.pool.get().await.unwrap();
+
+        let user = db::queries::users::get_user_by_username()
+            .bind(&client, &username)
+            .all()
+            .await
+            .unwrap();
+
+        user.is_empty()
     }
 
-    async fn check_unique_by_email(email: &str) -> bool {
+    async fn check_unique_by_email(_email: &str) -> bool {
         false
     }
 }
 
 impl BaseDao<User> for UserDao {
-    async fn all(&self) -> Result<Json<Vec<User>>, CustomError> {
-        let client = self.pool.get().await.unwrap();
-        let users = db::queries::users::get_users()
-            .bind(&client)
-            .all()
-            .await
-            .unwrap();
+    // async fn all(&self) -> Result<Json<Vec<User>>, CustomError> {
+    //     let client = self.pool.get().await.unwrap();
+    //     let users = db::queries::users::get_users()
+    //         .bind(&client)
+    //         .all()
+    //         .await
+    //         .unwrap();
 
-        Ok(Json(users))
-    }
+    //     Ok(Json(users))
+    // }
 
     async fn get_by_id(&self, _id: i32) -> Result<User, DbError> {
         todo!()
@@ -111,6 +119,8 @@ impl BaseDao<User> for UserDao {
 
 #[cfg(test)]
 mod tests {
+
+    use crate::service::user::check_unique_username_or_email;
 
     use super::*;
 
@@ -172,7 +182,21 @@ mod tests {
         let pool = db::create_pool(&db_url);
 
         let user_dao = UserDao::new(Extension(pool));
-        let result = user_dao.all().await;
-        assert!(result.ok())
+        // let result = user_dao.all().await;
+        // assert!(result.ok())
+    }
+
+    #[tokio::test]
+    async fn test_check_unique_by_username() {
+        let username = "test_unique_username";
+
+        let db_url =
+            "postgresql://postgres:testpassword@192.168.50.234:5432/postgres?sslmode=disable";
+        let pool = db::create_pool(&db_url);
+        let user_dao = UserDao::new(Extension(pool));
+
+        let result = user_dao.check_unique_by_username(&username).await;
+
+        assert_eq!(result, true)
     }
 }

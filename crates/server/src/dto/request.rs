@@ -1,4 +1,5 @@
 use garde::Validate;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Validate, utoipa::ToSchema)]
 pub struct RegisterRequest {

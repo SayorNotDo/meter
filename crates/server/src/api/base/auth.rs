@@ -1,9 +1,12 @@
 use crate::dao::user::User;
 use crate::errors::AppResult;
-use crate::{dto::*, service};
+use crate::state::AppState;
+use crate::{dto::request::*, dto::response::*, service};
+use axum::extract::State;
 use axum::Json;
+use garde::Validate;
 use serde::{Deserialize, Serialize};
-use tracing::info;
+use tracing::{info, warn};
 
 #[derive(Debug, Deserialize)]
 pub struct Request {
@@ -23,7 +26,7 @@ pub struct Response {
     post,
     request_body = RegisterRequest,
     path = "/auth/register",
-    response(
+    responses(
         (status = 200, description = "Success register user", body = [RegisterResponse]),
         (status = 400, description = "Invalid data input", body = [CustomError]),
         (status = 500, description = "Internal server error", body = [CustomError])
@@ -31,13 +34,13 @@ pub struct Response {
 )]
 pub async fn register(
     State(state): State<AppState>,
-    request: RegisterRequest,
+    Json(request): Json<RegisterRequest>,
 ) -> AppResult<Json<RegisterResponse>> {
     info!("Register new user with request: {request:?}");
     request.validate(&())?;
-    match service::user::register(state, req).await {
+    match service::user::register(state, request).await {
         Ok(user_id) => {
-            info!("Successfully register user: {user_id");
+            info!("Successfully register user: {user_id}");
             let resp = RegisterResponse { id: user_id };
             Ok(Json(resp))
         }
