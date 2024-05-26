@@ -7,9 +7,9 @@ mod service;
 mod state;
 
 use axum::http::{
-    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
-    HeaderValue, Method,
+    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE}, Extensions, HeaderValue, Method
 };
+use db::create_pool;
 use std::net::SocketAddr;
 
 use tracing::info;
@@ -20,6 +20,11 @@ use tower_http::cors::CorsLayer;
 async fn main() {
     /* Logger */
     logger::init();
+
+    /* Config */
+    let config = config::Config::parse("./config.toml");
+
+    let pool = create_pool(&config.storage.database_url);
 
     /* CORS */
     let cors = CorsLayer::new()
@@ -34,7 +39,9 @@ async fn main() {
         .allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
-    let app = api::create_router().layer(cors);
+
+
+    let app = api::create_router().layer(cors).layer(Extensions(pool.clone()));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
