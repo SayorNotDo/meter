@@ -6,7 +6,6 @@ mod errors;
 mod logger;
 mod service;
 mod state;
-mod entity;
 
 use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},

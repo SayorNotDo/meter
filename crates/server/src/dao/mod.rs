@@ -1,6 +1,6 @@
 use crate::errors::ResourceType;
 
-mod base;
+pub mod base;
 pub mod user;
 
 

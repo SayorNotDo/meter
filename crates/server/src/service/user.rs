@@ -4,6 +4,7 @@ use crate::errors::AppResult;
 use crate::state::AppState;
 
 use tracing::info;
+use crate::dao::base::BaseDao;
 // use uuid::Uuid;
 
 /* 用户注册 */
@@ -12,7 +13,11 @@ pub async fn register(state: AppState, request: RegisterRequest) -> AppResult<i3
     /* 验证注册用户的用户名与邮箱唯一性 */
     check_unique_username_or_email(&state.pool, &request.username, &request.email).await?;
     /* 创建用户 */
-    Ok(0)
+    let new_user = dao::user::User::new(&request.username, &request.password, true);
+    let client = state.pool.get().await.unwrap();
+    let user_dao = dao::user::UserDao::new(client);
+    let user_id = user_dao.insert(&new_user).await?;
+    Ok(user_id)
 }
 
 /* 用户是否已经登录 */
@@ -34,7 +39,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_check_unique_username_or_eamil() {
+    async fn test_check_unique_username_or_email() {
         let username = "unique_username";
         let email = "unique_email@test.com";
 
