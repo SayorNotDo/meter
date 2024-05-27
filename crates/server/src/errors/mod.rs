@@ -1,15 +1,11 @@
 use axum::{
     http::StatusCode,
-    response::{IntoResponse, Response},
     Json,
+    response::{IntoResponse, Response},
 };
-use db::PoolError;
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use strum::EnumString;
 use utoipa::ToSchema;
-
-pub use tokio_postgres::Error as TokioPostgresError;
 
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
@@ -38,6 +34,16 @@ pub enum ResourceType {
     Message,
 }
 
+pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
+    let mut report = garde::Report::new();
+    report.append(garde::Path::new(field), garde::Error::new(message));
+    AppError::InvalidInputError(report)
+}
+
+pub trait ToAppResult {
+
+}
+
 #[derive(Debug, thiserror::Error, ToSchema)]
 pub enum AppError {
     // #[error("{0} not found")]
@@ -46,6 +52,8 @@ pub enum AppError {
     // BadRequestError(String),
     #[error(transparent)]
     InvalidInputError(#[from] garde::Report),
+    #[error("{0} already exists")]
+    ResourceExistsError(Resource),
 }
 
 impl AppError {
@@ -72,6 +80,12 @@ impl AppError {
                     .map(|(p, e)| (p.to_string(), e.to_string()))
                     .collect(),
                 StatusCode::BAD_REQUEST,
+            ),
+            ResourceExistsError(resource) => (
+                format!("{resource}_ALREADY_EXISTS_ERROR"),
+                Some(resource.resource_type as i32),
+                resource.details.clone(),
+                StatusCode::CONFLICT,
             ),
         };
 
@@ -113,46 +127,46 @@ impl AppResponseError {
     }
 }
 
-#[derive(Debug)]
-pub enum CustomError {
-    FaulySetup(String),
-    Database(String),
-}
+// #[derive(Debug)]
+// pub enum CustomError {
+//     FaultySetup(String),
+//     Database(String),
+// }
 
 // Allow the use of "{}" format specifier
-impl fmt::Display for CustomError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            CustomError::FaulySetup(ref cause) => write!(f, "Setup Error: {}", cause),
-            CustomError::Database(ref cause) => write!(f, "Database Error: {}", cause),
-        }
-    }
-}
+// impl std::fmt::Display for CustomError {
+//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+//         match *self {
+//             CustomError::FaultySetup(ref cause) => write!(f, "Setup Error: {}", cause),
+//             CustomError::Database(ref cause) => write!(f, "Database Error: {}", cause),
+//         }
+//     }
+// }
 
-impl IntoResponse for CustomError {
-    fn into_response(self) -> Response {
-        let (status, error_message) = match self {
-            CustomError::Database(message) => (StatusCode::UNPROCESSABLE_ENTITY, message),
-            CustomError::FaulySetup(message) => (StatusCode::UNPROCESSABLE_ENTITY, message),
-        };
-        format!("status = {}, message = {}", status, error_message).into_response()
-    }
-}
-
-impl From<axum::http::uri::InvalidUri> for CustomError {
-    fn from(err: axum::http::uri::InvalidUri) -> CustomError {
-        CustomError::FaulySetup(err.to_string())
-    }
-}
-
-impl From<TokioPostgresError> for CustomError {
-    fn from(err: TokioPostgresError) -> CustomError {
-        CustomError::Database(err.to_string())
-    }
-}
-
-impl From<PoolError> for CustomError {
-    fn from(err: PoolError) -> CustomError {
-        CustomError::Database(err.to_string())
-    }
-}
+// impl IntoResponse for CustomError {
+//     fn into_response(self) -> Response {
+//         let (status, error_message) = match self {
+//             CustomError::Database(message) => (StatusCode::UNPROCESSABLE_ENTITY, message),
+//             CustomError::FaultySetup(message) => (StatusCode::UNPROCESSABLE_ENTITY, message),
+//         };
+//         format!("status = {}, message = {}", status, error_message).into_response()
+//     }
+// }
+//
+// impl From<axum::http::uri::InvalidUri> for CustomError {
+//     fn from(err: axum::http::uri::InvalidUri) -> CustomError {
+//         CustomError::FaultySetup(err.to_string())
+//     }
+// }
+//
+// impl From<TokioPostgresError> for CustomError {
+//     fn from(err: TokioPostgresError) -> CustomError {
+//         CustomError::Database(err.to_string())
+//     }
+// }
+//
+// impl From<PoolError> for CustomError {
+//     fn from(err: PoolError) -> CustomError {
+//         CustomError::Database(err.to_string())
+//     }
+// }

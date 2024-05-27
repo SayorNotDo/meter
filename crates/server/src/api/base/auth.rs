@@ -2,7 +2,7 @@ use crate::dao::user::User;
 use crate::errors::AppResult;
 use crate::state::AppState;
 use crate::{dto::request::*, dto::response::*, service};
-use axum::extract::State;
+use axum::extract::Extension;
 use axum::Json;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
@@ -27,13 +27,13 @@ pub struct Response {
     request_body = RegisterRequest,
     path = "/auth/register",
     responses(
-        (status = 200, description = "Success register user", body = [RegisterResponse]),
-        (status = 400, description = "Invalid data input", body = [CustomError]),
-        (status = 500, description = "Internal server error", body = [CustomError])
+    (status = 200, description = "Success register user", body = [RegisterResponse]),
+    (status = 400, description = "Invalid data input", body = [CustomError]),
+    (status = 500, description = "Internal server error", body = [CustomError])
     )
 )]
 pub async fn register(
-    State(state): State<AppState>,
+    Extension(state): Extension<AppState>,
     Json(request): Json<RegisterRequest>,
 ) -> AppResult<Json<RegisterResponse>> {
     info!("Register new user with request: {request:?}");

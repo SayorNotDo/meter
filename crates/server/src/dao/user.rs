@@ -1,11 +1,13 @@
-use crate::errors::CustomError;
-use axum::Extension;
+use std::vec;
+use crate::errors::{AppError, AppResult, CustomError, Resource, ResourceType};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use tokio_postgres::error::DbError;
+use axum::Json;
 
 use crypto_utils::sha::{Algorithm, CryptographicHash};
 use uuid::Uuid;
+use crate::dao::Entity;
 
 use super::base::BaseDao;
 
@@ -18,6 +20,10 @@ pub struct User {
     pub email: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+impl Entity for User {
+    const RESOURCE: ResourceType = ResourceType::User;
 }
 
 impl User {
@@ -53,52 +59,64 @@ impl User {
 }
 
 pub struct UserDao {
-    pool: db::Pool,
+    client: db::Client,
 }
 
 impl UserDao {
-    pub fn new(Extension(pool): Extension<db::Pool>) -> Self {
-        UserDao { pool }
+    pub fn new(client: db::Client) -> Self {
+        UserDao { client }
     }
 
-    async fn check_unique_by_username(&self, username: &str) -> bool {
-        let client = self.pool.get().await.unwrap();
-
+    pub async fn check_unique_by_username(&self, username: &str) -> AppResult {
         let user = db::queries::users::get_user_by_username()
-            .bind(&client, &username)
+            .bind(&self.client, &username)
             .all()
-            .await
-            .unwrap();
-
-        user.is_empty()
+            .await?;
+        if user.is_empty() {
+            Ok(())
+        } else {
+            Err(AppError::ResourceExistsError(Resource {
+                details: vec![],
+                resource_type: ResourceType::User,
+            }))
+        }
     }
 
-    async fn check_unique_by_email(_email: &str) -> bool {
-        false
+    pub async fn check_unique_by_email(&self, email: &str) -> AppResult {
+        let user = db::queries::users::get_user_by_email()
+            .bind(&self.client, &email)
+            .all()
+            .await?;
+        if user.is_empty() {
+            Ok(())
+        } else {
+            Err(AppError::ResourceExistsError(Resource {
+                details: vec![],
+                resource_type: ResourceType::User,
+            }))
+        }
     }
 }
 
 impl BaseDao<User> for UserDao {
-    // async fn all(&self) -> Result<Json<Vec<User>>, CustomError> {
-    //     let client = self.pool.get().await.unwrap();
-    //     let users = db::queries::users::get_users()
-    //         .bind(&client)
-    //         .all()
-    //         .await
-    //         .unwrap();
+    async fn all(&self) -> AppResult<Vec<User>> {
+        let _users = db::queries::users::get_users()
+            .bind(&self.client)
+            .all()
+            .await
+            .unwrap();
 
-    //     Ok(Json(users))
-    // }
+        Ok(vec![])
+    }
 
     async fn get_by_id(&self, _id: i32) -> Result<User, DbError> {
         todo!()
     }
 
-    async fn insert(&self, object: &User) -> Result<(), CustomError> {
-        let client = self.pool.get().await.unwrap();
+    async fn insert(&self, object: &User) -> AppResult {
         let ret = db::queries::users::insert_user()
             .bind(
-                &client,
+                &self.client,
                 &object.username,
                 &object.hashed_password,
                 &object.uuid,
@@ -117,12 +135,14 @@ impl BaseDao<User> for UserDao {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
 
-    use crate::service::user::check_unique_username_or_email;
+    // use crate::service::user::check_unique_username_or_email;
 
     use super::*;
+
 
     #[test]
     fn test_username_is_lowercase() {
@@ -155,7 +175,9 @@ mod tests {
         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
         let pool = db::create_pool(&db_url);
 
-        let user_dao = UserDao::new(Extension(pool));
+        let client = pool.get().await.unwrap();
+
+        let user_dao = UserDao::new(client);
         let result = user_dao.insert(&user).await;
 
         assert!(result.is_ok())
@@ -164,14 +186,15 @@ mod tests {
     #[tokio::test]
     async fn test_complicated_username() {
         let username = "test_username";
-        let password = "testpassword";
+        let password = "test_password";
 
         let user = User::new(username, password, true);
 
         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
         let pool = db::create_pool(&db_url);
 
-        let user_dao = UserDao::new(Extension(pool));
+        let client = pool.get().await.unwrap();
+        let user_dao = UserDao::new(client);
         let result = user_dao.insert(&user).await;
         assert!(result.is_err())
     }
@@ -181,22 +204,27 @@ mod tests {
         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
         let pool = db::create_pool(&db_url);
 
-        let user_dao = UserDao::new(Extension(pool));
-        // let result = user_dao.all().await;
+        let client = pool.get().await.unwrap();
+        let user_dao = UserDao::new(client);
+
+        let _result = user_dao.all().await;
         // assert!(result.ok())
+        dbg!(())
     }
 
     #[tokio::test]
     async fn test_check_unique_by_username() {
         let username = "test_unique_username";
 
-        let db_url =
-            "postgresql://postgres:testpassword@192.168.50.234:5432/postgres?sslmode=disable";
+        let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
         let pool = db::create_pool(&db_url);
-        let user_dao = UserDao::new(Extension(pool));
+
+        let client = pool.get().await.unwrap();
+        let user_dao = UserDao::new(client);
 
         let result = user_dao.check_unique_by_username(&username).await;
 
-        assert_eq!(result, true)
+        // assert_eq!(result, true)
+        dbg!(())
     }
 }

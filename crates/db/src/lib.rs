@@ -2,7 +2,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 pub use cornucopia_async::Params;
-pub use deadpool_postgres::{Pool, PoolError, Transaction};
+pub use deadpool_postgres::{Pool, PoolError, Transaction, Client};
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls_pki_types::{CertificateDer, ServerName, UnixTime};
 
@@ -10,8 +10,8 @@ pub use tokio_postgres::Error as TokioPostgresError;
 
 pub use queries::users::User;
 
-pub fn create_pool(datebase_url: &str) -> Pool {
-    let config = tokio_postgres::Config::from_str(datebase_url).unwrap();
+pub fn create_pool(database_url: &str) -> Pool {
+    let config = tokio_postgres::Config::from_str(database_url).unwrap();
 
     let manager = if config.get_ssl_mode() != tokio_postgres::config::SslMode::Disable {
         let tls_config = rustls::ClientConfig::builder()

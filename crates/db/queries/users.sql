@@ -23,3 +23,13 @@ SELECT
    	updated_at
 FROM users
 WHERE username = :username;
+
+--! get_user_by_email
+SELECT
+    id,
+    username,
+    email,
+    created_at,
+    updated_at
+FROM users
+WHERE email = :email;
