@@ -1,35 +1,21 @@
-use crate::dao::user::User;
-use crate::errors::AppResult;
-use crate::state::AppState;
-use crate::{dto::request::*, dto::response::*, service};
 use axum::extract::Extension;
 use axum::Json;
 use garde::Validate;
-use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
-#[derive(Debug, Deserialize)]
-pub struct Request {
-    pub username: String,
-    pub password: String,
-    pub authenticate: String,
-}
+use crate::{dto::request::*, dto::response::*, service};
+use crate::errors::AppResult;
+use crate::state::AppState;
 
-#[derive(Debug, Serialize)]
-pub struct Response {
-    pub csrf_token: String,
-    pub session_id: String,
-    pub token: String,
-}
-
+/// User Register
 #[utoipa::path(
     post,
     request_body = RegisterRequest,
     path = "/auth/register",
     responses(
     (status = 200, description = "Success register user", body = [RegisterResponse]),
-    (status = 400, description = "Invalid data input", body = [CustomError]),
-    (status = 500, description = "Internal server error", body = [CustomError])
+    (status = 400, description = "Invalid data input", body = [AppError]),
+    (status = 500, description = "Internal server error", body = [AppError])
     )
 )]
 pub async fn register(
@@ -51,23 +37,41 @@ pub async fn register(
     }
 }
 
-pub async fn login(request: Json<Request>) -> Json<Response> {
-    let user = User::new(&request.username, &request.password, false);
-    println!("{:?}", user);
-    Json(Response {
-        csrf_token: "".to_string(),
-        session_id: "".to_string(),
-        token: "".to_string(),
-    })
+/// User Login
+#[utoipa::path(
+    post,
+    request_body = LoginRequest,
+    path = "/auth/login",
+    responses(
+    (status = 200, description = "Login success", body = [LoginResponse]),
+    (status = 400, description = "Invalid data input", body = [AppError]),
+    (status = 500, description = "Internal server error", body = [AppError])
+    )
+)]
+pub async fn login(
+    Extension(state): Extension<AppState>,
+    Json(request): Json<LoginRequest>,
+) -> AppResult<Json<LoginResponse>> {
+    info!("Login user with request: {request:?}.");
+    request.validate(&())?;
+    match service::user::login(state, request).await {
+        Ok(_msg) => {
+            info!("Successfully login user");
+            let resp = LoginResponse {
+                csrf_token: "".to_string(),
+                session_id: "".to_string(),
+                token: "".to_string(),
+            };
+            Ok(Json(resp))
+        }
+        Err(e) => {
+            warn!("Failed to login user: {e:?}");
+            Err(e)
+        }
+    }
 }
 
-pub async fn logout() -> Json<Response> {
-    Json(Response {
-        csrf_token: "".to_string(),
-        session_id: "".to_string(),
-        token: "".to_string(),
-    })
-}
+pub async fn logout() {}
 
 // check user is already login
 pub async fn is_login() -> Json<()> {

@@ -24,3 +24,11 @@ impl RegisterRequest {
         serde_json::to_string(&self)
     }
 }
+
+#[derive(Debug, Deserialize, Serialize, Validate, utoipa::ToSchema)]
+pub struct LoginRequest {
+    #[garde(ascii, length(min = 3, max = 25))]
+    pub username: String,
+    #[garde(length(min = 8))]
+    pub password: String
+}

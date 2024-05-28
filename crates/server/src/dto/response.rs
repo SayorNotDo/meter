@@ -6,5 +6,11 @@ use utoipa::ToSchema;
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct RegisterResponse {
     pub id: i32,
-    // pub uuid: Uuid,
+}
+
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub struct LoginResponse {
+    pub csrf_token: String,
+    pub session_id: String,
+    pub token: String,
 }

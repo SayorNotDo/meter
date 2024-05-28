@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use strum::EnumString;
 use utoipa::ToSchema;
 use crate::dao;
+use tokio_postgres::Error as TokioPostgresError;
 
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
@@ -57,7 +58,7 @@ impl<T> ToAppResult for Option<T>
     fn to_result(self) -> AppResult<Self::Output> {
         self.ok_or_else(|| {
             AppError::NotFoundError(Resource {
-                details,
+                details: vec![],
                 resource_type: Self::Output::RESOURCE,
             })
         })
@@ -83,14 +84,12 @@ impl<T> ToAppResult for Option<T>
         }
     }
     fn to_result_details(self, details: Vec<(String, String)>) -> AppResult<Self::Output> {
-        if self.is_some() {
-            Err(AppError::ResourceExistsError(Resource {
+        self.ok_or_else(|| {
+            AppError::NotFoundError(Resource {
                 details,
                 resource_type: Self::Output::RESOURCE,
-            }))
-        } else {
-            Ok(())
-        }
+            })
+        })
     }
 }
 
@@ -104,6 +103,8 @@ pub enum AppError {
     InvalidInputError(#[from] garde::Report),
     #[error("{0} already exists")]
     ResourceExistsError(Resource),
+    #[error(transparent)]
+    DatabaseError(#[from] TokioPostgresError),
 }
 
 impl AppError {
@@ -136,6 +137,12 @@ impl AppError {
                 Some(resource.resource_type as i32),
                 resource.details.clone(),
                 StatusCode::CONFLICT,
+            ),
+            DatabaseError(_err) => (
+                "DATABASE_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR
             ),
         };
 
@@ -176,47 +183,3 @@ impl AppResponseError {
         }
     }
 }
-
-// #[derive(Debug)]
-// pub enum CustomError {
-//     FaultySetup(String),
-//     Database(String),
-// }
-
-// Allow the use of "{}" format specifier
-// impl std::fmt::Display for CustomError {
-//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-//         match *self {
-//             CustomError::FaultySetup(ref cause) => write!(f, "Setup Error: {}", cause),
-//             CustomError::Database(ref cause) => write!(f, "Database Error: {}", cause),
-//         }
-//     }
-// }
-
-// impl IntoResponse for CustomError {
-//     fn into_response(self) -> Response {
-//         let (status, error_message) = match self {
-//             CustomError::Database(message) => (StatusCode::UNPROCESSABLE_ENTITY, message),
-//             CustomError::FaultySetup(message) => (StatusCode::UNPROCESSABLE_ENTITY, message),
-//         };
-//         format!("status = {}, message = {}", status, error_message).into_response()
-//     }
-// }
-//
-// impl From<axum::http::uri::InvalidUri> for CustomError {
-//     fn from(err: axum::http::uri::InvalidUri) -> CustomError {
-//         CustomError::FaultySetup(err.to_string())
-//     }
-// }
-//
-// impl From<TokioPostgresError> for CustomError {
-//     fn from(err: TokioPostgresError) -> CustomError {
-//         CustomError::Database(err.to_string())
-//     }
-// }
-//
-// impl From<PoolError> for CustomError {
-//     fn from(err: PoolError) -> CustomError {
-//         CustomError::Database(err.to_string())
-//     }
-// }

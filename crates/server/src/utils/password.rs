@@ -1,0 +1,1 @@
+pub async fn hash(password: String) -> AppResult<String> {}

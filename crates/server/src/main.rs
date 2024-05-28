@@ -1,3 +1,17 @@
+use std::net::SocketAddr;
+
+use axum::extract::Extension;
+use axum::http::{
+    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
+    HeaderValue, Method,
+};
+use tower_http::cors::CorsLayer;
+use tracing::info;
+
+use db::create_pool;
+
+use crate::state::AppState;
+
 mod api;
 mod config;
 mod dao;
@@ -6,20 +20,8 @@ mod errors;
 mod logger;
 mod service;
 mod state;
+mod utils;
 
-use axum::http::{
-    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
-    HeaderValue, Method,
-};
-
-use axum::extract::Extension;
-use db::create_pool;
-use std::net::SocketAddr;
-
-use tracing::info;
-
-use tower_http::cors::CorsLayer;
-use crate::state::AppState;
 
 #[tokio::main]
 async fn main() {

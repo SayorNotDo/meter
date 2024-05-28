@@ -1,11 +1,12 @@
-use crate::dao;
-use crate::dto::request::*;
-use crate::errors::AppResult;
-use crate::state::AppState;
-
 use tracing::info;
+
+use crate::dao;
 use crate::dao::base::BaseDao;
-// use uuid::Uuid;
+use crate::dao::user::UserDao;
+use crate::dto::request::*;
+use crate::dto::response::LoginResponse;
+use crate::errors::{AppError, AppResult, Resource, ResourceType};
+use crate::state::AppState;
 
 /* 用户注册 */
 pub async fn register(state: AppState, request: RegisterRequest) -> AppResult<i32> {
@@ -13,11 +14,24 @@ pub async fn register(state: AppState, request: RegisterRequest) -> AppResult<i3
     /* 验证注册用户的用户名与邮箱唯一性 */
     check_unique_username_or_email(&state.pool, &request.username, &request.email).await?;
     /* 创建用户 */
-    let new_user = dao::user::User::new(&request.username, &request.password, true);
+    let new_user = dao::user::User::new(&request.username, &request.password, Some(&request.email), true);
     let client = state.pool.get().await.unwrap();
-    let user_dao = dao::user::UserDao::new(client);
+    let user_dao = UserDao::new(client);
     let user_id = user_dao.insert(&new_user).await?;
     Ok(user_id)
+}
+
+/* 用户登录 */
+pub async fn login(state: AppState, request: LoginRequest) -> AppResult<LoginResponse> {
+    info!("User login request: {request:?}.");
+    let client = state.pool.get().await.unwrap();
+    let user_dao = UserDao::new(client);
+    let _user = user_dao.find_by_username(&request.username).await?;
+
+    Err(AppError::NotFoundError(Resource {
+        details: vec![],
+        resource_type: ResourceType::User
+    }))
 }
 
 /* 用户是否已经登录 */
