@@ -44,3 +44,6 @@ toml = "0.8.13"
 
 # Hashing
 argon2 = "0.5.3"
+jsonwebtoken = "9.3.0"
+once_cell = "1.19.0"
+redis = { version = "0.25.4", features = ["tokio-comp"] }

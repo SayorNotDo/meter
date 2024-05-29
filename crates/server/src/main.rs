@@ -22,6 +22,7 @@ mod logger;
 mod service;
 mod state;
 mod utils;
+mod constant;
 
 
 #[tokio::main]

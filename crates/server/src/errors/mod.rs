@@ -99,6 +99,12 @@ pub enum AppError {
     InvalidInputError(#[from] garde::Report),
     #[error("{0}")]
     HashError(String),
+    #[error(transparent)]
+    RedisError(#[from] redis::RedisError),
+    #[error(transparent)]
+    ParseJsonError(#[from] serde_json::Error),
+    #[error(transparent)]
+    JwtError(#[from] jsonwebtoken::errors::Error),
     #[error("{0} already exists")]
     ResourceExistsError(Resource),
     #[error(transparent)]
@@ -143,6 +149,24 @@ impl AppError {
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR
+            ),
+            RedisError(_err) => (
+                "REDIS_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            ParseJsonError(_err) => (
+                "PARSE_JSON_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            JwtError(_err) => (
+                "UNAUTHORIZED_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::UNAUTHORIZED,
             ),
             // BadRequestError(_err) => (
             //     "BAD_REQUEST_ERROR".to_string(),

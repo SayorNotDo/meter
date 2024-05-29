@@ -6,6 +6,8 @@ use crate::dao::user::UserDao;
 use crate::dto::request::*;
 use crate::dto::response::LoginResponse;
 use crate::errors::AppResult;
+use crate::service::session;
+use crate::service::token;
 use crate::state::AppState;
 use crate::utils;
 
@@ -31,11 +33,10 @@ pub async fn login(state: AppState, request: LoginRequest) -> AppResult<LoginRes
     let user = user_dao.find_by_username(&request.username).await?;
     /* 校验用户密码 */
     utils::password::verify(request.password.clone(), user.hashed_password.clone()).await?;
-    Ok(LoginResponse {
-        csrf_token: "".to_string(),
-        session_id: "".to_string(),
-        token: "".to_string(),
-    })
+    /* 生成token */
+    let session_id = session::set(&state.redis, user.uuid).await?;
+    let resp = token::generate_tokens(user.uuid, session_id)?;
+    Ok(LoginResponse::Token(resp))
 }
 
 /* 用户是否已经登录 */

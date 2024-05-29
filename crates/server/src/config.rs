@@ -1,5 +1,8 @@
 use serde::Deserialize;
 use std::fs;
+use std::path::PathBuf;
+
+use crate::utils;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
@@ -22,15 +25,32 @@ pub struct ConfigHTTP {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ConfigJWT {
-    pub secret: String,
-    pub expires: i64,
+    pub private_access_key: PathBuf,
+    pub public_access_key: PathBuf,
+    pub private_refresh_key: PathBuf,
+    pub public_refresh_key: PathBuf,
+}
+
+impl ConfigJWT {
+    pub fn read_private_access_key(&self) -> Result<String, std::io::Error> {
+        fs::read_to_string(utils::dir::get_project_root()?.join(&self.private_access_key))
+    }
+    pub fn read_public_access_key(&self) -> Result<String, std::io::Error> {
+        fs::read_to_string(utils::dir::get_project_root()?.join(&self.public_access_key))
+    }
+    pub fn read_private_refresh_key(&self) -> Result<String, std::io::Error> {
+        fs::read_to_string(utils::dir::get_project_root()?.join(&self.private_refresh_key))
+    }
+    pub fn read_public_refresh_key(&self) -> Result<String, std::io::Error> {
+        fs::read_to_string(utils::dir::get_project_root()?.join(&self.public_refresh_key))
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConfigStorage {
     pub database_url: String,
-    pub redis_url: String
+    pub redis_url: String,
 }
 
 impl Config {

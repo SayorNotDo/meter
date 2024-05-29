@@ -8,7 +8,10 @@ tlsCert = ""
 tlsKey = ""
 
 [jwt]
-secret = "secrer key used to sign tokens"
+private_access_key = "./static/keys/private_access_rsa_key.pem"
+public_access_key = "./static/keys/public_access_rsa_key.pem"
+private_refresh_key = "./static/keys/private_refresh_rsa_key.pem"
+public_refresh_key = "./static/keys/public_refresh_rsa_key.pem"
 expires = 24
 
 [storage]
