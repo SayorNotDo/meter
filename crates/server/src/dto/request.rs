@@ -30,8 +30,11 @@ pub struct LoginRequest {
     #[garde(ascii, length(min = 3, max = 25))]
     pub username: String,
     #[garde(length(min = 8))]
-    pub password: String
+    pub password: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Validate, utoipa::ToSchema)]
+pub struct LogoutRequest {}
 
 #[cfg(test)]
 mod tests {

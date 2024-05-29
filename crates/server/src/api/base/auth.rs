@@ -3,9 +3,9 @@ use axum::Json;
 use garde::Validate;
 use tracing::{info, warn};
 
-use crate::{dto::request::*, dto::response::*, service};
 use crate::errors::AppResult;
 use crate::state::AppState;
+use crate::{dto::request::*, dto::response::*, service};
 
 /// User Register
 #[utoipa::path(
@@ -66,7 +66,22 @@ pub async fn login(
     }
 }
 
-pub async fn logout() {}
+/// User Logout
+#[utoipa::path(
+get,
+path = "/auth/logout",
+responses(
+    (status = 200, description = "Logout success", body = [LogoutResponse]),
+    (status = 400, description = "Invalid data input", body = [AppError]),
+    (status = 500, description = "Internal server error", body = [AppError])
+)
+)]
+pub async fn logout(
+    Extension(state): Extension<AppState>,
+    Json(request): Json<LogoutRequest>,
+) -> AppResult<Json<MessageResponse>> {
+    match service::user::logout(state, request).await {}
+}
 
 // check user is already login
 pub async fn is_login() -> Json<()> {
