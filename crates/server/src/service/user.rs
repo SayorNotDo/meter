@@ -5,6 +5,7 @@ use crate::dao::base::BaseDao;
 use crate::dao::user::UserDao;
 use crate::dto::request::*;
 use crate::dto::response::LoginResponse;
+use crate::dto::response::MessageResponse;
 use crate::errors::AppResult;
 use crate::service::session;
 use crate::service::token;
@@ -37,6 +38,12 @@ pub async fn login(state: AppState, request: LoginRequest) -> AppResult<LoginRes
     let session_id = session::set(&state.redis, user.uuid).await?;
     let resp = token::generate_tokens(user.uuid, session_id)?;
     Ok(LoginResponse::Token(resp))
+}
+
+/* 用户登出 */
+pub async fn logout(state: AppState) -> AppResult<MessageResponse> {
+    info!("User logout");
+    
 }
 
 /* 用户是否已经登录 */

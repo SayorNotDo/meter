@@ -5,6 +5,19 @@ use utoipa::ToSchema;
 
 use crate::constant::BEARER;
 
+
+#[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
+pub struct MessageResponse {
+    pub message: String,
+}
+
+impl MessageResponse {
+    pub fn new<S: Into<String>>(message: S) -> Self {
+        Self { message: message.into() }
+    }
+}
+
+
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct RegisterResponse {
     pub id: i32,

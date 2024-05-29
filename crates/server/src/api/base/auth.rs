@@ -5,6 +5,7 @@ use tracing::{info, warn};
 
 use crate::errors::AppResult;
 use crate::state::AppState;
+use crate::utils::claim::UserClaims;
 use crate::{dto::request::*, dto::response::*, service};
 
 /// User Register
@@ -44,8 +45,8 @@ pub async fn register(
     path = "/auth/login",
     responses(
     (status = 200, description = "Login success", body = [LoginResponse]),
-    (status = 400, description = "Invalid data input", body = [AppError]),
-    (status = 500, description = "Internal server error", body = [AppError])
+    (status = 400, description = "Invalid data input", body = [AppResponseError]),
+    (status = 500, description = "Internal server error", body = [AppResponseError])
     )
 )]
 pub async fn login(
@@ -71,16 +72,29 @@ pub async fn login(
 get,
 path = "/auth/logout",
 responses(
-    (status = 200, description = "Logout success", body = [LogoutResponse]),
-    (status = 400, description = "Invalid data input", body = [AppError]),
-    (status = 500, description = "Internal server error", body = [AppError])
+    (status = 200, description = "Logout success", body = [MessageResponse]),
+    (status = 400, description = "Unauthorized user", body = [AppResponseError]),
+    (status = 500, description = "Internal server error", body = [AppResponseError])
 )
+security(("jwt" = []))
 )]
 pub async fn logout(
     Extension(state): Extension<AppState>,
-    Json(request): Json<LogoutRequest>,
+    user: UserClaims,
 ) -> AppResult<Json<MessageResponse>> {
-    match service::user::logout(state, request).await {}
+    info!("Logout user's uuid: {}", user.uid);
+    match service::user::logout(&state).await {
+        Ok(resp) => {
+            info!("Successfully logout");
+            Ok(Json(MessageResponse::new(
+                "This user has successfully logout.",
+            )))
+        }
+        Err(e) => {
+            warn!("Failed to logout: {e:?}");
+            Err(e)
+        }
+    }
 }
 
 // check user is already login
