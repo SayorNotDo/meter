@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 use axum::extract::Extension;
 use axum::http::{
@@ -47,7 +48,8 @@ async fn main() {
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     /* State */
-    let state = AppState::new(pool);
+    let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
+    let state = AppState::new(pool, redis);
 
     let app = api::create_router()
         .layer(cors)

@@ -32,3 +32,14 @@ pub struct LoginRequest {
     #[garde(length(min = 8))]
     pub password: String
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_invalid_email_register_request() {
+        let req = RegisterRequest::new("username", "email", "password");
+        assert!(req.validate(&()).is_err());
+    }
+}

@@ -26,7 +26,6 @@ backtrace = "0.3.71"
 # Time Processing
 chrono = { version = "0.4.38", features = ["serde"] }
 hex = "0.4.3"
-crypto-utils = "0.4.1"
 time = "0.3.36"
 
 # Database
@@ -42,4 +41,6 @@ serde_json = "1.0.117"
 thiserror = "1.0.61"
 strum = { version = "0.26.2", features = ["derive"] }
 toml = "0.8.13"
+
+# Hashing
 argon2 = "0.5.3"

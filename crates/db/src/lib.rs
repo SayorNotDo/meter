@@ -1,3 +1,5 @@
+pub mod redis;
+
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -25,6 +27,10 @@ pub fn create_pool(database_url: &str) -> Pool {
         deadpool_postgres::Manager::new(config, tokio_postgres::NoTls)
     };
     Pool::builder(manager).build().unwrap()
+}
+
+pub fn redis_client_builder(redis_url: &str) -> redis::RedisClient {
+    redis::RedisClient::open(redis_url).unwrap()
 }
 
 include!(concat!(env!("OUT_DIR"), "/cornucopia.rs"));

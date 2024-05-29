@@ -1,16 +1,13 @@
 use std::vec;
 
-use time::PrimitiveDateTime;
-use chrono::{DateTime, Utc, NaiveDateTime};
-use crypto_utils::sha::{Algorithm, CryptographicHash};
+use chrono::{Utc, DateTime};
 use serde::Serialize;
 use tokio_postgres::error::DbError;
+use tracing::log::info;
 use uuid::Uuid;
-use crate::utils;
 
 use crate::dao::Entity;
 use crate::errors::{AppError, AppResult, Resource, ResourceType};
-use crate::utils::time::time_convert;
 
 use super::base::BaseDao;
 
@@ -21,8 +18,8 @@ pub struct User {
     pub username: String,
     pub hashed_password: String,
     pub email: String,
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 impl Entity for User {
@@ -33,19 +30,10 @@ impl User {
     pub fn new(username: &str, password: &str, email: Option<&str>, gen_uuid: bool) -> Self {
         let username = username.to_lowercase();
 
-        // salting the password
-        let password = format!("{username}${password}");
-
         let email = match email {
             None => "".to_string(),
             Some(email) => email.to_string()
         };
-
-        // hash the password using SHA-512 algorithm and encode it into String.
-        let hashed_password = hex::encode(CryptographicHash::hash(
-            Algorithm::SHA512,
-            password.as_bytes(),
-        ));
 
         // generate UUID
         let uuid = if gen_uuid {
@@ -58,10 +46,10 @@ impl User {
             id: 0,
             uuid,
             username,
-            hashed_password,
+            hashed_password: password.to_string(),
             email,
-            created_at: Utc::now().naive_utc(),
-            updated_at: Utc::now().naive_utc(),
+            created_at: Utc::now(),
+            updated_at: None,
         }
     }
 }
@@ -84,15 +72,22 @@ impl UserDao {
             .await?;
         match ret {
             Some(user) => {
+                let timestamp_updated_at = match user.updated_at {
+                    Some(t) => t.assume_utc().unix_timestamp_nanos(),
+                    None => 0
+                };
+                let timestamp_created_at = user.created_at.assume_utc().unix_timestamp_nanos();
+                info!("time: {timestamp_created_at}");
                 let u = User {
                     id: user.id,
                     username: user.username,
-                    uuid: Uuid::nil(),
+                    uuid: user.uuid.unwrap(),
                     hashed_password: user.hashed_password.unwrap(),
                     email: user.email.unwrap(),
-                    created_at: time_convert(user.created_at).unwrap(),
-                    updated_at: time_convert(user.updated_at?).unwrap()
+                    created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
+                    updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
                 };
+                info!("Successfully find by name: {u:?}.");
                 Ok(u)
             }
             None => {
@@ -148,6 +143,7 @@ impl BaseDao<User> for UserDao {
         Ok(vec![])
     }
 
+    #[allow(dead_code)]
     async fn insert(&self, object: &User) -> AppResult<i32> {
         let user_id = db::queries::users::insert_user()
             .bind(
@@ -162,14 +158,17 @@ impl BaseDao<User> for UserDao {
         Ok(user_id)
     }
 
+    #[allow(dead_code)]
     async fn get_by_id(&self, _id: i32) -> Result<User, DbError> {
         todo!()
     }
 
+    #[allow(dead_code)]
     async fn update(&self, _object: &User) -> Result<User, DbError> {
         todo!()
     }
 
+    #[allow(dead_code)]
     async fn delete_by_id(&self, _id: i32) -> Result<User, DbError> {
         todo!()
     }

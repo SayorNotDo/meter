@@ -5,9 +5,10 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
-use utoipa::ToSchema;
-use crate::dao;
 use tokio_postgres::Error as TokioPostgresError;
+use utoipa::ToSchema;
+
+use crate::dao;
 
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
@@ -36,11 +37,6 @@ pub enum ResourceType {
     Message,
 }
 
-pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
-    let mut report = garde::Report::new();
-    report.append(garde::Path::new(field), garde::Error::new(message));
-    AppError::InvalidInputError(report)
-}
 
 pub trait ToAppResult {
     type Output: dao::Entity;
@@ -101,10 +97,28 @@ pub enum AppError {
     // BadRequestError(String),
     #[error(transparent)]
     InvalidInputError(#[from] garde::Report),
+    #[error("{0}")]
+    HashError(String),
     #[error("{0} already exists")]
     ResourceExistsError(Resource),
     #[error(transparent)]
     DatabaseError(#[from] TokioPostgresError),
+    #[error(transparent)]
+    SpawnTaskError(#[from] tokio::task::JoinError),
+    #[error("{0} convert error")]
+    TimeConvertError(Resource),
+}
+
+pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
+    let mut report = garde::Report::new();
+    report.append(garde::Path::new(field), garde::Error::new(message));
+    AppError::InvalidInputError(report)
+}
+
+impl From<argon2::password_hash::Error> for AppError {
+    fn from(value: argon2::password_hash::Error) -> Self {
+        AppError::HashError(value.to_string())
+    }
 }
 
 impl AppError {
@@ -117,6 +131,18 @@ impl AppError {
                 Some(resource.resource_type as i32),
                 resource.details.clone(),
                 StatusCode::NOT_FOUND,
+            ),
+            TimeConvertError(_err) => (
+                "TIME_CONVERT_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR
+            ),
+            HashError(_err) => (
+                "HASH_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR
             ),
             // BadRequestError(_err) => (
             //     "BAD_REQUEST_ERROR".to_string(),
@@ -143,6 +169,12 @@ impl AppError {
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR
+            ),
+            SpawnTaskError(_err) => (
+                "SPAWN_TASK_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
             ),
         };
 

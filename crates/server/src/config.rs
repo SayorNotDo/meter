@@ -30,6 +30,7 @@ pub struct ConfigJWT {
 #[serde(rename_all = "camelCase")]
 pub struct ConfigStorage {
     pub database_url: String,
+    pub redis_url: String
 }
 
 impl Config {

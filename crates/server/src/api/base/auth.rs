@@ -55,13 +55,8 @@ pub async fn login(
     info!("Login user with request: {request:?}.");
     request.validate(&())?;
     match service::user::login(state, request).await {
-        Ok(_msg) => {
+        Ok(resp) => {
             info!("Successfully login user");
-            let resp = LoginResponse {
-                csrf_token: "".to_string(),
-                session_id: "".to_string(),
-                token: "".to_string(),
-            };
             Ok(Json(resp))
         }
         Err(e) => {

@@ -15,9 +15,10 @@ VALUES
 	(:username, :hashed_password, :email, :uuid)
 RETURNING id;
 
---! get_user_by_username (username?) : (email?, hashed_password?, updated_at?)
+--! get_user_by_username (username?) : (uuid?, email?, hashed_password?, updated_at?)
 SELECT 
 	id,
+	uuid,
 	username,
 	hashed_password,
 	email,
