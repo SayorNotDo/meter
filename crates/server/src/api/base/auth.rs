@@ -1,4 +1,4 @@
-use axum::extract::Extension;
+use axum::extract::{Extension, State};
 use axum::Json;
 use garde::Validate;
 use tracing::{info, warn};
@@ -46,6 +46,7 @@ pub async fn register(
     responses(
     (status = 200, description = "Login success", body = [LoginResponse]),
     (status = 400, description = "Invalid data input", body = [AppResponseError]),
+    (status = 404, description = "User not found", body = [AppResponseError]),
     (status = 500, description = "Internal server error", body = [AppResponseError])
     )
 )]
@@ -57,7 +58,7 @@ pub async fn login(
     request.validate(&())?;
     match service::user::login(state, request).await {
         Ok(resp) => {
-            info!("Login successfully");
+            info!("Success login user: {resp:?}");
             Ok(Json(resp))
         }
         Err(e) => {
@@ -97,7 +98,28 @@ pub async fn logout(
     }
 }
 
-// check user is already login
-pub async fn is_login() -> Json<()> {
-    Json(())
+/// User is-Login
+#[utoipa::path(
+get,
+path = "/auth/is-login",
+responses(
+    (status = 200, description = "User is login", body = [()]),
+    (status = 500, description = "Internal server error", body = [AppResponseError])
+),
+security(("jwt" = []))
+)]
+pub async fn is_login(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+) -> AppResult<Json<LoginResponse>> {
+    info!("Check if user is already login: {}",user.uid);
+    match service::user::is_login(&state, user.uid).await {
+        Ok(resp) => {
+            info!("User is already login, refresh token: {resp:?}");
+            Ok(Json(resp))
+        },
+        Err(e) => {
+            Err(e)
+        }
+    }
 }

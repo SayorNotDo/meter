@@ -58,8 +58,14 @@ pub async fn logout(state: &AppState, uid: Uuid) -> AppResult<MessageResponse> {
 }
 
 /* 用户是否已经登录 */
-#[allow(dead_code)]
-pub async fn is_login() {}
+pub async fn is_login(state: &AppState, uid: Uuid) -> AppResult<LoginResponse>{
+    info!("Check whether user is login");
+    let key = SessionKey { uuid: uid };
+    crate::service::redis::get(&state.redis, &key).await?;
+    let session_id = session::set(&state.redis, uid).await?;
+    let resp = token::generate_tokens(uid, session_id)?;
+    Ok(LoginResponse::Token(resp))
+}
 
 pub async fn check_unique_username_or_email(
     pool: &db::Pool,
