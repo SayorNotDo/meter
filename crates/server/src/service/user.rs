@@ -1,4 +1,5 @@
 use tracing::info;
+use uuid::Uuid;
 
 use crate::dao;
 use crate::dao::base::BaseDao;
@@ -7,6 +8,7 @@ use crate::dto::request::*;
 use crate::dto::response::LoginResponse;
 use crate::dto::response::MessageResponse;
 use crate::errors::AppResult;
+use crate::service::redis::SessionKey;
 use crate::service::session;
 use crate::service::token;
 use crate::state::AppState;
@@ -19,7 +21,12 @@ pub async fn register(state: AppState, request: RegisterRequest) -> AppResult<i3
     check_unique_username_or_email(&state.pool, &request.username, &request.email).await?;
     /* 创建用户 */
     let hashed_password = utils::password::hash(request.password).await?;
-    let new_user = dao::user::User::new(&request.username, &hashed_password, Some(&request.email), true);
+    let new_user = dao::user::User::new(
+        &request.username,
+        &hashed_password,
+        Some(&request.email),
+        true,
+    );
     let client = state.pool.get().await.unwrap();
     let user_dao = UserDao::new(client);
     let user_id = user_dao.insert(&new_user).await?;
@@ -41,9 +48,13 @@ pub async fn login(state: AppState, request: LoginRequest) -> AppResult<LoginRes
 }
 
 /* 用户登出 */
-pub async fn logout(state: AppState) -> AppResult<MessageResponse> {
+pub async fn logout(state: &AppState, uid: Uuid) -> AppResult<MessageResponse> {
     info!("User logout");
-    
+    let key = SessionKey { uuid: uid };
+    crate::service::redis::del(&state.redis, &key).await?;
+    Ok(MessageResponse {
+        message: ("Successfully logout".to_string()),
+    })
 }
 
 /* 用户是否已经登录 */

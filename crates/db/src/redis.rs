@@ -14,7 +14,7 @@ pub trait RedisClientExt {
 
     fn get(&self, key: &str) -> impl std::future::Future<Output=Result<Option<String>, RedisError>>;
 
-    fn del(&self, key: &str) -> impl std::future::Future<Output=Result<(), RedisError>>;
+    fn del(&self, key: &str) -> impl std::future::Future<Output=Result<bool, RedisError>>;
 
     fn ttl(&self, key: &str) -> impl std::future::Future<Output=Result<i64, RedisError>>;
 }
@@ -62,14 +62,14 @@ impl RedisClientExt for Client {
         Ok(value)
     }
 
-    async fn del(&self, key: &str) -> Result<(), RedisError> {
+    async fn del(&self, key: &str) -> Result<bool, RedisError> {
         let mut conn = self.get_multiplexed_async_connection().await?;
-        let value = redis::cmd("DEL")
-            .arg(&[key])
+        let value: i32= redis::cmd("DEL")
+            .arg(key)
             .query_async(&mut conn)
             .await?;
         info!("del key redis: {value:?}");
-        Ok(())
+        Ok(value == 1)
     }
 
     async fn ttl(&self, key: &str) -> Result<i64, RedisError> {

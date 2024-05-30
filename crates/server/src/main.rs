@@ -64,5 +64,5 @@ async fn main() {
     );
     axum::serve(listener, app.into_make_service())
         .await
-        .unwrap();
+        .expect("Failed to start server");
 }

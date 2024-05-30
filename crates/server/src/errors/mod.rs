@@ -95,6 +95,8 @@ pub enum AppError {
     NotFoundError(Resource),
     // #[error("bad request {0}")]
     // BadRequestError(String),
+    #[error("{0}")]
+    InvalidSessionError(String),
     #[error(transparent)]
     InvalidInputError(#[from] garde::Report),
     #[error("{0}")]
@@ -113,6 +115,10 @@ pub enum AppError {
     SpawnTaskError(#[from] tokio::task::JoinError),
     #[error("{0} convert error")]
     TimeConvertError(Resource),
+    #[error(transparent)]
+    TypeHeaderError(#[from] axum_extra::typed_header::TypedHeaderRejection),
+    #[error(transparent)]
+    ExtensionRejectionError(#[from] axum::extract::rejection::ExtensionRejection),
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
@@ -137,6 +143,12 @@ impl AppError {
                 Some(resource.resource_type as i32),
                 resource.details.clone(),
                 StatusCode::NOT_FOUND,
+            ),
+            InvalidSessionError(_err) => (
+                "INVALID_SESSION_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::BAD_REQUEST,
             ),
             TimeConvertError(_err) => (
                 "TIME_CONVERT_ERROR".to_string(),
@@ -200,6 +212,18 @@ impl AppError {
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,
             ),
+            TypeHeaderError(_err) => (
+                "TYPE_HEADER_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            ExtensionRejectionError(_err) => (
+                "EXTENSION_REJECTION_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR
+            )
         };
 
         (

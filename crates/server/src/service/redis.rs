@@ -37,11 +37,29 @@ impl Display for SessionKey {
 }
 
 pub async fn set<K>(client: &RedisClient, (key, value): (&K, &K::Value)) -> AppResult<()>
-where
-    K: RedisKey,
+    where
+        K: RedisKey,
 {
     info!("Set value to redis key: {key:?} value: {value:?}");
     let value = serde_json::to_string(value)?;
     client.set(&key.to_string(), &value, K::EXPIRE_TIME).await?;
     Ok(())
+}
+
+pub async fn get<K>(client: &RedisClient, key: &K) -> AppResult<Option<K::Value>>
+    where
+        K: RedisKey,
+{
+    info!("Get value from redis key: {key:?}");
+    Ok(
+        client.get(&key.to_string())
+            .await?
+            .map(|v| serde_json::from_str::<K::Value>(&v))
+            .transpose()?,
+    )
+}
+
+pub async fn del(client: &RedisClient, key: &impl RedisKey) -> Result<bool, redis::RedisError> {
+    info!("Delete redis key: {key:?}");
+    client.del(&key.to_string()).await
 }

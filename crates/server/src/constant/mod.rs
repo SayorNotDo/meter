@@ -1,7 +1,7 @@
 use std::time::Duration;
+
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use once_cell::sync::Lazy;
-use tracing::info;
 
 pub const EXPIRE_SESSION_CODE_SECS: Duration = Duration::from_secs(120);
 pub const BEARER: &str = "Bearer";

@@ -15,8 +15,8 @@ use crate::{dto::request::*, dto::response::*, service};
     path = "/auth/register",
     responses(
     (status = 200, description = "Success register user", body = [RegisterResponse]),
-    (status = 400, description = "Invalid data input", body = [AppError]),
-    (status = 500, description = "Internal server error", body = [AppError])
+    (status = 400, description = "Invalid data input", body = [AppResponseError]),
+    (status = 500, description = "Internal server error", body = [AppResponseError])
     )
 )]
 pub async fn register(
@@ -57,7 +57,7 @@ pub async fn login(
     request.validate(&())?;
     match service::user::login(state, request).await {
         Ok(resp) => {
-            info!("Successfully login user");
+            info!("Login successfully");
             Ok(Json(resp))
         }
         Err(e) => {
@@ -69,25 +69,25 @@ pub async fn login(
 
 /// User Logout
 #[utoipa::path(
-get,
-path = "/auth/logout",
-responses(
-    (status = 200, description = "Logout success", body = [MessageResponse]),
-    (status = 400, description = "Unauthorized user", body = [AppResponseError]),
-    (status = 500, description = "Internal server error", body = [AppResponseError])
-)
-security(("jwt" = []))
+    get,
+    path = "/auth/logout",
+    responses(
+        (status = 200, description = "Logout success", body = [MessageResponse]),
+        (status = 400, description = "Unauthorized user", body = [AppResponseError]),
+        (status = 500, description = "Internal server error", body = [AppResponseError])
+    ),
+    security(("jwt" = []))
 )]
 pub async fn logout(
     Extension(state): Extension<AppState>,
     user: UserClaims,
 ) -> AppResult<Json<MessageResponse>> {
     info!("Logout user's uuid: {}", user.uid);
-    match service::user::logout(&state).await {
-        Ok(resp) => {
-            info!("Successfully logout");
+    match service::user::logout(&state, user.uid).await {
+        Ok(_) => {
+            info!("Logout successfully");
             Ok(Json(MessageResponse::new(
-                "This user has successfully logout.",
+                "This user has logged out.",
             )))
         }
         Err(e) => {

@@ -1,4 +1,4 @@
 pub mod user;
-mod session;
+pub mod session;
 mod redis;
 mod token;

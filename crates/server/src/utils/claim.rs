@@ -1,10 +1,22 @@
+use std::sync::Arc;
 use std::time::Duration;
+
+use axum::{async_trait, Extension};
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
+use axum::RequestPartsExt;
+use axum_extra::{headers::{Authorization, authorization::Bearer}, TypedHeader};
 use chrono::Utc;
-use uuid::Uuid;
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
+
+use crate::constant::ACCESS_TOKEN_DECODE_KEY;
+use crate::errors::AppError;
+use crate::state::AppState;
+use crate::service;
 
 pub static DECODE_HEADER: Lazy<Validation> = Lazy::new(|| Validation::new(Algorithm::RS256));
 pub static ENCODE_HEADER: Lazy<Header> = Lazy::new(|| Header::new(Algorithm::RS256));
@@ -35,5 +47,25 @@ impl UserClaims {
 
     pub fn encode(&self, key: &EncodingKey) -> Result<String, jsonwebtoken::errors::Error> {
         jsonwebtoken::encode(&ENCODE_HEADER, self, key)
+    }
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for UserClaims
+    where
+        S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let TypedHeader(Authorization(bearer)) = parts
+            .extract::<TypedHeader<Authorization<Bearer>>>()
+            .await?;
+        let user_claims = UserClaims::decode(bearer.token(), &ACCESS_TOKEN_DECODE_KEY)?.claims;
+        let Extension(state): Extension<AppState> = parts
+            .extract()
+            .await?;
+        service::session::check(&state.redis, &user_claims).await?;
+        Ok(user_claims)
     }
 }
