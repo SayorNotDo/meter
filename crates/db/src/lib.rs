@@ -1,16 +1,15 @@
-pub mod redis;
-
 use std::str::FromStr;
 use std::sync::Arc;
 
 pub use cornucopia_async::Params;
-pub use deadpool_postgres::{Pool, PoolError, Transaction, Client};
+pub use deadpool_postgres::{Client, Pool, PoolError, Transaction};
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls_pki_types::{CertificateDer, ServerName, UnixTime};
-
 pub use tokio_postgres::Error as TokioPostgresError;
 
 pub use queries::users::User;
+
+pub mod redis;
 
 pub fn create_pool(database_url: &str) -> Pool {
     let config = tokio_postgres::Config::from_str(database_url).unwrap();

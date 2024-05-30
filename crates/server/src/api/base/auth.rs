@@ -1,12 +1,12 @@
-use axum::extract::{Extension, State};
+use axum::extract::Extension;
 use axum::Json;
 use garde::Validate;
 use tracing::{info, warn};
 
+use crate::{dto::request::*, dto::response::*, service};
 use crate::errors::AppResult;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
-use crate::{dto::request::*, dto::response::*, service};
 
 /// User Register
 #[utoipa::path(
@@ -25,7 +25,7 @@ pub async fn register(
 ) -> AppResult<Json<RegisterResponse>> {
     info!("Register new user with request: {request:?}");
     request.validate(&())?;
-    match service::user::register(state, request).await {
+    match service::user::register(&state, request).await {
         Ok(user_id) => {
             info!("Successfully register user: {user_id}");
             let resp = RegisterResponse { id: user_id };
@@ -56,7 +56,7 @@ pub async fn login(
 ) -> AppResult<Json<LoginResponse>> {
     info!("Login user with request: {request:?}.");
     request.validate(&())?;
-    match service::user::login(state, request).await {
+    match service::user::login(&state, request).await {
         Ok(resp) => {
             info!("Success login user: {resp:?}");
             Ok(Json(resp))

@@ -31,13 +31,13 @@ async fn main() {
     logger::init();
 
     /* Config */
-    let config = config::Config::parse("./config.toml").unwrap();
+    let config = config::Config::parse("./config.toml").expect("Failed to parse configuration file");
 
     let pool = create_pool(&config.storage.database_url);
 
     /* CORS */
     let cors = CorsLayer::new()
-        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+        .allow_origin("http://localhost:3000".parse::<HeaderValue>().expect("Invalid header value"))
         .allow_methods([
             Method::GET,
             Method::POST,
@@ -50,19 +50,21 @@ async fn main() {
 
     /* State */
     let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
-    let state = AppState::new(pool, redis);
+    let state = AppState::new(pool, redis).await.expect("Failed to create state.");
 
     let app = api::create_router()
         .layer(cors)
         .layer(Extension(state.clone()));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
-    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(&addr).await.expect("Failed to bind to address.");
     info!(
         "🚀 Server started on {} successfully!",
-        listener.local_addr().unwrap()
+        listener.local_addr().expect("Failed to get local address.")
     );
     axum::serve(listener, app.into_make_service())
         .await
-        .expect("Failed to start server");
+        .expect("Failed to start server.");
+
+    /* TODO: graceful shutdown */
 }

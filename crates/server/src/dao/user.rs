@@ -159,7 +159,7 @@ impl BaseDao<User> for UserDao {
     }
 
     #[allow(dead_code)]
-    async fn get_by_id(&self, _id: i32) -> Result<User, DbError> {
+    async fn find_by_id(&self, _id: i32) -> Result<User, DbError> {
         todo!()
     }
 

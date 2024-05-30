@@ -15,7 +15,7 @@ use crate::state::AppState;
 use crate::utils;
 
 /* 用户注册 */
-pub async fn register(state: AppState, request: RegisterRequest) -> AppResult<i32> {
+pub async fn register(state: &AppState, request: RegisterRequest) -> AppResult<i32> {
     info!("Register a new user request: {request:?}.");
     /* 验证注册用户的用户名与邮箱唯一性 */
     check_unique_username_or_email(&state.pool, &request.username, &request.email).await?;
@@ -27,16 +27,16 @@ pub async fn register(state: AppState, request: RegisterRequest) -> AppResult<i3
         Some(&request.email),
         true,
     );
-    let client = state.pool.get().await.unwrap();
+    let client = state.pool.get().await?;
     let user_dao = UserDao::new(client);
     let user_id = user_dao.insert(&new_user).await?;
     Ok(user_id)
 }
 
 /* 用户登录 */
-pub async fn login(state: AppState, request: LoginRequest) -> AppResult<LoginResponse> {
+pub async fn login(state: &AppState, request: LoginRequest) -> AppResult<LoginResponse> {
     info!("User login request: {request:?}.");
-    let client = state.pool.get().await.unwrap();
+    let client = state.pool.get().await?;
     let user_dao = UserDao::new(client);
     let user = user_dao.find_by_username(&request.username).await?;
     /* 校验用户密码 */
@@ -72,7 +72,7 @@ pub async fn check_unique_username_or_email(
     username: &str,
     email: &str,
 ) -> AppResult {
-    let client = pool.get().await.unwrap();
+    let client = pool.get().await?;
     let user_dao = dao::user::UserDao::new(client);
     user_dao.check_unique_by_username(username).await?;
     user_dao.check_unique_by_email(email).await

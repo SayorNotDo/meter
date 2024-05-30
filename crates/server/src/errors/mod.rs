@@ -119,6 +119,8 @@ pub enum AppError {
     TypeHeaderError(#[from] axum_extra::typed_header::TypedHeaderRejection),
     #[error(transparent)]
     ExtensionRejectionError(#[from] axum::extract::rejection::ExtensionRejection),
+    #[error(transparent)]
+    DbPoolError(#[from] db::PoolError),
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
@@ -201,6 +203,12 @@ impl AppError {
                 StatusCode::CONFLICT,
             ),
             DatabaseError(_err) => (
+                "DATABASE_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR
+            ),
+            DbPoolError(_err) => (
                 "DATABASE_ERROR".to_string(),
                 None,
                 vec![],

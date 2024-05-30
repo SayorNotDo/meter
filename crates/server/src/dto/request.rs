@@ -1,5 +1,6 @@
 use garde::Validate;
 use serde::{Deserialize, Serialize};
+use utoipa::{IntoParams, ToSchema};
 
 #[derive(Debug, Deserialize, Serialize, Validate, utoipa::ToSchema)]
 pub struct RegisterRequest {
@@ -33,8 +34,11 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate, utoipa::ToSchema)]
-pub struct LogoutRequest {}
+#[derive(Debug, Serialize, Deserialize, ToSchema, Validate, IntoParams)]
+pub struct RefreshTokenRequest {
+    #[garde(length(min = 30))]
+    pub token: String,
+}
 
 #[cfg(test)]
 mod tests {
