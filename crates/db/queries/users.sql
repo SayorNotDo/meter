@@ -35,3 +35,13 @@ SELECT
     created_at
 FROM users
 WHERE email = :email;
+
+--! get_user_by_uuid (uuid?)
+SELECT
+    id,
+    uuid,
+    username,
+    email,
+    created_at
+FROM users
+WHERE uuid = :uuid;

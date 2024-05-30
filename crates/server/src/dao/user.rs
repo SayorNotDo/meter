@@ -7,7 +7,7 @@ use tracing::log::info;
 use uuid::Uuid;
 
 use crate::dao::Entity;
-use crate::errors::{AppError, AppResult, Resource, ResourceType};
+use crate::errors::{AppError, AppResult, Resource, ResourceType, ToAppResult};
 
 use super::base::BaseDao;
 
@@ -52,6 +52,10 @@ impl User {
             updated_at: None,
         }
     }
+
+    // pub fn parse(user: ) -> AppResult<Self> {
+    //     Ok()
+    // }
 }
 
 #[derive(Debug)]
@@ -62,6 +66,41 @@ pub struct UserDao {
 impl UserDao {
     pub fn new(client: db::Client) -> Self {
         UserDao { client }
+    }
+
+    pub async fn find_by_uid(&self, uid: Uuid) -> AppResult<User> {
+        /* 通过uid查询用户 */
+        let ret = db::queries::users::get_user_by_uuid()
+            .bind(&self.client, &Some(uid))
+            .opt()
+            .await?;
+        match ret {
+            Some(user) => {
+                let timestamp_updated_at = match user.updated_at {
+                    Some(t) => t.assume_utc().unix_timestamp_nanos(),
+                    None => 0
+                };
+                let timestamp_created_at = user.created_at.assume_utc().unix_timestamp_nanos();
+                info!("time: {timestamp_created_at}");
+                let u = User {
+                    id: user.id,
+                    username: user.username,
+                    uuid: user.uuid.unwrap(),
+                    hashed_password: user.hashed_password.unwrap(),
+                    email: user.email.unwrap(),
+                    created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
+                    updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
+                };
+                info!("Successfully find by uid: {u:?}.");
+                Ok(u)
+            }
+            None => {
+                Err(AppError::NotFoundError(Resource {
+                    details: vec![],
+                    resource_type: ResourceType::User,
+                }))
+            }
+        }
     }
 
     pub async fn find_by_username(&self, username: &str) -> AppResult<User> {
