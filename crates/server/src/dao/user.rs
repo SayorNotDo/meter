@@ -58,6 +58,18 @@ impl User {
     // }
 }
 
+pub trait ToUser {
+    type Output: User;
+    fn to_user(self) -> User;
+}
+
+impl<T> ToUser for Option<T> {
+    type Output = User;
+    fn to_user(self) -> User {
+        User { id: (), uuid: (), username: (), hashed_password: (), email: (), created_at: (), updated_at: () }
+    }
+}
+
 #[derive(Debug)]
 pub struct UserDao {
     client: db::Client,
