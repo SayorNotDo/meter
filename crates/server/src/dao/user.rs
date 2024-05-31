@@ -5,9 +5,8 @@ use serde::Serialize;
 use tokio_postgres::error::DbError;
 use tracing::log::info;
 use uuid::Uuid;
-
-use crate::dao::Entity;
-use crate::errors::{AppError, AppResult, Resource, ResourceType, ToAppResult};
+use db::queries::users::*;
+use crate::errors::{AppError, AppResult, Resource, ResourceType};
 
 use super::base::BaseDao;
 
@@ -22,18 +21,9 @@ pub struct User {
     pub updated_at: Option<DateTime<Utc>>,
 }
 
-impl Entity for User {
-    const RESOURCE: ResourceType = ResourceType::User;
-}
-
 impl User {
-    pub fn new(username: &str, password: &str, email: Option<&str>, gen_uuid: bool) -> Self {
+    pub fn new(username: &str, password: &str, email: &str, gen_uuid: bool) -> Self {
         let username = username.to_lowercase();
-
-        let email = match email {
-            None => "".to_string(),
-            Some(email) => email.to_string()
-        };
 
         // generate UUID
         let uuid = if gen_uuid {
@@ -47,28 +37,44 @@ impl User {
             uuid,
             username,
             hashed_password: password.to_string(),
-            email,
+            email: email.into(),
             created_at: Utc::now(),
             updated_at: None,
         }
     }
-
-    // pub fn parse(user: ) -> AppResult<Self> {
-    //     Ok()
-    // }
 }
 
-pub trait ToUser {
-    type Output: User;
-    fn to_user(self) -> User;
+trait ToUser {
+    fn to_user(&self) -> User;
 }
 
-impl<T> ToUser for Option<T> {
-    type Output = User;
-    fn to_user(self) -> User {
-        User { id: (), uuid: (), username: (), hashed_password: (), email: (), created_at: (), updated_at: () }
-    }
+macro_rules! impl_to_user {
+    ($($t:ty),*) => {
+        $(
+        impl ToUser for $t {
+            fn to_user(&self) -> User {
+                let timestamp_updated_at = match self.updated_at {
+                    Some(t) => t.assume_utc().unix_timestamp_nanos(),
+                    None => 0
+                };
+                let timestamp_created_at = self.created_at.assume_utc().unix_timestamp_nanos();
+                User {
+                    id: self.id,
+                    username: self.username.clone(),
+                    uuid: self.uuid,
+                    hashed_password: self.hashed_password.clone(),
+                    email: self.email.clone(),
+                    created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
+                    updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
+                }
+            }
+        }
+        )*
+    };
 }
+
+// 使用宏为查询的结构体实现ToUser trait
+impl_to_user!(GetUserByUsername, GetUserByUuid);
 
 #[derive(Debug)]
 pub struct UserDao {
@@ -88,23 +94,9 @@ impl UserDao {
             .await?;
         match ret {
             Some(user) => {
-                let timestamp_updated_at = match user.updated_at {
-                    Some(t) => t.assume_utc().unix_timestamp_nanos(),
-                    None => 0
-                };
-                let timestamp_created_at = user.created_at.assume_utc().unix_timestamp_nanos();
-                info!("time: {timestamp_created_at}");
-                let u = User {
-                    id: user.id,
-                    username: user.username,
-                    uuid: user.uuid.unwrap(),
-                    hashed_password: user.hashed_password.unwrap(),
-                    email: user.email.unwrap(),
-                    created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
-                    updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
-                };
-                info!("Successfully find by uid: {u:?}.");
-                Ok(u)
+                let user = user.to_user();
+                info!("Successfully find by uid: {user:?}.");
+                Ok(user)
             }
             None => {
                 Err(AppError::NotFoundError(Resource {
@@ -117,29 +109,15 @@ impl UserDao {
 
     pub async fn find_by_username(&self, username: &str) -> AppResult<User> {
         /* 通过用户名查询用户并返回 */
-        let ret = db::queries::users::get_user_by_username()
+        let ret = get_user_by_username()
             .bind(&self.client, &Some(username))
             .opt()
             .await?;
         match ret {
             Some(user) => {
-                let timestamp_updated_at = match user.updated_at {
-                    Some(t) => t.assume_utc().unix_timestamp_nanos(),
-                    None => 0
-                };
-                let timestamp_created_at = user.created_at.assume_utc().unix_timestamp_nanos();
-                info!("time: {timestamp_created_at}");
-                let u = User {
-                    id: user.id,
-                    username: user.username,
-                    uuid: user.uuid.unwrap(),
-                    hashed_password: user.hashed_password.unwrap(),
-                    email: user.email.unwrap(),
-                    created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
-                    updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
-                };
-                info!("Successfully find by name: {u:?}.");
-                Ok(u)
+                let user = user.to_user();
+                info!("Successfully find by name: {user:?}.");
+                Ok(user)
             }
             None => {
                 Err(AppError::NotFoundError(Resource {
@@ -237,7 +215,8 @@ mod tests {
     fn test_username_is_lowercase() {
         let username = "MeDZik";
         let password = "password";
-        let email: Option<&str> = Some("test_email@test.com");
+        let email = "test_email@test.com";
+
 
         let username_expected = "medzik";
 
@@ -249,7 +228,8 @@ mod tests {
     fn test_password_hashed() {
         let username = "username";
         let password = "password";
-        let email: Option<&str> = Some("test_email@test.com");
+        let email = "test_email@test.com";
+
 
         let user = User::new(username, password, email, false);
 
@@ -260,7 +240,7 @@ mod tests {
     async fn test_insert() {
         let username = "test_username";
         let password = "test_password";
-        let email: Option<&str> = Some("test_email@test.com");
+        let email = "test_email@test.com";
 
         let user = User::new(username, password, email, true);
 
@@ -279,7 +259,7 @@ mod tests {
     async fn test_complicated_username() {
         let username = "test_username";
         let password = "test_password";
-        let email: Option<&str> = Some("test_email@test.com");
+        let email = "test_email@test.com";
 
         let user = User::new(username, password, email, true);
 

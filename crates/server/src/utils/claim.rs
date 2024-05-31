@@ -9,6 +9,7 @@ use chrono::Utc;
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -60,6 +61,7 @@ impl<S> FromRequestParts<S> for UserClaims
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await?;
+        info!("extract bearer: {bearer:?}");
         let user_claims = UserClaims::decode(bearer.token(), &ACCESS_TOKEN_DECODE_KEY)?.claims;
         let Extension(state): Extension<AppState> = parts
             .extract()

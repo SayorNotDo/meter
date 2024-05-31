@@ -6,7 +6,6 @@ use crate::dto::response::TokenResponse;
 use crate::dto::request::RefreshTokenRequest;
 use crate::state::AppState;
 use crate::constant::REFRESH_TOKEN_DECODE_KEY;
-use crate::dao::base::BaseDao;
 use crate::utils::claim::UserClaims;
 use crate::dao::user;
 use crate::service;
@@ -17,7 +16,7 @@ pub async fn refresh(state: &AppState, request: RefreshTokenRequest) -> AppResul
     let user_id = crate::service::session::check(&state.redis, &user_claims).await?;
     let client = state.pool.get().await?;
     let user_dao = user::UserDao::new(client);
-    let user = user_dao.find_by_id(user_id).await?;
+    let user = user_dao.find_by_uid(user_id).await?;
     let session_id = service::session::set(&state.redis, user.uuid).await?;
     info!("Set new session for user: {}", user.uuid);
     let resp = generate_tokens(user.uuid, session_id)?;

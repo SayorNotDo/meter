@@ -24,7 +24,7 @@ pub async fn register(state: &AppState, request: RegisterRequest) -> AppResult<i
     let new_user = dao::user::User::new(
         &request.username,
         &hashed_password,
-        Some(&request.email),
+        &request.email,
         true,
     );
     let client = state.pool.get().await?;
