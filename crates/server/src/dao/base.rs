@@ -2,6 +2,7 @@ use tokio_postgres::error::DbError;
 
 use crate::errors::AppResult;
 
+#[allow(dead_code)]
 pub trait BaseDao<T> {
     async fn all(&self) -> AppResult<Vec<T>>;
     async fn insert(&self, object: &T) -> AppResult<i32>;

@@ -15,5 +15,5 @@ public_refresh_key = "./static/keys/public_refresh_rsa_key.pem"
 expires = 24
 
 [storage]
-databaseUrl = "postgresql://postgres:testpassword@192.168.50.234:5432/postgres?sslmode=disable"
-redisUrl = "redis://192.168.50.234:6379/"
+databaseUrl = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable"
+redisUrl = "redis://localhost:6379/"

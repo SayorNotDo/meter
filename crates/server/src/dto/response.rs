@@ -56,3 +56,7 @@ impl TokenResponse {
         }
     }
 }
+
+pub struct UserInfoResponse {
+
+}

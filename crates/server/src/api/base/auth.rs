@@ -100,25 +100,59 @@ pub async fn logout(
 
 /// User is-Login
 #[utoipa::path(
-get,
-path = "/auth/is-login",
-responses(
-    (status = 200, description = "User is login", body = [()]),
-    (status = 500, description = "Internal server error", body = [AppResponseError])
-),
-security(("jwt" = []))
+    get,
+    path = "/auth/is-login",
+    responses(
+        (status = 200, description = "User is login", body = [LoginResponse]),
+        (status = 401, description = "User Unauthorized", body = [AppResponseError]),
+        (status = 500, description = "Internal server error", body = [AppResponseError])
+    ),
+    security(("jwt" = []))
 )]
 pub async fn is_login(
     Extension(state): Extension<AppState>,
     user: UserClaims,
 ) -> AppResult<Json<LoginResponse>> {
     info!("Check if user is already login: {}",user.uid);
+    /* 获取用户的access token
+     * 检验成功后返回刷新的access token
+     */
     match service::user::is_login(&state, user.uid).await {
         Ok(resp) => {
             info!("User is already login, refresh token: {resp:?}");
             Ok(Json(resp))
-        },
+        }
         Err(e) => {
+            info!("User is not login: {e:?}");
+            Err(e)
+        }
+    }
+}
+
+/// RefreshToken Refresh
+#[utoipa::path(
+    post,
+    path = "/auth/token/refresh",
+    responses(
+        (status = 200, description = "Success get new access token and refresh token", body = [TokenResponse]),
+        (status = 400, description = "Invalid data input", body = [AppResponseError]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
+        (status = 500, description = "Internal server error", body = [AppResponseError])
+    )
+)]
+pub async fn token_refresh(
+    Extension(state): Extension<AppState>,
+    Json(request): Json<RefreshTokenRequest>,
+) -> AppResult<Json<TokenResponse>> {
+    info!("Refresh user's token info");
+    /* 刷新用户的refresh token */
+    match service::token::refresh(&state, request).await {
+        Ok(resp) => {
+            info!("refresh token successfully");
+            Ok(Json(resp))
+        }
+        Err(e) => {
+            info!("Failed to refresh token");
             Err(e)
         }
     }

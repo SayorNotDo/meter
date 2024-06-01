@@ -8,8 +8,6 @@ use strum::EnumString;
 use tokio_postgres::Error as TokioPostgresError;
 use utoipa::ToSchema;
 
-use crate::dao;
-
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -35,58 +33,6 @@ pub enum ResourceType {
     Session,
     #[strum(serialize = "MESSAGE")]
     Message,
-}
-
-
-pub trait ToAppResult {
-    type Output: dao::Entity;
-    fn to_result(self) -> AppResult<Self::Output>;
-    fn check_absent(self) -> AppResult;
-    fn check_absent_details(self, details: Vec<(String, String)>) -> AppResult;
-    fn to_result_details(self, details: Vec<(String, String)>) -> AppResult<Self::Output>;
-}
-
-impl<T> ToAppResult for Option<T>
-    where
-        T: dao::Entity,
-{
-    type Output = T;
-    fn to_result(self) -> AppResult<Self::Output> {
-        self.ok_or_else(|| {
-            AppError::NotFoundError(Resource {
-                details: vec![],
-                resource_type: Self::Output::RESOURCE,
-            })
-        })
-    }
-    fn check_absent(self) -> AppResult {
-        if self.is_some() {
-            Err(AppError::ResourceExistsError(Resource {
-                details: vec![],
-                resource_type: Self::Output::RESOURCE,
-            }))
-        } else {
-            Ok(())
-        }
-    }
-    fn check_absent_details(self, details: Vec<(String, String)>) -> AppResult {
-        if self.is_some() {
-            Err(AppError::ResourceExistsError(Resource {
-                details,
-                resource_type: Self::Output::RESOURCE,
-            }))
-        } else {
-            Ok(())
-        }
-    }
-    fn to_result_details(self, details: Vec<(String, String)>) -> AppResult<Self::Output> {
-        self.ok_or_else(|| {
-            AppError::NotFoundError(Resource {
-                details,
-                resource_type: Self::Output::RESOURCE,
-            })
-        })
-    }
 }
 
 #[derive(Debug, thiserror::Error, ToSchema)]
@@ -121,6 +67,8 @@ pub enum AppError {
     ExtensionRejectionError(#[from] axum::extract::rejection::ExtensionRejection),
     #[error(transparent)]
     DbPoolError(#[from] db::PoolError),
+    #[error("{0}")]
+    UnauthorizedError(String),
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
@@ -231,7 +179,13 @@ impl AppError {
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR
-            )
+            ),
+            UnauthorizedError(_err) => (
+                "UNAUTHORIZED_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::UNAUTHORIZED,
+            ),
         };
 
         (

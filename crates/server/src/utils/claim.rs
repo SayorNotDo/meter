@@ -13,7 +13,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::constant::ACCESS_TOKEN_DECODE_KEY;
-use crate::errors::AppError;
+use crate::errors::{AppError, AppResult};
 use crate::state::AppState;
 use crate::service;
 
@@ -66,5 +66,27 @@ impl<S> FromRequestParts<S> for UserClaims
             .await?;
         service::session::check(&state.redis, &user_claims).await?;
         Ok(user_claims)
+    }
+}
+
+pub trait UserClaimsRequest {
+    fn get_user_id(&self) -> AppResult<Uuid>;
+    fn get_user_claims(&self) -> AppResult<UserClaims>;
+}
+
+impl UserClaimsRequest for axum::extract::Request {
+    fn get_user_id(&self) -> AppResult<Uuid> {
+        self
+            .extensions()
+            .get::<UserClaims>()
+            .map(|u| u.uid)
+            .ok_or_else(|| AppError::UnauthorizedError("User Must Login".to_string()))
+    }
+    fn get_user_claims(&self) -> AppResult<UserClaims> {
+        self
+            .extensions()
+            .get::<UserClaims>()
+            .cloned()
+            .ok_or_else(|| AppError::UnauthorizedError("User Must Login".to_string()))
     }
 }

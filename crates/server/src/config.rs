@@ -41,6 +41,8 @@ impl ConfigJWT {
     pub fn read_private_refresh_key(&self) -> Result<String, std::io::Error> {
         fs::read_to_string(utils::dir::get_project_root()?.join(&self.private_refresh_key))
     }
+
+    #[allow(dead_code)]
     pub fn read_public_refresh_key(&self) -> Result<String, std::io::Error> {
         fs::read_to_string(utils::dir::get_project_root()?.join(&self.public_refresh_key))
     }

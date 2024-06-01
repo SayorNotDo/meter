@@ -12,20 +12,6 @@ pub struct RegisterRequest {
     pub password: String,
 }
 
-impl RegisterRequest {
-    pub fn new(username: &str, password: &str, email: &str) -> Self {
-        Self {
-            username: username.to_string(),
-            password: password.to_string(),
-            email: email.to_string(),
-        }
-    }
-
-    pub fn to_json(&self) -> Result<String, serde_json::Error> {
-        serde_json::to_string(&self)
-    }
-}
-
 #[derive(Debug, Deserialize, Serialize, Validate, utoipa::ToSchema)]
 pub struct LoginRequest {
     #[garde(ascii, length(min = 3, max = 25))]
@@ -37,7 +23,9 @@ pub struct LoginRequest {
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate, IntoParams)]
 pub struct RefreshTokenRequest {
     #[garde(length(min = 30))]
-    pub token: String,
+    pub access_token: String,
+    #[garde(length(min = 30))]
+    pub refresh_token: String,
 }
 
 #[cfg(test)]
