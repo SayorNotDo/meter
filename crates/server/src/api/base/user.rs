@@ -1,5 +1,10 @@
+use axum::{Extension, Json};
+use tracing::{info, warn};
 use crate::errors::AppResult;
 use crate::dto::response::UserInfoResponse;
+use crate::service;
+use crate::state::AppState;
+use crate::utils::claim::UserClaims;
 
 
 #[utoipa::path(
@@ -11,7 +16,21 @@ use crate::dto::response::UserInfoResponse;
         (status = 404, description = "User not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
     ),
+    security(("jwt" = []))
 )]
-pub async fn info() -> AppResult<UserInfoResponse> {
-    Ok(UserInfoResponse {})
+pub async fn info(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+) -> AppResult<Json<UserInfoResponse>> {
+    info!("User info with request: {:?}", user);
+    match service::user::info(&state, user.uid).await {
+        Ok(resp) => {
+            info!("get user info successfully");
+            Ok(Json(resp))
+        }
+        Err(e) => {
+            warn!("Failed to get user info: {e:?}");
+            Err(e)
+        }
+    }
 }

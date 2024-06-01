@@ -57,6 +57,8 @@ impl TokenResponse {
     }
 }
 
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UserInfoResponse {
 
 }
