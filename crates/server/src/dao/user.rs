@@ -177,9 +177,9 @@ impl BaseDao<User> for UserDao {
         let user_id = db::queries::users::insert_user()
             .bind(
                 &self.client,
-                &object.username,
-                &object.hashed_password,
-                &object.email,
+                &object.username.as_str(),
+                &object.hashed_password.as_str(),
+                &object.email.as_str(),
                 &object.uuid,
             )
             .one()

@@ -58,7 +58,7 @@ pub async fn login(
     request.validate(&())?;
     match service::user::login(&state, request).await {
         Ok(resp) => {
-            info!("Login successfully");
+            info!("Success login user: {resp:?}");
             Ok(Json(resp))
         }
         Err(e) => {
@@ -100,13 +100,13 @@ pub async fn logout(
 
 /// User is-Login
 #[utoipa::path(
-    get,
-    path = "/auth/is-login",
-    responses(
-        (status = 200, description = "User is login", body = [()]),
-        (status = 500, description = "Internal server error", body = [AppResponseError])
-    ),
-    security(("jwt" = []))
+get,
+path = "/auth/is-login",
+responses(
+    (status = 200, description = "User is login", body = [()]),
+    (status = 500, description = "Internal server error", body = [AppResponseError])
+),
+security(("jwt" = []))
 )]
 pub async fn is_login(
     Extension(state): Extension<AppState>,
@@ -117,37 +117,8 @@ pub async fn is_login(
         Ok(resp) => {
             info!("User is already login, refresh token: {resp:?}");
             Ok(Json(resp))
-        }
+        },
         Err(e) => {
-            Err(e)
-        }
-    }
-}
-
-/// Token Refresh
-#[utoipa::path(
-    post,
-    path = "/auth/token/refresh",
-    request_body = RefreshTokenRequest,
-    responses(
-    (status = 200, description = "Refresh token success", body = [TokenResponse]),
-    (status = 400, description = "Invalid data input", body = [AppResponseError]),
-    (status = 500, description = "Internal server error", body = [AppResponseError])
-    )
-)]
-pub async fn refresh_token(
-    Extension(state): Extension<AppState>,
-    Json(request): Json<RefreshTokenRequest>,
-) -> AppResult<Json<TokenResponse>> {
-    info!("Refresh token with request: {request:?}.");
-    request.validate(&())?;
-    match service::token::refresh(&state, request).await {
-        Ok(resp) => {
-            info!("Success refresh token: {resp:?}");
-            Ok(Json(resp))
-        }
-        Err(e) => {
-            warn!("Failed to refresh token: {e:?}");
             Err(e)
         }
     }

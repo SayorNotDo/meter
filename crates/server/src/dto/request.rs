@@ -12,8 +12,6 @@ pub struct RegisterRequest {
     pub password: String,
 }
 
-
-#[allow(dead_code)]
 impl RegisterRequest {
     pub fn new(username: &str, password: &str, email: &str) -> Self {
         Self {

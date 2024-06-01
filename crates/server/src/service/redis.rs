@@ -15,7 +15,6 @@ pub trait RedisKey: Debug + Display {
     type Value: Serialize + DeserializeOwned + Debug;
     const EXPIRE_TIME: Duration;
 
-    #[allow(dead_code)]
     fn expire(&self) -> Duration {
         Self::EXPIRE_TIME
     }
