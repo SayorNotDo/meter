@@ -1,9 +1,6 @@
 .idea
-.devcontainer
-
 
 /target
-
 
 Cargo.lock
 
