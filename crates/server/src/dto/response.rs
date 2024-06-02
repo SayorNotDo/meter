@@ -60,5 +60,6 @@ impl TokenResponse {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UserInfoResponse {
-
+    pub last_organization_id: String,
+    pub last_project_id: String,
 }

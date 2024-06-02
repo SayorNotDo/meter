@@ -10,6 +10,10 @@ use crate::errors::{AppError, AppResult, Resource, ResourceType};
 
 use super::base::BaseDao;
 
+pub struct UserInfo {
+
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct User {
     pub id: i32,
@@ -86,6 +90,9 @@ impl UserDao {
         UserDao { client }
     }
 
+    pub async fn get_user_info() -> AppResult<UserInfo> {
+        Ok(UserInfo {})
+    }
     pub async fn find_by_uid(&self, uid: Uuid) -> AppResult<User> {
         /* 通过uid查询用户 */
         let ret = db::queries::users::get_user_by_uuid()

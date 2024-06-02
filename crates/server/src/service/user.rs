@@ -8,7 +8,6 @@ use crate::dto::request::*;
 use crate::dto::response::{LoginResponse, UserInfoResponse};
 use crate::dto::response::MessageResponse;
 use crate::errors::AppResult;
-use crate::errors::ResourceType::User;
 use crate::service::redis::SessionKey;
 use crate::service::session;
 use crate::service::token;
