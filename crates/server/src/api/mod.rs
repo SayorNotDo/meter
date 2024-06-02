@@ -1,9 +1,10 @@
-mod base;
-mod system;
-
 use axum::Router;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+
+mod base;
+mod system;
+mod management;
 
 // use axum::routing::*;
 
@@ -14,4 +15,5 @@ pub fn create_router() -> Router {
     );
     router.nest("/", base::app())
         .nest("/system", system::app())
+        .nest("/management", management::app())
 }
