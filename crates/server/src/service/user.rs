@@ -70,9 +70,12 @@ pub async fn is_login(state: &AppState, uid: Uuid) -> AppResult<LoginResponse> {
 pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(client);
+    /* 查询用户相关的信息，组装响应返回 */
 
-
-    Ok(UserInfoResponse {})
+    Ok(UserInfoResponse {
+        last_organization_id: "".into(),
+        last_project_id: "".into()
+    })
 }
 
 pub async fn check_unique_username_or_email(

@@ -17,6 +17,9 @@ impl MessageResponse {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub struct ProjectInfoResponse {}
+
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct RegisterResponse {
