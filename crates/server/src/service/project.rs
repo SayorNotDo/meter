@@ -4,6 +4,7 @@ use crate::errors::AppResult;
 use uuid::Uuid;
 use crate::state::AppState;
 use crate::dao::project::*;
+use crate::errors::ResourceType::Project;
 
 
 /* 获取项目信息 */
@@ -14,13 +15,33 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
     Ok(ProjectInfoResponse {
         id: project.id,
         name: project.name,
+        organization: project.organization,
+        description: project.description,
+        created_by: project.created_by,
+        created_at: project.created_at,
+        module_setting: project.module_setting,
+        updated_at: project.updated_at
     })
 }
 
 pub async fn list(state: &AppState, uid: Uuid) -> AppResult<ProjectListResponse> {
     let client = state.pool.get().await?;
     let project_dao = ProjectDao::new(client);
-    let projects = project_dao.find_projects_by_uid(uid).await?;
+    let ret = project_dao.find_projects_by_uid(uid).await?;
+    let mut projects = Vec::new();
+    for item in ret.iter() {
+        let project = ProjectInfoResponse {
+            id: item.id,
+            name: item.name.clone(),
+            organization: item.organization.clone(),
+            description: item.description.clone(),
+            created_by: item.created_by,
+            created_at: item.created_at,
+            module_setting: item.module_setting.clone(),
+            updated_at: item.updated_at
+        };
+        projects.push(project);
+    }
     Ok(ProjectListResponse {
         projects
     })

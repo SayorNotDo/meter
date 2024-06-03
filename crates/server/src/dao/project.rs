@@ -11,6 +11,7 @@ use crate::errors::{AppResult, AppError, Resource, ResourceType};
 pub struct Project {
     pub id: i32,
     pub name: String,
+    pub organization: String,
     pub created_at: DateTime<Utc>,
     pub created_by: Uuid,
     pub updated_at: Option<DateTime<Utc>>,
@@ -22,10 +23,11 @@ pub struct Project {
 }
 
 impl Project {
-    pub fn new(name: String, created_by: Uuid, description: Option<String>, module_setting: Option<String>) -> Self {
+    pub fn new(name: String, organization: String, created_by: Uuid, description: Option<String>, module_setting: Option<String>) -> Self {
         Self {
             id: 0,
             name,
+            organization,
             created_at: Utc::now(),
             created_by,
             updated_at: None,
@@ -59,6 +61,7 @@ macro_rules! impl_to_project {
                 Project {
                     id: self.id,
                     name: self.name.clone(),
+                    organization: self.organization.clone(),
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
                     created_by: self.created_by,
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),

@@ -2,6 +2,7 @@
 SELECT
     id,
     name,
+    organization,
     created_at,
     created_by,
     updated_at,

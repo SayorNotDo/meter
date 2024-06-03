@@ -6,8 +6,6 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::constant::BEARER;
-use crate::dao::project::Project;
-
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
 pub struct MessageResponse {
