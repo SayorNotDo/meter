@@ -5,7 +5,7 @@ use serde::Serialize;
 use tokio_postgres::error::DbError;
 use tracing::log::info;
 use uuid::Uuid;
-use db::queries::users::*;
+use db::queries::user::*;
 use crate::errors::{AppError, AppResult, Resource, ResourceType};
 
 use super::base::BaseDao;
@@ -95,7 +95,7 @@ impl UserDao {
     }
     pub async fn find_by_uid(&self, uid: Uuid) -> AppResult<User> {
         /* 通过uid查询用户 */
-        let ret = db::queries::users::get_user_by_uuid()
+        let ret = get_user_by_uuid()
             .bind(&self.client, &Some(uid))
             .opt()
             .await?;
@@ -136,7 +136,7 @@ impl UserDao {
     }
 
     pub async fn check_unique_by_username(&self, username: &str) -> AppResult {
-        let user = db::queries::users::get_user_by_username()
+        let user = get_user_by_username()
             .bind(&self.client, &Some(username))
             .opt()
             .await?;
@@ -152,7 +152,7 @@ impl UserDao {
     }
 
     pub async fn check_unique_by_email(&self, email: &str) -> AppResult {
-        let user = db::queries::users::get_user_by_email()
+        let user = get_user_by_email()
             .bind(&self.client, &Some(email))
             .opt()
             .await?;
@@ -170,7 +170,7 @@ impl UserDao {
 
 impl BaseDao<User> for UserDao {
     async fn all(&self) -> AppResult<Vec<User>> {
-        let _users = db::queries::users::get_users()
+        let _users = get_users()
             .bind(&self.client)
             .all()
             .await
@@ -181,7 +181,7 @@ impl BaseDao<User> for UserDao {
 
     #[allow(dead_code)]
     async fn insert(&self, object: &User) -> AppResult<i32> {
-        let user_id = db::queries::users::insert_user()
+        let user_id = insert_user()
             .bind(
                 &self.client,
                 &object.username.as_str(),
@@ -195,7 +195,7 @@ impl BaseDao<User> for UserDao {
     }
 
     #[allow(dead_code)]
-    async fn find_by_id(&self, _id: i32) -> Result<User, DbError> {
+    async fn find_by_id(&self, _id: i32) -> AppResult<User> {
         todo!()
     }
 
@@ -205,7 +205,7 @@ impl BaseDao<User> for UserDao {
     }
 
     #[allow(dead_code)]
-    async fn delete_by_id(&self, _id: i32) -> Result<User, DbError> {
+    async fn delete_by_id(&self, _id: i32) -> AppResult<()> {
         todo!()
     }
 }

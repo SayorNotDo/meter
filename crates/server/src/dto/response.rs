@@ -1,9 +1,12 @@
 // use uuid::Uuid;
 
+use chrono::{DateTime, Utc};
+use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::constant::BEARER;
+use crate::dao::project::Project;
 
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
@@ -18,7 +21,21 @@ impl MessageResponse {
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
-pub struct ProjectInfoResponse {}
+pub struct ProjectInfoResponse {
+    pub id: i32,
+    pub name: String,
+    pub organization: String,
+    pub description: Option<String>,
+    pub module_setting: Option<String>,
+    pub created_by: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub struct ProjectListResponse {
+    pub projects: Vec<ProjectInfoResponse>,
+}
 
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]

@@ -21,9 +21,8 @@ pub struct LoginRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate, IntoParams)]
+#[serde(rename_all = "camelCase")]
 pub struct RefreshTokenRequest {
-    #[garde(length(min = 30))]
-    pub access_token: String,
     #[garde(length(min = 30))]
     pub refresh_token: String,
 }

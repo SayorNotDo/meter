@@ -33,6 +33,8 @@ pub enum ResourceType {
     Session,
     #[strum(serialize = "MESSAGE")]
     Message,
+    #[strum(serialize = "PROJECT")]
+    Project,
 }
 
 #[derive(Debug, thiserror::Error, ToSchema)]

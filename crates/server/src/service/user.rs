@@ -67,9 +67,9 @@ pub async fn is_login(state: &AppState, uid: Uuid) -> AppResult<LoginResponse> {
     Ok(LoginResponse::Token(resp))
 }
 
-pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
+pub async fn info(state: &AppState, _uid: Uuid) -> AppResult<UserInfoResponse> {
     let client = state.pool.get().await?;
-    let user_dao = UserDao::new(client);
+    let _user_dao = UserDao::new(client);
     /* 查询用户相关的信息，组装响应返回 */
 
     Ok(UserInfoResponse {

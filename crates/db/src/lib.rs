@@ -7,7 +7,7 @@ use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, Server
 use rustls_pki_types::{CertificateDer, ServerName, UnixTime};
 pub use tokio_postgres::Error as TokioPostgresError;
 
-pub use queries::users::User;
+pub use queries::user::User;
 
 pub mod redis;
 

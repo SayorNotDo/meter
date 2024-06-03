@@ -143,13 +143,13 @@ pub async fn is_login(
 pub async fn token_refresh(
     Extension(state): Extension<AppState>,
     Json(request): Json<RefreshTokenRequest>,
-) -> AppResult<Json<TokenResponse>> {
+) -> AppResult<Json<LoginResponse>> {
     info!("Refresh user's token info");
     /* 刷新用户的refresh token */
     match service::token::refresh(&state, request).await {
         Ok(resp) => {
             info!("refresh token successfully");
-            Ok(Json(resp))
+            Ok(Json(LoginResponse::Token(resp)))
         }
         Err(e) => {
             info!("Failed to refresh token");

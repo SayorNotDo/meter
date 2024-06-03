@@ -6,11 +6,11 @@ CREATE TABLE projects
     name           VARCHAR   NOT NULL,
     created_at     TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMP,
-    created_by     INT,
-    updated_by     INT,
+    created_by     UUID,
+    updated_by     UUID,
     deleted        BOOLEAN   NOT NULL DEFAULT FALSE,
     deleted_at     TIMESTAMP,
-    deleted_by     INT,
+    deleted_by     UUID,
     description    VARCHAR,
     module_setting VARCHAR
 );
