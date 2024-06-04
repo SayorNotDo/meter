@@ -29,7 +29,7 @@ pub async fn register(state: &AppState, request: RegisterRequest) -> AppResult<i
     );
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(client);
-    let user_id = user_dao.insert(&new_user).await?;
+    let user_id = user_dao.insert(new_user).await?;
     Ok(user_id)
 }
 

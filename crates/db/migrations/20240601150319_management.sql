@@ -1,5 +1,7 @@
 -- migrate:up
 
+DROP TABLE IF EXISTS projects;
+
 CREATE TABLE projects
 (
     id             SERIAL PRIMARY KEY,
@@ -36,6 +38,8 @@ CREATE TRIGGER set_timestamp_project
     ON projects
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
+
+DROP TABLE IF EXISTS organizations;
 
 CREATE TABLE organizations
 (

@@ -20,8 +20,7 @@ pub struct User {
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
     pub last_organization_id: Option<i32>,
-    pub last_project_id: Option<i32>
-
+    pub last_project_id: Option<i32>,
 }
 
 impl User {
@@ -44,7 +43,7 @@ impl User {
             created_at: Utc::now(),
             updated_at: None,
             last_project_id: None,
-            last_organization_id: None
+            last_organization_id: None,
         }
     }
 }
@@ -178,8 +177,7 @@ impl BaseDao<User> for UserDao {
         Ok(vec![])
     }
 
-    #[allow(dead_code)]
-    async fn insert(&self, object: &User) -> AppResult<i32> {
+    async fn insert(&self, object: User) -> AppResult<i32> {
         let user_id = insert_user()
             .bind(
                 &self.client,

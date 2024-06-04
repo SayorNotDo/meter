@@ -70,7 +70,9 @@ impl<S> FromRequestParts<S> for UserClaims
 }
 
 pub trait UserClaimsRequest {
+    #[allow(dead_code)]
     fn get_user_id(&self) -> AppResult<Uuid>;
+    #[allow(dead_code)]
     fn get_user_claims(&self) -> AppResult<UserClaims>;
 }
 

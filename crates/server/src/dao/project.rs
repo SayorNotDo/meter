@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use garde::rules::AsStr;
 use serde::{Deserialize, Serialize};
 use db::queries::project::*;
 use tokio_postgres::error::DbError;
@@ -23,6 +24,7 @@ pub struct Project {
 }
 
 impl Project {
+    #[allow(dead_code)]
     pub fn new(name: String,
                organization: String,
                created_by: Uuid,
@@ -107,8 +109,27 @@ impl BaseDao<Project> for ProjectDao {
         todo!()
     }
 
-    async fn insert(&self, _object: &Project) -> AppResult<i32> {
-        todo!()
+    async fn insert(&self, object: Project) -> AppResult<i32> {
+        let description = match &object.description {
+            Some(s) => s.as_str(),
+            None => "".as_str()
+        };
+        let module_setting = match &object.module_setting {
+            Some(s) => s.as_str(),
+            None => "".as_str()
+        };
+        let project_id = insert_project()
+            .bind(
+                &self.client,
+                &object.name.as_str(),
+                &object.organization.as_str(),
+                &object.created_by,
+                &description,
+                &module_setting
+            )
+            .one()
+            .await?;
+        Ok(project_id)
     }
 
     async fn find_by_id(&self, id: i32) -> AppResult<Project> {

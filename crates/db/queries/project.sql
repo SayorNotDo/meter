@@ -27,4 +27,11 @@ SELECT
     description,
     module_setting
 FROM projects
-WHERE id = :id AND created_by = :uid;
+WHERE created_by = :uid;
+
+--! insert_project
+INSERT INTO
+    projects (name, organization, created_by, description, module_setting)
+VALUES
+    (:name, :organization, :created_by, :description, :module_setting)
+RETURNING id;
