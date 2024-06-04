@@ -7,8 +7,8 @@ CREATE TABLE users
     username             VARCHAR   NOT NULL UNIQUE,
     hashed_password      VARCHAR   NOT NULL,
     email                VARCHAR UNIQUE,
-    last_organization_id VARCHAR,
-    last_project_id      VARCHAR,
+    last_organization_id INT,
+    last_project_id      INT,
     created_at           TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMP
 );
@@ -35,7 +35,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- create trigger: set updated_at field
-CREATE TRIGGER set_timestamp
+CREATE TRIGGER set_timestamp_user
     BEFORE UPDATE
     ON users
     FOR EACH ROW

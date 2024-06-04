@@ -4,7 +4,6 @@ use crate::errors::AppResult;
 use uuid::Uuid;
 use crate::state::AppState;
 use crate::dao::project::*;
-use crate::errors::ResourceType::Project;
 
 
 /* 获取项目信息 */

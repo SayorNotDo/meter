@@ -10,10 +10,6 @@ use crate::errors::{AppError, AppResult, Resource, ResourceType};
 
 use super::base::BaseDao;
 
-pub struct UserInfo {
-
-}
-
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct User {
     pub id: i32,
@@ -23,6 +19,9 @@ pub struct User {
     pub email: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
+    pub last_organization_id: Option<i32>,
+    pub last_project_id: Option<i32>
+
 }
 
 impl User {
@@ -44,6 +43,8 @@ impl User {
             email: email.into(),
             created_at: Utc::now(),
             updated_at: None,
+            last_project_id: None,
+            last_organization_id: None
         }
     }
 }
@@ -70,6 +71,8 @@ macro_rules! impl_to_user {
                     email: self.email.clone(),
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
+                    last_project_id: self.last_project_id,
+                    last_organization_id: self.last_organization_id
                 }
             }
         }
@@ -88,10 +91,6 @@ pub struct UserDao {
 impl UserDao {
     pub fn new(client: db::Client) -> Self {
         UserDao { client }
-    }
-
-    pub async fn get_user_info() -> AppResult<UserInfo> {
-        Ok(UserInfo {})
     }
     pub async fn find_by_uid(&self, uid: Uuid) -> AppResult<User> {
         /* 通过uid查询用户 */

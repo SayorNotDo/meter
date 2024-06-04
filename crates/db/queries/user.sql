@@ -15,7 +15,7 @@ VALUES
 	(:username, :hashed_password, :email, :uuid)
 RETURNING id;
 
---! get_user_by_username (username?) : (updated_at?)
+--! get_user_by_username (username?) : (updated_at?, last_organization_id?, last_project_id?)
 SELECT 
 	id,
 	uuid,
@@ -23,7 +23,9 @@ SELECT
 	hashed_password,
 	email,
 	created_at,
-	updated_at
+	updated_at,
+    last_organization_id,
+    last_project_id
 FROM users
 WHERE username = :username;
 
@@ -36,7 +38,7 @@ SELECT
 FROM users
 WHERE email = :email;
 
---! get_user_by_uuid (uuid?) : (updated_at?)
+--! get_user_by_uuid (uuid?) : (updated_at?, last_organization_id?, last_project_id?)
 SELECT
     id,
     uuid,
@@ -44,6 +46,8 @@ SELECT
     hashed_password,
     email,
     created_at,
-    updated_at
+    updated_at,
+    last_organization_id,
+    last_project_id
 FROM users
 WHERE uuid = :uuid;

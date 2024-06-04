@@ -67,14 +67,17 @@ pub async fn is_login(state: &AppState, uid: Uuid) -> AppResult<LoginResponse> {
     Ok(LoginResponse::Token(resp))
 }
 
-pub async fn info(state: &AppState, _uid: Uuid) -> AppResult<UserInfoResponse> {
+pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
     let client = state.pool.get().await?;
-    let _user_dao = UserDao::new(client);
+    let user_dao = UserDao::new(client);
     /* 查询用户相关的信息，组装响应返回 */
-
+    let user = user_dao.find_by_uid(uid).await?;
     Ok(UserInfoResponse {
-        last_organization_id: "".into(),
-        last_project_id: "".into()
+        username: user.username,
+        email: user.email,
+        created_at: user.created_at,
+        last_organization_id: user.last_organization_id,
+        last_project_id: user.last_project_id
     })
 }
 

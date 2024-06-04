@@ -23,7 +23,11 @@ pub struct Project {
 }
 
 impl Project {
-    pub fn new(name: String, organization: String, created_by: Uuid, description: Option<String>, module_setting: Option<String>) -> Self {
+    pub fn new(name: String,
+               organization: String,
+               created_by: Uuid,
+               description: Option<String>,
+               module_setting: Option<String>) -> Self {
         Self {
             id: 0,
             name,
