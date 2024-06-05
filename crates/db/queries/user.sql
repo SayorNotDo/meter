@@ -51,3 +51,13 @@ SELECT
     last_project_id
 FROM users
 WHERE uuid = :uuid;
+
+--！get_user_role_by_uuid (uuid?) : (updated_at?, last_organization_id?, last_project_id?)
+SELECT
+    id,
+    name,
+    type,
+    description,
+    created_at
+FROM user_role
+WHERE uuid = :uuid;

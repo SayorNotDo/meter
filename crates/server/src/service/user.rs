@@ -76,8 +76,12 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
         username: user.username,
         email: user.email,
         created_at: user.created_at,
+        updated_at: user.updated_at,
         last_organization_id: user.last_organization_id,
-        last_project_id: user.last_project_id
+        last_project_id: user.last_project_id,
+        user_roles: Vec::new(),
+        user_role_permissions: Vec::new(),
+        user_role_relations: Vec::new(),
     })
 }
 

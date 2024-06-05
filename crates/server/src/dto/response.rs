@@ -83,4 +83,8 @@ pub struct UserInfoResponse {
     pub created_at: DateTime<Utc>,
     pub last_organization_id: Option<i32>,
     pub last_project_id: Option<i32>,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub user_role_permissions: Vec<()>,
+    pub user_role_relations: Vec<()>,
+    pub user_roles: Vec<()>
 }

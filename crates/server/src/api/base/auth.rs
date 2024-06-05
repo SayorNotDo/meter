@@ -74,7 +74,7 @@ pub async fn login(
     path = "/auth/logout",
     responses(
         (status = 200, description = "Logout success", body = [MessageResponse]),
-        (status = 400, description = "Unauthorized user", body = [AppResponseError]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError])
     ),
     security(("jwt" = []))

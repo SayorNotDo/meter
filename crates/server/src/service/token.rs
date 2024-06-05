@@ -1,7 +1,8 @@
+use axum_extra::routing::Resource;
 use tracing::info;
 use uuid::Uuid;
 use crate::constant::{ACCESS_TOKEN_ENCODE_KEY, EXPIRE_REFRESH_TOKEN_SECS, EXPIRE_SESSION_CODE_SECS, REFRESH_TOKEN_ENCODE_KEY};
-use crate::errors::AppResult;
+use crate::errors::{AppError, AppResult};
 use crate::dto::response::TokenResponse;
 use crate::dto::request::RefreshTokenRequest;
 use crate::state::AppState;

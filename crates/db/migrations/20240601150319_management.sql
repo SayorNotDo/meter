@@ -4,18 +4,18 @@ DROP TABLE IF EXISTS projects;
 
 CREATE TABLE projects
 (
-    id             SERIAL PRIMARY KEY,
-    name           VARCHAR   NOT NULL,
-    organization   VARCHAR   NOT NULL,
-    created_at     TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at     TIMESTAMP,
-    created_by     UUID,
-    updated_by     UUID,
-    deleted        BOOLEAN   NOT NULL DEFAULT FALSE,
-    deleted_at     TIMESTAMP,
-    deleted_by     UUID,
-    description    VARCHAR,
-    module_setting VARCHAR
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR   NOT NULL,
+    organization_id INT       NOT NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP,
+    created_by      UUID,
+    updated_by      UUID,
+    deleted         BOOLEAN   NOT NULL DEFAULT FALSE,
+    deleted_at      TIMESTAMP,
+    deleted_by      UUID,
+    description     VARCHAR,
+    module_setting  VARCHAR
 );
 
 -- comments
@@ -71,7 +71,7 @@ COMMENT ON COLUMN organizations.deleted_by IS '删除人';
 -- create trigger: set updated_at field
 CREATE TRIGGER set_timestamp_organization
     BEFORE UPDATE
-    ON projects
+    ON organizations
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
