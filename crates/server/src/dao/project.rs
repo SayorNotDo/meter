@@ -12,7 +12,7 @@ use crate::errors::{AppResult, AppError, Resource, ResourceType};
 pub struct Project {
     pub id: i32,
     pub name: String,
-    pub organization: String,
+    pub organization_id: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: Uuid,
     pub updated_at: Option<DateTime<Utc>>,
@@ -26,14 +26,14 @@ pub struct Project {
 impl Project {
     #[allow(dead_code)]
     pub fn new(name: String,
-               organization: String,
+               organization_id: i32,
                created_by: Uuid,
                description: Option<String>,
                module_setting: Option<String>) -> Self {
         Self {
             id: 0,
             name,
-            organization,
+            organization_id,
             created_at: Utc::now(),
             created_by,
             updated_at: None,
@@ -67,7 +67,7 @@ macro_rules! impl_to_project {
                 Project {
                     id: self.id,
                     name: self.name.clone(),
-                    organization: self.organization.clone(),
+                    organization_id: self.organization_id,
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
                     created_by: self.created_by,
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
@@ -122,7 +122,7 @@ impl BaseDao<Project> for ProjectDao {
             .bind(
                 &self.client,
                 &object.name.as_str(),
-                &object.organization.as_str(),
+                &object.organization_id,
                 &object.created_by,
                 &description,
                 &module_setting

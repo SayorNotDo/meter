@@ -22,7 +22,7 @@ impl MessageResponse {
 pub struct ProjectInfoResponse {
     pub id: i32,
     pub name: String,
-    pub organization: String,
+    pub organization_id: i32,
     pub description: Option<String>,
     pub module_setting: Option<String>,
     pub created_by: Uuid,

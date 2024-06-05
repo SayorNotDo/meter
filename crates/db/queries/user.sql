@@ -52,12 +52,15 @@ SELECT
 FROM users
 WHERE uuid = :uuid;
 
---！get_user_role_by_uuid (uuid?) : (updated_at?, last_organization_id?, last_project_id?)
+--! get_user_roles_by_uuid
 SELECT
-    id,
-    name,
-    type,
-    description,
-    created_at
-FROM user_role
-WHERE uuid = :uuid;
+    r.name,
+    r.created_at,
+    r.created_by,
+    r.updated_at,
+    r.description,
+    r.type
+    FROM users u
+    JOIN user_role_relation urr ON u.uuid = urr.user_id
+    JOIN user_role r ON urr.role_id = r.id
+WHERE u.uuid = :uuid;

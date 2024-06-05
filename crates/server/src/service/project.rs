@@ -14,7 +14,7 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
     Ok(ProjectInfoResponse {
         id: project.id,
         name: project.name,
-        organization: project.organization,
+        organization_id: project.organization_id,
         description: project.description,
         created_by: project.created_by,
         created_at: project.created_at,
@@ -32,7 +32,7 @@ pub async fn list(state: &AppState, uid: Uuid) -> AppResult<ProjectListResponse>
         let project = ProjectInfoResponse {
             id: item.id,
             name: item.name.clone(),
-            organization: item.organization.clone(),
+            organization_id: item.organization_id,
             description: item.description.clone(),
             created_by: item.created_by,
             created_at: item.created_at,

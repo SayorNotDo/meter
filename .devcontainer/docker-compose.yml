@@ -29,7 +29,7 @@ services:
       dockerfile: Dockerfile
     
     volumes:
-      - ..:/workspace
+      - ..:/workspace:cached
       # Give access to ssh keys on the host (Is there a better way to do this?)
       - ~/.ssh:/home/host-ssh
       # We need this so docker in docker works

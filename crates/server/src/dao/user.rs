@@ -23,6 +23,15 @@ pub struct User {
     pub last_project_id: Option<i32>,
 }
 
+pub struct UserRole {
+    pub username: String,
+    pub role_type: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: Uuid,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub description: Option<String>,
+}
+
 impl User {
     pub fn new(username: &str, password: &str, email: &str, gen_uuid: bool) -> Self {
         let username = username.to_lowercase();
@@ -161,6 +170,22 @@ impl UserDao {
                     details: vec![],
                     resource_type: ResourceType::User,
                 }))
+            }
+        }
+    }
+
+    pub async fn get_user_roles_by_uuid(&self, uuid: Uuid) -> AppResult<Vec<UserRole>> {
+        let ret = vec![];
+        let user_roles = get_user_roles_by_uuid()
+            .bind(&self.client, &uuid)
+            .all()
+            .await?;
+        for item in user_roles.iter() {
+            match item {
+                None => {}
+                Some(role) => {
+
+                }
             }
         }
     }

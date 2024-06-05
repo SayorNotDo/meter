@@ -2,7 +2,7 @@
 SELECT
     id,
     name,
-    organization,
+    organization_id,
     created_at,
     created_by,
     updated_at,
@@ -31,7 +31,7 @@ WHERE created_by = :uid;
 
 --! insert_project
 INSERT INTO
-    projects (name, organization, created_by, description, module_setting)
+    projects (name, organization_id, created_by, description, module_setting)
 VALUES
-    (:name, :organization, :created_by, :description, :module_setting)
+    (:name, :organization_id, :created_by, :description, :module_setting)
 RETURNING id;
