@@ -20,20 +20,24 @@ INSERT INTO projects
 (name,
  organization_id,
  created_by,
- description)
+ description,
+ module_setting)
 VALUES ('默认项目',
         (SELECT id FROM organizations WHERE name = '默认组织'),
         (SELECT uuid FROM users WHERE username = 'admin'),
-        '系统默认创建的项目');
+        '系统默认创建的项目',
+        '["bugManagement","caseManagement","apiTest","testPlan"]');
 
 -- 初始化用户组
 INSERT INTO user_role
 (name,
  type,
+ internal,
  description,
  created_by)
 VALUES ('admin',
         'SYSTEM',
+        true,
         '拥有系统全部组织以及项目的操作权限',
         (SELECT uuid FROM users WHERE username = 'admin'));
 

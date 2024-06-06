@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::dao;
 use crate::dao::base::BaseDao;
-use crate::dao::user::UserDao;
+use crate::dao::user::{UserDao, UserRolePermission};
 use crate::dto::request::*;
 use crate::dto::response::{LoginResponse, UserInfoResponse};
 use crate::dto::response::MessageResponse;
@@ -71,7 +71,21 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(client);
     /* 查询用户相关的信息，组装响应返回 */
-    let user = user_dao.find_by_uid(uid).await?;
+    let user = user_dao.find_by_uid(&uid).await?;
+    /* 获取用户角色信息 */
+    let user_roles = user_dao.get_user_roles_by_uuid(&uid).await?;
+    /* 获取用户角色关系信息 */
+    let user_role_relations = user_dao.get_user_role_relations_by_uuid(&uid).await?;
+    /* 获取用户角色对应的权限 */
+    let mut permissions_list = vec![];
+    for item in user_roles.iter() {
+        let permissions = user_dao.get_user_role_permissions_by_role_id(&item.id).await?;
+        let user_role_permissions = UserRolePermission {
+            user_role: item.clone(),
+            user_role_permissions: permissions,
+        };
+        permissions_list.push(user_role_permissions);
+    }
     Ok(UserInfoResponse {
         username: user.username,
         email: user.email,
@@ -79,9 +93,9 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
         updated_at: user.updated_at,
         last_organization_id: user.last_organization_id,
         last_project_id: user.last_project_id,
-        user_roles: Vec::new(),
-        user_role_permissions: Vec::new(),
-        user_role_relations: Vec::new(),
+        user_roles: user_roles,
+        user_role_permissions: permissions_list,
+        user_role_relations: user_role_relations,
     })
 }
 

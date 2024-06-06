@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::constant::BEARER;
+use crate::dao::user::{UserRole, UserRolePermission, UserRoleRelation};
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
 pub struct MessageResponse {
@@ -25,9 +26,15 @@ pub struct ProjectInfoResponse {
     pub organization_id: i32,
     pub description: Option<String>,
     pub module_setting: Option<String>,
-    pub created_by: Uuid,
+    pub member_count: i32,
+    pub created_by: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+    pub deleted: bool,
+    pub deleted_at: Option<DateTime<Utc>>,
+    pub deleted_by: Option<String>,
+    pub adminList: Vec<()>,
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
@@ -84,7 +91,7 @@ pub struct UserInfoResponse {
     pub last_organization_id: Option<i32>,
     pub last_project_id: Option<i32>,
     pub updated_at: Option<DateTime<Utc>>,
-    pub user_role_permissions: Vec<()>,
-    pub user_role_relations: Vec<()>,
-    pub user_roles: Vec<()>
+    pub user_role_permissions: Vec<UserRolePermission>,
+    pub user_role_relations: Vec<UserRoleRelation>,
+    pub user_roles: Vec<UserRole>,
 }

@@ -1,7 +1,7 @@
 use std::vec;
 
 use chrono::{Utc, DateTime};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tokio_postgres::error::DbError;
 use tracing::log::info;
 use uuid::Uuid;
@@ -23,13 +23,39 @@ pub struct User {
     pub last_project_id: Option<i32>,
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Clone)]
 pub struct UserRole {
-    pub username: String,
+    pub id: i32,
+    pub name: String,
     pub role_type: String,
+    pub internal: bool,
     pub created_at: DateTime<Utc>,
-    pub created_by: Uuid,
+    pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
     pub description: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct UserRoleRelation {
+    pub id: i32,
+    pub user_id: Uuid,
+    pub role_id: i32,
+    pub organization_id: i32,
+    pub created_by: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct UserRolePermission {
+    pub user_role: UserRole,
+    pub user_role_permissions: Vec<Permission>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct Permission {
+    pub id: i32,
+    pub role_id: i32,
+    pub permission: String,
 }
 
 impl User {
@@ -100,10 +126,10 @@ impl UserDao {
     pub fn new(client: db::Client) -> Self {
         UserDao { client }
     }
-    pub async fn find_by_uid(&self, uid: Uuid) -> AppResult<User> {
+    pub async fn find_by_uid(&self, uid: &Uuid) -> AppResult<User> {
         /* 通过uid查询用户 */
         let ret = get_user_by_uuid()
-            .bind(&self.client, &Some(uid))
+            .bind(&self.client, uid)
             .opt()
             .await?;
         match ret {
@@ -174,20 +200,69 @@ impl UserDao {
         }
     }
 
-    pub async fn get_user_roles_by_uuid(&self, uuid: Uuid) -> AppResult<Vec<UserRole>> {
-        let ret = vec![];
+    pub async fn get_user_roles_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<UserRole>> {
+        let mut ret = vec![];
         let user_roles = get_user_roles_by_uuid()
-            .bind(&self.client, &uuid)
+            .bind(&self.client, uuid)
             .all()
             .await?;
-        for item in user_roles.iter() {
-            match item {
-                None => {}
-                Some(role) => {
-
-                }
-            }
+        for item in user_roles {
+            let timestamp_updated_at = match item.updated_at {
+                Some(t) => t.assume_utc().unix_timestamp_nanos(),
+                None => 0
+            };
+            let timestamp_created_at = item.created_at.assume_utc().unix_timestamp_nanos();
+            let user_role = UserRole {
+                id: item.id,
+                name: item.name,
+                role_type: item.role_type,
+                internal: item.internal,
+                created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
+                created_by: item.created_by,
+                updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
+                description: item.description,
+            };
+            ret.push(user_role);
         }
+        Ok(ret)
+    }
+
+    pub async fn get_user_role_relations_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<UserRoleRelation>> {
+        let mut ret = vec![];
+        let user_role_relations = get_user_role_relations_by_uuid()
+            .bind(&self.client, uuid)
+            .all()
+            .await?;
+        for item in user_role_relations {
+            let timestamp_created_at = item.created_at.assume_utc().unix_timestamp_nanos();
+            let user_role = UserRoleRelation {
+                id: item.id,
+                user_id: item.user_id,
+                role_id: item.role_id,
+                organization_id: item.organization_id,
+                created_by: item.created_by,
+                created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
+            };
+            ret.push(user_role);
+        }
+        Ok(ret)
+    }
+
+    pub async fn get_user_role_permissions_by_role_id(&self, role_id: &i32) -> AppResult<Vec<Permission>> {
+        let mut ret = vec![];
+        let user_role_permissions = get_user_role_permissions_by_role_id()
+            .bind(&self.client, role_id)
+            .all()
+            .await?;
+        for item in user_role_permissions {
+            let permission = Permission {
+                id: item.id,
+                role_id: item.role_id,
+                permission: item.permission,
+            };
+            ret.push(permission);
+        }
+        Ok(ret)
     }
 }
 
@@ -279,7 +354,7 @@ mod tests {
         let client = pool.get().await.unwrap();
 
         let user_dao = UserDao::new(client);
-        let result = user_dao.insert(&user).await;
+        let result = user_dao.insert(user).await;
 
         assert!(result.is_ok())
     }
@@ -297,7 +372,7 @@ mod tests {
 
         let client = pool.get().await.unwrap();
         let user_dao = UserDao::new(client);
-        let result = user_dao.insert(&user).await;
+        let result = user_dao.insert(user).await;
         assert!(result.is_err())
     }
 

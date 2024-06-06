@@ -54,6 +54,7 @@ CREATE TABLE user_role
     id          SERIAL PRIMARY KEY,
     name        VARCHAR   NOT NULL,
     type        VARCHAR   NOT NULL,
+    internal    BOOLEAN   NOT NULL DEFAULT FALSE,
     description VARCHAR,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by  UUID,
@@ -64,6 +65,7 @@ CREATE TABLE user_role
 COMMENT ON COLUMN user_role.id IS '角色ID';
 COMMENT ON COLUMN user_role.name IS '角色名称';
 COMMENT ON COLUMN user_role.type IS '所属类型 SYSTEM, ORGANIZATION, PROJECT';
+COMMENT ON COLUMN user_role.internal IS '是否内置角色';
 COMMENT ON COLUMN user_role.created_at IS '创建时间';
 COMMENT ON COLUMN user_role.created_by IS '创建人';
 COMMENT ON COLUMN user_role.updated_at IS '更新时间';
