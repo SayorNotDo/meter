@@ -23,6 +23,22 @@ pub struct Project {
     pub module_setting: Option<String>,
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ProjectInfo {
+    pub id: i32,
+    pub name: String,
+    pub organization: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+    pub deleted: bool,
+    pub deleted_at: Option<DateTime<Utc>>,
+    pub deleted_by: Option<String>,
+    pub description: Option<String>,
+    pub module_setting: Option<String>,
+}
+
 impl Project {
     #[allow(dead_code)]
     pub fn new(name: String,
@@ -54,7 +70,7 @@ macro_rules! impl_to_project {
     ($($t:ty), *) => {
         $(
         impl ToProject for $t {
-            fn to_project(&self) -> Project {
+            fn to_project(&self) -> ProjectInfo {
                 let timestamp_created_at = self.created_at.assume_utc().unix_timestamp_nanos();
                 let timestamp_updated_at = match self.updated_at {
                     Some(t) => t.assume_utc().unix_timestamp_nanos(),
@@ -64,14 +80,15 @@ macro_rules! impl_to_project {
                     Some(t) => t.assume_utc().unix_timestamp_nanos(),
                     None => 0
                 };
-                Project {
+                ProjectInfo {
                     id: self.id,
                     name: self.name.clone(),
-                    organization_id: self.organization_id,
+                    organization: self.organization,
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
-                    created_by: self.created_by,
+                    created_by: self.created_by.clone(),
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
                     updated_by: Option::from(self.updated_by),
+                    deleted: self.deleted,
                     deleted_by: Option::from(self.deleted_by),
                     deleted_at: Option::from(DateTime::from_timestamp_nanos(timestamp_deleted_at as i64)),
                     description: self.description.clone(),
@@ -99,7 +116,7 @@ impl ProjectDao {
         Ok(())
     }
 
-    pub async fn find_projects_by_uid(&self, _uid: Uuid) -> AppResult<Vec<Project>> {
+    pub async fn find_projects_by_uid(&self, _uid: Uuid) -> AppResult<Vec<ProjectInfo>> {
         Ok(vec![])
     }
 }
@@ -125,14 +142,14 @@ impl BaseDao<Project> for ProjectDao {
                 &object.organization_id,
                 &object.created_by,
                 &description,
-                &module_setting
+                &module_setting,
             )
             .one()
             .await?;
         Ok(project_id)
     }
 
-    async fn find_by_id(&self, id: i32) -> AppResult<Project> {
+    async fn find_by_id(&self, id: i32) -> AppResult<ProjectInfo> {
         let ret = find_project_by_id()
             .bind(&self.client, &id)
             .opt()
