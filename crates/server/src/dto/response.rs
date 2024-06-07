@@ -1,12 +1,10 @@
-// use uuid::Uuid;
-
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::constant::BEARER;
-use crate::dao::user::{UserRole, UserRolePermission, UserRoleRelation};
+use crate::dao::project::ProjectInfo;
+use crate::dao::entity::{User, UserRole, UserRolePermission, UserRoleRelation};
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
 pub struct MessageResponse {
@@ -34,12 +32,12 @@ pub struct ProjectInfoResponse {
     pub deleted: bool,
     pub deleted_at: Option<DateTime<Utc>>,
     pub deleted_by: Option<String>,
-    pub adminList: Vec<()>,
+    pub admin_list: Vec<User>,
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct ProjectListResponse {
-    pub projects: Vec<ProjectInfoResponse>,
+    pub projects: Vec<ProjectInfo>,
 }
 
 

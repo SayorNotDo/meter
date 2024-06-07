@@ -41,8 +41,10 @@ pub enum ResourceType {
 pub enum AppError {
     #[error("{0} not found")]
     NotFoundError(Resource),
-    // #[error("bad request {0}")]
-    // BadRequestError(String),
+    #[error("bad request {0}")]
+    BadRequestError(String),
+    #[error("{0}")]
+    InvalidPayloadError(String),
     #[error("{0}")]
     InvalidSessionError(String),
     #[error(transparent)]
@@ -71,6 +73,10 @@ pub enum AppError {
     DbPoolError(#[from] db::PoolError),
     #[error("{0}")]
     UnauthorizedError(String),
+    #[error(transparent)]
+    AxumError(#[from] axum::Error),
+    #[error(transparent)]
+    UnknownError(#[from] anyhow::Error),
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
@@ -98,6 +104,12 @@ impl AppError {
             ),
             InvalidSessionError(_err) => (
                 "INVALID_SESSION_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::BAD_REQUEST,
+            ),
+            InvalidPayloadError(_err) => (
+                "INVALID_PAYLOAD_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::BAD_REQUEST,
@@ -132,12 +144,12 @@ impl AppError {
                 vec![],
                 StatusCode::UNAUTHORIZED,
             ),
-            // BadRequestError(_err) => (
-            //     "BAD_REQUEST_ERROR".to_string(),
-            //     None,
-            //     vec![],
-            //     StatusCode::BAD_REQUEST,
-            // ),
+            BadRequestError(_err) => (
+                "BAD_REQUEST_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::BAD_REQUEST,
+            ),
             InvalidInputError(err) => (
                 "INVALID_INPUT_ERROR".to_string(),
                 None,
@@ -182,11 +194,23 @@ impl AppError {
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR
             ),
+            AxumError(_err) => (
+                "AXUM_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
             UnauthorizedError(_err) => (
                 "UNAUTHORIZED_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::UNAUTHORIZED,
+            ),
+            UnknownError(_err) => (
+                "UNKNOWN_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
             ),
         };
 

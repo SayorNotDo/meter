@@ -1,103 +1,28 @@
 use std::vec;
 
-use chrono::{Utc, DateTime};
-use serde::{Deserialize, Serialize};
-use tokio_postgres::error::DbError;
+use chrono::DateTime;
 use tracing::log::info;
 use uuid::Uuid;
 use db::queries::user::*;
 use crate::errors::{AppError, AppResult, Resource, ResourceType};
+use crate::dao::entity;
 
-use super::base::BaseDao;
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-pub struct User {
-    pub id: i32,
-    pub uuid: Uuid,
-    pub username: String,
-    pub hashed_password: String,
-    pub email: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: Option<DateTime<Utc>>,
-    pub last_organization_id: Option<i32>,
-    pub last_project_id: Option<i32>,
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Clone)]
-pub struct UserRole {
-    pub id: i32,
-    pub name: String,
-    pub role_type: String,
-    pub internal: bool,
-    pub created_at: DateTime<Utc>,
-    pub created_by: String,
-    pub updated_at: Option<DateTime<Utc>>,
-    pub description: Option<String>,
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct UserRoleRelation {
-    pub id: i32,
-    pub user_id: Uuid,
-    pub role_id: i32,
-    pub organization_id: i32,
-    pub created_by: String,
-    pub created_at: DateTime<Utc>,
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct UserRolePermission {
-    pub user_role: UserRole,
-    pub user_role_permissions: Vec<Permission>,
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct Permission {
-    pub id: i32,
-    pub role_id: i32,
-    pub permission: String,
-}
-
-impl User {
-    pub fn new(username: &str, password: &str, email: &str, gen_uuid: bool) -> Self {
-        let username = username.to_lowercase();
-
-        // generate UUID
-        let uuid = if gen_uuid {
-            Uuid::new_v4()
-        } else {
-            Uuid::nil()
-        };
-
-        Self {
-            id: 0,
-            uuid,
-            username,
-            hashed_password: password.to_string(),
-            email: email.into(),
-            created_at: Utc::now(),
-            updated_at: None,
-            last_project_id: None,
-            last_organization_id: None,
-        }
-    }
-}
 
 trait ToUser {
-    fn to_user(&self) -> User;
+    fn to_user(&self) -> entity::User;
 }
 
 macro_rules! impl_to_user {
     ($($t:ty),*) => {
         $(
         impl ToUser for $t {
-            fn to_user(&self) -> User {
+            fn to_user(&self) -> entity::User {
                 let timestamp_updated_at = match self.updated_at {
                     Some(t) => t.assume_utc().unix_timestamp_nanos(),
                     None => 0
                 };
                 let timestamp_created_at = self.created_at.assume_utc().unix_timestamp_nanos();
-                User {
+                entity::User {
                     id: self.id,
                     username: self.username.clone(),
                     uuid: self.uuid,
@@ -115,21 +40,21 @@ macro_rules! impl_to_user {
 }
 
 // 使用宏为查询的结构体实现ToUser trait
-impl_to_user!(GetUserByUsername, GetUserByUuid);
+impl_to_user!(GetUserByUsername, GetUserByUuid, GetUsersByRoleAndProjectId);
 
 #[derive(Debug)]
-pub struct UserDao {
-    client: db::Client,
+pub struct UserDao<'a> {
+    client: &'a db::Client,
 }
 
-impl UserDao {
-    pub fn new(client: db::Client) -> Self {
+impl<'a> UserDao<'a> {
+    pub fn new(client: &'a db::Client) -> Self {
         UserDao { client }
     }
-    pub async fn find_by_uid(&self, uid: &Uuid) -> AppResult<User> {
+    pub async fn find_by_uid(&self, uid: &Uuid) -> AppResult<entity::User> {
         /* 通过uid查询用户 */
         let ret = get_user_by_uuid()
-            .bind(&self.client, uid)
+            .bind(self.client, uid)
             .opt()
             .await?;
         match ret {
@@ -147,10 +72,22 @@ impl UserDao {
         }
     }
 
-    pub async fn find_by_username(&self, username: &str) -> AppResult<User> {
+    pub async fn find_by_role_and_project_id(&self, role: &str, project_id: i32) -> AppResult<Vec<entity::User>> {
+        /*  通过项目id和角色id查询用户 */
+        let users = get_users_by_role_and_project_id()
+            .bind(self.client, &project_id, &role)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| item.to_user()
+            ).collect::<Vec<_>>();
+        Ok(users)
+    }
+
+    pub async fn find_by_username(&self, username: &str) -> AppResult<entity::User> {
         /* 通过用户名查询用户并返回 */
         let ret = get_user_by_username()
-            .bind(&self.client, &Some(username))
+            .bind(self.client, &Some(username))
             .opt()
             .await?;
         match ret {
@@ -170,7 +107,7 @@ impl UserDao {
 
     pub async fn check_unique_by_username(&self, username: &str) -> AppResult {
         let user = get_user_by_username()
-            .bind(&self.client, &Some(username))
+            .bind(self.client, &Some(username))
             .opt()
             .await?;
         match user {
@@ -186,7 +123,7 @@ impl UserDao {
 
     pub async fn check_unique_by_email(&self, email: &str) -> AppResult {
         let user = get_user_by_email()
-            .bind(&self.client, &Some(email))
+            .bind(self.client, &Some(email))
             .opt()
             .await?;
         match user {
@@ -200,10 +137,10 @@ impl UserDao {
         }
     }
 
-    pub async fn get_user_roles_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<UserRole>> {
+    pub async fn get_user_roles_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<entity::UserRole>> {
         let mut ret = vec![];
         let user_roles = get_user_roles_by_uuid()
-            .bind(&self.client, uuid)
+            .bind(self.client, uuid)
             .all()
             .await?;
         for item in user_roles {
@@ -212,7 +149,7 @@ impl UserDao {
                 None => 0
             };
             let timestamp_created_at = item.created_at.assume_utc().unix_timestamp_nanos();
-            let user_role = UserRole {
+            let user_role = entity::UserRole {
                 id: item.id,
                 name: item.name,
                 role_type: item.role_type,
@@ -227,15 +164,15 @@ impl UserDao {
         Ok(ret)
     }
 
-    pub async fn get_user_role_relations_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<UserRoleRelation>> {
+    pub async fn get_user_role_relations_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<entity::UserRoleRelation>> {
         let mut ret = vec![];
         let user_role_relations = get_user_role_relations_by_uuid()
-            .bind(&self.client, uuid)
+            .bind(self.client, uuid)
             .all()
             .await?;
         for item in user_role_relations {
             let timestamp_created_at = item.created_at.assume_utc().unix_timestamp_nanos();
-            let user_role = UserRoleRelation {
+            let user_role = entity::UserRoleRelation {
                 id: item.id,
                 user_id: item.user_id,
                 role_id: item.role_id,
@@ -248,14 +185,14 @@ impl UserDao {
         Ok(ret)
     }
 
-    pub async fn get_user_role_permissions_by_role_id(&self, role_id: &i32) -> AppResult<Vec<Permission>> {
+    pub async fn get_user_role_permissions_by_role_id(&self, role_id: &i32) -> AppResult<Vec<entity::Permission>> {
         let mut ret = vec![];
         let user_role_permissions = get_user_role_permissions_by_role_id()
-            .bind(&self.client, role_id)
+            .bind(self.client, role_id)
             .all()
             .await?;
         for item in user_role_permissions {
-            let permission = Permission {
+            let permission = entity::Permission {
                 id: item.id,
                 role_id: item.role_id,
                 permission: item.permission,
@@ -264,23 +201,11 @@ impl UserDao {
         }
         Ok(ret)
     }
-}
 
-impl BaseDao<User> for UserDao {
-    async fn all(&self) -> AppResult<Vec<User>> {
-        let _users = get_users()
-            .bind(&self.client)
-            .all()
-            .await
-            .unwrap();
-
-        Ok(vec![])
-    }
-
-    async fn insert(&self, object: User) -> AppResult<i32> {
+    pub async fn insert(&self, object: entity::User) -> AppResult<i32> {
         let user_id = insert_user()
             .bind(
-                &self.client,
+                self.client,
                 &object.username.as_str(),
                 &object.hashed_password.as_str(),
                 &object.email.as_str(),
@@ -291,22 +216,16 @@ impl BaseDao<User> for UserDao {
         Ok(user_id)
     }
 
-    #[allow(dead_code)]
-    async fn find_by_id(&self, _id: i32) -> AppResult<User> {
-        todo!()
-    }
+    pub async fn all(&self) -> AppResult<Vec<entity::User>> {
+        let _users = get_users()
+            .bind(self.client)
+            .all()
+            .await
+            .unwrap();
 
-    #[allow(dead_code)]
-    async fn update(&self, _object: &User) -> Result<User, DbError> {
-        todo!()
-    }
-
-    #[allow(dead_code)]
-    async fn delete_by_id(&self, _id: i32) -> AppResult<()> {
-        todo!()
+        Ok(vec![])
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -353,7 +272,7 @@ mod tests {
 
         let client = pool.get().await.unwrap();
 
-        let user_dao = UserDao::new(client);
+        let user_dao = UserDao::new(&client);
         let result = user_dao.insert(user).await;
 
         assert!(result.is_ok())
@@ -371,7 +290,7 @@ mod tests {
         let pool = db::create_pool(&db_url);
 
         let client = pool.get().await.unwrap();
-        let user_dao = UserDao::new(client);
+        let user_dao = UserDao::new(&client);
         let result = user_dao.insert(user).await;
         assert!(result.is_err())
     }
@@ -382,7 +301,7 @@ mod tests {
         let pool = db::create_pool(&db_url);
 
         let client = pool.get().await.unwrap();
-        let user_dao = UserDao::new(client);
+        let user_dao = UserDao::new(&client);
 
         let _result = user_dao.all().await;
         // assert!(result.ok())
@@ -397,7 +316,7 @@ mod tests {
         let pool = db::create_pool(&db_url);
 
         let client = pool.get().await.unwrap();
-        let user_dao = UserDao::new(client);
+        let user_dao = UserDao::new(&client);
 
         let result = user_dao.check_unique_by_username(&username).await;
 

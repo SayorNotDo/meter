@@ -27,6 +27,12 @@ pub struct RefreshTokenRequest {
     pub refresh_token: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct ProjectQueryParam {
+    pub organization_id: i32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

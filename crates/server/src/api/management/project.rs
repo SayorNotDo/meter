@@ -1,8 +1,9 @@
 use axum::{Extension, Json};
-use axum::extract::Path;
+use axum::extract::{Path, Query};
 use tracing::info;
 
 use crate::dto::response::{ProjectInfoResponse, ProjectListResponse, MessageResponse};
+use crate::dto::request::ProjectQueryParam;
 use crate::errors::AppResult;
 use crate::service::project;
 use crate::state::AppState;
@@ -39,6 +40,7 @@ pub async fn info(
 #[utoipa::path(
     get,
     path = "/project/list",
+    params(ProjectQueryParam),
     responses(
         (status = 200, description = "Get project list", body = [ProjectListResponse]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
@@ -50,9 +52,10 @@ pub async fn info(
 pub async fn list(
     Extension(state): Extension<AppState>,
     user: UserClaims,
+    Query(param): Query<ProjectQueryParam>,
 ) -> AppResult<Json<ProjectListResponse>> {
-    info!("Project list with path param: {user:?}");
-    match project::list(&state, user.uid).await {
+    info!("Project list with path param: {param:?}");
+    match project::list(&state, user.uid, param.organization_id).await {
         Ok(resp) => {
             info!("Get Project list successfully.");
             Ok(Json(resp))

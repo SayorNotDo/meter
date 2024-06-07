@@ -16,7 +16,7 @@ pub async fn refresh(state: &AppState, request: RefreshTokenRequest) -> AppResul
     )?.claims;
     info!("Refresh token: {user_claims:?}.");
     let client = state.pool.get().await?;
-    let user_dao = user::UserDao::new(client);
+    let user_dao = user::UserDao::new(&client);
     let user = user_dao.find_by_uid(&user_claims.uid).await?;
     let session_id = service::session::set(&state.redis, user.uuid).await?;
     info!("Set new session for user: {}", user.uuid);

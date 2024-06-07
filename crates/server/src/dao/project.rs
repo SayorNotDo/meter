@@ -2,9 +2,7 @@ use chrono::{DateTime, Utc};
 use garde::rules::AsStr;
 use serde::{Deserialize, Serialize};
 use db::queries::project::*;
-use tokio_postgres::error::DbError;
 use uuid::Uuid;
-use crate::dao::base::BaseDao;
 use crate::errors::{AppResult, AppError, Resource, ResourceType};
 
 
@@ -28,6 +26,7 @@ pub struct ProjectInfo {
     pub id: i32,
     pub name: String,
     pub organization: String,
+    pub member_count: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
@@ -63,7 +62,7 @@ impl Project {
 }
 
 trait ToProject {
-    fn to_project(&self) -> Project;
+    fn to_project(&self) -> ProjectInfo;
 }
 
 macro_rules! impl_to_project {
@@ -83,13 +82,14 @@ macro_rules! impl_to_project {
                 ProjectInfo {
                     id: self.id,
                     name: self.name.clone(),
-                    organization: self.organization,
+                    organization: self.organization.clone(),
+                    member_count: self.member_count,
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
                     created_by: self.created_by.clone(),
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
-                    updated_by: Option::from(self.updated_by),
+                    updated_by: Option::from(self.updated_by.clone()),
                     deleted: self.deleted,
-                    deleted_by: Option::from(self.deleted_by),
+                    deleted_by: Option::from(self.deleted_by.clone()),
                     deleted_at: Option::from(DateTime::from_timestamp_nanos(timestamp_deleted_at as i64)),
                     description: self.description.clone(),
                     module_setting: self.module_setting.clone(),
@@ -100,15 +100,15 @@ macro_rules! impl_to_project {
     };
 }
 
-impl_to_project!(FindProjectById);
+impl_to_project!(FindProjectById, FindProjectsByUid);
 
 #[derive(Debug)]
-pub struct ProjectDao {
-    client: db::Client,
+pub struct ProjectDao<'a> {
+    client: &'a db::Client,
 }
 
-impl ProjectDao {
-    pub fn new(client: db::Client) -> Self {
+impl<'a> ProjectDao<'a> {
+    pub fn new(client: &'a db::Client) -> Self {
         ProjectDao { client }
     }
 
@@ -116,16 +116,18 @@ impl ProjectDao {
         Ok(())
     }
 
-    pub async fn find_projects_by_uid(&self, _uid: Uuid) -> AppResult<Vec<ProjectInfo>> {
-        Ok(vec![])
+    pub async fn find_projects_by_uid(&self, uid: Uuid, organization_id: i32) -> AppResult<Vec<ProjectInfo>> {
+        let ret = find_projects_by_uid()
+            .bind(self.client, &uid, &organization_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| item.to_project())
+            .collect::<Vec<_>>();
+        Ok(ret)
     }
-}
 
-impl BaseDao<Project> for ProjectDao {
-    async fn all(&self) -> AppResult<Vec<Project>> {
-        todo!()
-    }
-
+    #[allow(dead_code)]
     async fn insert(&self, object: Project) -> AppResult<i32> {
         let description = match &object.description {
             Some(s) => s.as_str(),
@@ -137,7 +139,7 @@ impl BaseDao<Project> for ProjectDao {
         };
         let project_id = insert_project()
             .bind(
-                &self.client,
+                self.client,
                 &object.name.as_str(),
                 &object.organization_id,
                 &object.created_by,
@@ -149,9 +151,9 @@ impl BaseDao<Project> for ProjectDao {
         Ok(project_id)
     }
 
-    async fn find_by_id(&self, id: i32) -> AppResult<ProjectInfo> {
+    pub async fn find_by_id(&self, id: i32) -> AppResult<ProjectInfo> {
         let ret = find_project_by_id()
-            .bind(&self.client, &id)
+            .bind(self.client, &id)
             .opt()
             .await?;
         match ret {
@@ -163,13 +165,5 @@ impl BaseDao<Project> for ProjectDao {
                 }))
             }
         }
-    }
-
-    async fn update(&self, _object: &Project) -> Result<Project, DbError> {
-        todo!()
-    }
-
-    async fn delete_by_id(&self, _id: i32) -> AppResult<()> {
-        todo!()
     }
 }

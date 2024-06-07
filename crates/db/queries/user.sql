@@ -79,3 +79,19 @@ SELECT id,
        permission
 FROM user_role_permission
 WHERE role_id = :role_id;
+
+--! get_users_by_role_and_project_id : (updated_at?, last_organization_id?, last_project_id?)
+SELECT u.id,
+       u.uuid,
+       u.username,
+       u.hashed_password,
+       u.email,
+       u.created_at,
+       u.updated_at,
+       u.last_organization_id,
+       u.last_project_id
+FROM users u
+JOIN user_role_relation urr ON u.uuid = urr.user_id
+JOIN projects p ON urr.organization_id = p.organization_id
+JOIN user_role ur ON urr.role_id = ur.id
+WHERE p.id = :project_id AND ur.name = :role_name;
