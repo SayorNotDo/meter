@@ -97,12 +97,35 @@ CREATE TABLE functional_cases
 );
 
 -- create trigger: set updated_at field
-CREATE TRIGGER set_timestamp_organization
+CREATE TRIGGER set_timestamp_functional_cases
     BEFORE UPDATE
     ON functional_cases
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
+DROP TABLE IF EXISTS file_module;
+
+CREATE TABLE file_module (
+    id SERIAL   PRIMARY KEY,
+    project_id  INT NOT NULL,
+    name        VARCHAR,
+    module_type VARCHAR,
+    parent_id   VARCHAR,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by  UUID NOT NULL,
+    updated_at  TIMESTAMP,
+    updated_by  UUID,
+)
+
+--create trigger: set updated_at field
+CREATE TRIGGER set_timestamp_file_module
+    BEFORE UPDATE
+    ON file_module
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp;
+
+-- comments
+COMMENT ON COLUMN file_module.id IS '文件管理模块ID'
 
 -- migrate:down
 
