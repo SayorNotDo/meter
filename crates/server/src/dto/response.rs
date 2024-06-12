@@ -94,3 +94,13 @@ pub struct UserInfoResponse {
     pub user_role_relations: Vec<UserRoleRelation>,
     pub user_roles: Vec<UserRole>,
 }
+
+pub struct DirectoryResponse {
+    pub id: String,
+    pub name: String,
+    pub dir_type: String,
+    pub attach_info: Option<String>,
+    pub parent_id: Option<String>,
+    pub path: String,
+    pub children: Vec<DirectoryResponse>,
+}

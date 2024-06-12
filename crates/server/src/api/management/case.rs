@@ -3,7 +3,7 @@ use crate::errors::AppResult;
 
 #[utoipa::path(
     get,
-    path = "/case/tree",
+    path = "/case/module/tree",
     responses(
         (status = 200, description = "Get case tree", body = [()]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),

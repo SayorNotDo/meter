@@ -9,4 +9,5 @@ pub fn app() -> Router {
         .route("/project/:project_id", get(project::info))
         .route("/project/list", get(project::list))
         .route("/project/has-permission/:project_id", get(project::permission))
+        .route("/case/module/tree", get(case::tree))
 }
