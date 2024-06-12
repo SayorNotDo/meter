@@ -6,6 +6,9 @@ use once_cell::sync::Lazy;
 pub const EXPIRE_SESSION_CODE_SECS: Duration = Duration::from_secs(120);
 pub const EXPIRE_REFRESH_TOKEN_SECS: Duration = Duration::from_secs(604800);
 pub const BEARER: &str = "Bearer";
+pub const AUTHORIZATION: &str = "Authorization";
+
+pub const WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/register"];
 
 pub static CONFIG: Lazy<crate::config::Config> = Lazy::new(|| crate::config::Config::parse("./config.toml").unwrap());
 pub static ACCESS_TOKEN_ENCODE_KEY: Lazy<EncodingKey> = Lazy::new(|| {

@@ -52,17 +52,15 @@ async fn main() {
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     /* Authorization */
-    let authorization = ServiceBuilder::new().layer(
-       AuthLayer
-    );
+    let authorization = ServiceBuilder::new().layer(AuthLayer);
 
     /* State */
     let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
     let state = AppState::new(pool, redis).await.expect("Failed to create state.");
 
     let app = api::create_router()
-        .layer(Extension(state.clone()))
         .layer(authorization)
+        .layer(Extension(state.clone()))
         .layer(cors);
 
 

@@ -61,10 +61,6 @@ impl<S> FromRequestParts<S> for UserClaims
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await?;
         let user_claims = UserClaims::decode(bearer.token(), &ACCESS_TOKEN_DECODE_KEY)?.claims;
-        let Extension(state): Extension<AppState> = parts
-            .extract()
-            .await?;
-        service::session::check(&state.redis, &user_claims).await?;
         Ok(user_claims)
     }
 }
