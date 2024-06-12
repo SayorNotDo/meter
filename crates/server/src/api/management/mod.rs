@@ -2,6 +2,7 @@ use axum::Router;
 use axum::routing::get;
 
 mod project;
+mod case;
 
 pub fn app() -> Router {
     Router::new()

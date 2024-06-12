@@ -76,5 +76,33 @@ CREATE TRIGGER set_timestamp_organization
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
+DROP TABLE IF EXISTS functional_cases;
+
+CREATE TABLE functional_cases
+(
+    id         SERIAL PRIMARY KEY,
+    name       VARCHAR   NOT NULL,
+    module_id  INT       NOT NULL,
+    project_id INT       NOT NULL,
+    tags       VARCHAR,
+    status     VARCHAR,
+    script_id  VARCHAR   NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP,
+    created_by UUID,
+    updated_by UUID,
+    deleted    BOOLEAN   NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    deleted_by UUID
+);
+
+-- create trigger: set updated_at field
+CREATE TRIGGER set_timestamp_organization
+    BEFORE UPDATE
+    ON functional_cases
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+
 -- migrate:down
 

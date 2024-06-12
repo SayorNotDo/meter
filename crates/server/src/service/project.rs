@@ -32,7 +32,7 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
         deleted: project.deleted,
         deleted_at: project.deleted_at,
         deleted_by: project.deleted_by,
-        admin_list: admin_list,
+        admin_list,
     })
 }
 

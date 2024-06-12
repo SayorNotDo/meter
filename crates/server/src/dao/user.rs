@@ -1,6 +1,7 @@
 use std::vec;
 
 use chrono::DateTime;
+use tokio_postgres::types::IsNull::No;
 use tracing::log::info;
 use uuid::Uuid;
 use db::queries::user::*;
@@ -13,7 +14,7 @@ trait ToUser {
 }
 
 macro_rules! impl_to_user {
-    ($($t:ty),*) => {
+    ($include_hashed_password:expr, $($t:ty),*) => {
         $(
         impl ToUser for $t {
             fn to_user(&self) -> entity::User {
@@ -22,11 +23,14 @@ macro_rules! impl_to_user {
                     None => 0
                 };
                 let timestamp_created_at = self.created_at.assume_utc().unix_timestamp_nanos();
+                let hashed_password = if $include_hashed_password {
+                    self.hashed_password.clone()
+                } else { "".into() };
                 entity::User {
                     id: self.id,
                     username: self.username.clone(),
                     uuid: self.uuid,
-                    hashed_password: self.hashed_password.clone(),
+                    hashed_password,
                     email: self.email.clone(),
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
@@ -40,7 +44,8 @@ macro_rules! impl_to_user {
 }
 
 // 使用宏为查询的结构体实现ToUser trait
-impl_to_user!(GetUserByUsername, GetUserByUuid, GetUsersByRoleAndProjectId);
+impl_to_user!(true, GetUserByUsername, GetUserByUuid);
+impl_to_user!(false, GetUsersByRoleAndProjectId);
 
 #[derive(Debug)]
 pub struct UserDao<'a> {
