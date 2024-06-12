@@ -1,4 +1,4 @@
-use crate::dto::response::{MessageResponse, ProjectInfoResponse, ProjectListResponse};
+use crate::dto::response::{MessageResponse, ProjectInfoResponse};
 use crate::errors::AppResult;
 use uuid::Uuid;
 use crate::state::AppState;
@@ -13,6 +13,10 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
     let project = project_dao.find_by_id(project_id).await?;
     let user_dao = UserDao::new(&client);
     let admin_list = user_dao.find_by_role_and_project_id("admin", project_id).await?;
+    let module_list = match project.module_setting {
+        Some(s) => serde_json::from_str(s.as_str()),
+        None => Ok(vec![])
+    };
     Ok(ProjectInfoResponse {
         id: project.id,
         name: project.name,
@@ -21,7 +25,8 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
         description: project.description,
         created_by: project.created_by,
         created_at: project.created_at,
-        module_setting: project.module_setting,
+        module_list: module_list?,
+        creator_is_admin: true,
         updated_at: project.updated_at,
         updated_by: project.updated_by,
         deleted: project.deleted,
@@ -31,13 +36,11 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
     })
 }
 
-pub async fn list(state: &AppState, uid: Uuid, organization_id: i32) -> AppResult<ProjectListResponse> {
+pub async fn list(state: &AppState, uid: Uuid, organization_id: i32) -> AppResult<Vec<ProjectInfo>> {
     let client = state.pool.get().await?;
     let project_dao = ProjectDao::new(&client);
     let projects = project_dao.find_projects_by_uid(uid, organization_id).await?;
-    Ok(ProjectListResponse {
-        projects
-    })
+    Ok(projects)
 }
 
 pub async fn permission(state: &AppState, project_id: i32, uid: Uuid) -> AppResult<MessageResponse> {

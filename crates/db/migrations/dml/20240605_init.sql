@@ -20,11 +20,13 @@ INSERT INTO projects
 (name,
  organization_id,
  created_by,
+ enable,
  description,
  module_setting)
 VALUES ('默认项目',
         (SELECT id FROM organizations WHERE name = '默认组织'),
         (SELECT uuid FROM users WHERE username = 'admin'),
+        true,
         '系统默认创建的项目',
         '["bugManagement","caseManagement","apiTest","testPlan"]');
 

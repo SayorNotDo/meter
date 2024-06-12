@@ -6,10 +6,12 @@ use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method,
 };
+use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tracing::info;
 
 use db::create_pool;
+use crate::middleware::auth::AuthLayer;
 
 use crate::state::AppState;
 
@@ -23,6 +25,7 @@ mod service;
 mod state;
 mod utils;
 mod constant;
+mod middleware;
 
 
 #[tokio::main]
@@ -48,13 +51,20 @@ async fn main() {
         .allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
+    /* Authorization */
+    let authorization = ServiceBuilder::new().layer(
+       AuthLayer
+    );
+
     /* State */
     let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
     let state = AppState::new(pool, redis).await.expect("Failed to create state.");
 
     let app = api::create_router()
-        .layer(cors)
-        .layer(Extension(state.clone()));
+        .layer(Extension(state.clone()))
+        .layer(authorization)
+        .layer(cors);
+
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
     let listener = tokio::net::TcpListener::bind(&addr).await.expect("Failed to bind to address.");

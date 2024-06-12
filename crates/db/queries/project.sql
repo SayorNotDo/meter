@@ -12,6 +12,7 @@ SELECT p.id,
        ud.username                                                                                             AS deleted_by,
        p.deleted,
        p.deleted_at,
+       p.enable,
        p.description,
        p.module_setting
 FROM projects p
@@ -37,6 +38,7 @@ SELECT p.id,
                       urr.organization_id = p.organization_id) AS INTEGER) AS member_count,
        p.deleted,
        p.deleted_at,
+       p.enable,
        p.description,
        p.module_setting
 FROM projects p

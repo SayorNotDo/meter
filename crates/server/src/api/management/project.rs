@@ -1,8 +1,9 @@
 use axum::{Extension, Json};
 use axum::extract::{Path, Query};
 use tracing::info;
+use crate::dao::project::ProjectInfo;
 
-use crate::dto::response::{ProjectInfoResponse, ProjectListResponse, MessageResponse};
+use crate::dto::response::{ProjectInfoResponse, MessageResponse};
 use crate::dto::request::ProjectQueryParam;
 use crate::errors::AppResult;
 use crate::service::project;
@@ -53,7 +54,7 @@ pub async fn list(
     Extension(state): Extension<AppState>,
     user: UserClaims,
     Query(param): Query<ProjectQueryParam>,
-) -> AppResult<Json<ProjectListResponse>> {
+) -> AppResult<Json<Vec<ProjectInfo>>> {
     info!("Project list with path param: {param:?}");
     match project::list(&state, user.uid, param.organization_id).await {
         Ok(resp) => {

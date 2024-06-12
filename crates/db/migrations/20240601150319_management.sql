@@ -11,6 +11,7 @@ CREATE TABLE projects
     updated_at      TIMESTAMP,
     created_by      UUID,
     updated_by      UUID,
+    enable          BOOLEAN   NOT NULL DEFAULT TRUE,
     deleted         BOOLEAN   NOT NULL DEFAULT FALSE,
     deleted_at      TIMESTAMP,
     deleted_by      UUID,
