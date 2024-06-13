@@ -4,7 +4,7 @@ use utoipa::ToSchema;
 
 use crate::constant::BEARER;
 use crate::dao::project::ProjectInfo;
-use crate::dao::entity::{User, UserRole, UserRolePermission, UserRoleRelation};
+use crate::dao::entity::{FileModule, User, UserRole, UserRolePermission, UserRoleRelation};
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
 pub struct MessageResponse {
@@ -95,12 +95,25 @@ pub struct UserInfoResponse {
     pub user_roles: Vec<UserRole>,
 }
 
-pub struct DirectoryResponse {
-    pub id: String,
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct FileModuleResponse {
+    pub id: i32,
     pub name: String,
-    pub dir_type: String,
-    pub attach_info: Option<String>,
-    pub parent_id: Option<String>,
     pub path: String,
-    pub children: Vec<DirectoryResponse>,
+    pub parent_id: Option<i32>,
+    pub module_type: String,
+    pub children: Vec<FileModuleResponse>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct CaseInfoResponse {
+    pub id: i32,
+    pub name: String,
+    pub module_id: i32,
+    pub tags: Vec<String>,
+    pub status: i32,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>
 }

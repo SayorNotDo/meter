@@ -33,11 +33,10 @@ pub struct ProjectQueryParam {
     pub organization_id: i32,
 }
 
-
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct CaseTreeQueryParam {
-    pub project_id: i32,
+pub struct QueryTemplateFieldParam {
+    pub is_default: bool,
 }
 
 #[cfg(test)]

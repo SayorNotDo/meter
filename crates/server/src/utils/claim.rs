@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use axum::{async_trait, Extension};
+use axum::{async_trait};
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::RequestPartsExt;
@@ -14,8 +14,6 @@ use uuid::Uuid;
 
 use crate::constant::ACCESS_TOKEN_DECODE_KEY;
 use crate::errors::{AppError, AppResult};
-use crate::state::AppState;
-use crate::service;
 
 pub static DECODE_HEADER: Lazy<Validation> = Lazy::new(|| Validation::new(Algorithm::RS256));
 pub static ENCODE_HEADER: Lazy<Header> = Lazy::new(|| Header::new(Algorithm::RS256));

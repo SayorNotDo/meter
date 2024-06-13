@@ -85,7 +85,7 @@ CREATE TABLE functional_cases
     module_id  INT       NOT NULL,
     project_id INT       NOT NULL,
     tags       VARCHAR,
-    status     VARCHAR,
+    status     INT       NOT NULL DEFAULT 0,
     script_id  VARCHAR   NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP,
@@ -103,29 +103,58 @@ CREATE TRIGGER set_timestamp_functional_cases
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
+-- comments
+COMMENT ON COLUMN functional_cases.id IS '功能测试用例ID';
+COMMENT ON COLUMN functional_cases.name IS '功能测试用例名称';
+COMMENT ON COLUMN functional_cases.module_id IS '功能测试用例所属模块ID';
+COMMENT ON COLUMN functional_cases.project_id IS '功能测试用例所属项目ID';
+COMMENT ON COLUMN functional_cases.tags IS '功能测试用例标签';
+COMMENT ON COLUMN functional_cases.status IS '功能测试用例状态';
+COMMENT ON COLUMN functional_cases.script_id IS '功能测试用例脚本ID';
+COMMENT ON COLUMN functional_cases.created_at IS '创建时间';
+COMMENT ON COLUMN functional_cases.updated_at IS '更新时间';
+COMMENT ON COLUMN functional_cases.created_by IS '创建人';
+COMMENT ON COLUMN functional_cases.updated_by IS '更新人';
+COMMENT ON COLUMN functional_cases.deleted IS '是否删除';
+COMMENT ON COLUMN functional_cases.deleted_at IS '删除时间';
+COMMENT ON COLUMN functional_cases.deleted_by IS '删除人';
+
 DROP TABLE IF EXISTS file_module;
 
-CREATE TABLE file_module (
-    id SERIAL   PRIMARY KEY,
-    project_id  INT NOT NULL,
+CREATE TABLE file_module
+(
+    id          SERIAL PRIMARY KEY,
+    project_id  INT       NOT NULL,
     name        VARCHAR,
+    position    INT       NOT NULL DEFAULT 0,
     module_type VARCHAR,
-    parent_id   VARCHAR,
+    attach_info VARCHAR,
+    parent_id   INT,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by  UUID NOT NULL,
+    created_by  UUID      NOT NULL,
     updated_at  TIMESTAMP,
-    updated_by  UUID,
-)
+    updated_by  UUID
+);
 
 --create trigger: set updated_at field
 CREATE TRIGGER set_timestamp_file_module
     BEFORE UPDATE
     ON file_module
     FOR EACH ROW
-EXECUTE PROCEDURE trigger_set_timestamp;
+EXECUTE PROCEDURE trigger_set_timestamp();
 
 -- comments
-COMMENT ON COLUMN file_module.id IS '文件管理模块ID'
+COMMENT ON COLUMN file_module.id IS '文件管理模块ID';
+COMMENT ON COLUMN file_module.project_id IS '关联项目ID';
+COMMENT ON COLUMN file_module.name IS '文件管理模块名称';
+COMMENT ON COLUMN file_module.position IS '文件管理模块排序标识';
+COMMENT ON COLUMN file_module.module_type IS '文件管理模块类型：module/repository';
+COMMENT ON COLUMN file_module.parent_id IS '文件管理模块父级ID';
+COMMENT ON COLUMN file_module.created_at IS '创建时间';
+COMMENT ON COLUMN file_module.updated_at IS '更新时间';
+COMMENT ON COLUMN file_module.created_by IS '创建人';
+COMMENT ON COLUMN file_module.updated_by IS '更新人';
+
 
 -- migrate:down
 

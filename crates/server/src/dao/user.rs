@@ -1,7 +1,6 @@
 use std::vec;
 
 use chrono::DateTime;
-use tokio_postgres::types::IsNull::No;
 use tracing::log::info;
 use uuid::Uuid;
 use db::queries::user::*;

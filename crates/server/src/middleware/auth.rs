@@ -2,10 +2,8 @@ use std::task::{Context, Poll};
 
 use axum::{body::Body, http::{Request, StatusCode}, response::Response};
 use tower::{Layer, Service};
-use tracing::info;
 
 use crate::{constant, service};
-use crate::dto::response::MessageResponse;
 use crate::errors::AppResponseError;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;

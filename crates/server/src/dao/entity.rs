@@ -74,3 +74,12 @@ pub struct Permission {
     pub role_id: i32,
     pub permission: String,
 }
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct FileModule {
+    pub id: i32,
+    pub name: String,
+    pub module_type: String,
+    pub position: i32,
+    pub parent_id: Option<i32>,
+}

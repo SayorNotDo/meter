@@ -4,15 +4,17 @@ use std::sync::Arc;
 use axum::extract::Extension;
 use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
-    HeaderValue, Method,
+    HeaderValue,
+    Method, StatusCode,
 };
 use tower::ServiceBuilder;
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::info;
+use utoipa::IntoResponses;
 
 use db::create_pool;
-use crate::middleware::auth::AuthLayer;
 
+use crate::middleware::auth::AuthLayer;
 use crate::state::AppState;
 
 mod api;
@@ -22,7 +24,7 @@ mod dto;
 mod errors;
 mod logger;
 mod service;
-mod state;
+pub mod state;
 mod utils;
 mod constant;
 mod middleware;
@@ -45,6 +47,7 @@ async fn main() {
             Method::GET,
             Method::POST,
             Method::PATCH,
+            Method::OPTIONS,
             Method::DELETE,
             Method::PUT,
         ])
@@ -58,10 +61,15 @@ async fn main() {
     let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
     let state = AppState::new(pool, redis).await.expect("Failed to create state.");
 
+    /* Initialize App */
     let app = api::create_router()
         .layer(authorization)
         .layer(Extension(state.clone()))
-        .layer(cors);
+        .layer(TraceLayer::new_for_http())
+        .layer(cors)
+        .fallback(|| async {
+            (StatusCode::NOT_FOUND, "Not Found")
+        });
 
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
