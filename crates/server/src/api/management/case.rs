@@ -6,7 +6,7 @@ use crate::errors::AppResult;
 use crate::state::AppState;
 use tracing::info;
 use crate::dto::response::CaseInfoResponse;
-use crate::service::case;
+use crate::service::file;
 
 #[utoipa::path(
     get,
@@ -24,7 +24,7 @@ pub async fn tree(
     Path(project_id): Path<i32>,
 ) -> AppResult<Json<Vec<FileModuleResponse>>> {
     info!("case module tree query param: {project_id:?}");
-    match case::module_tree(&state, &project_id).await {
+    match file::file_module_tree(&state, &project_id).await {
         Ok(resp) => {
             Ok(Json(resp))
         }

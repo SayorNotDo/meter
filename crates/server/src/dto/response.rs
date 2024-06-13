@@ -4,7 +4,7 @@ use utoipa::ToSchema;
 
 use crate::constant::BEARER;
 use crate::dao::project::ProjectInfo;
-use crate::dao::entity::{FileModule, User, UserRole, UserRolePermission, UserRoleRelation};
+use crate::dao::entity::{User, UserRole, UserRolePermission, UserRoleRelation};
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
 pub struct MessageResponse {
@@ -115,5 +115,5 @@ pub struct CaseInfoResponse {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
-    pub updated_by: Option<String>
+    pub updated_by: Option<String>,
 }

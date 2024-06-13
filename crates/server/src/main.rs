@@ -10,7 +10,6 @@ use axum::http::{
 use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::info;
-use utoipa::IntoResponses;
 
 use db::create_pool;
 
