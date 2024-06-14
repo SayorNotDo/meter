@@ -1,12 +1,12 @@
 use axum::{Extension, Json};
 use axum::extract::{Path, Query};
 
-use crate::dto::{response::FileModuleResponse, request::QueryTemplateFieldParam};
+use crate::dto::{response::FileModuleResponse, request::QueryTemplateParam};
 use crate::errors::AppResult;
 use crate::state::AppState;
 use tracing::info;
-use crate::dto::response::CaseInfoResponse;
-use crate::service::file;
+use crate::dto::response::{CaseInfoResponse, TemplateResponse};
+use crate::service::{file, case};
 
 #[utoipa::path(
     get,
@@ -39,17 +39,24 @@ pub async fn tree(
 #[utoipa::path(
     get,
     path = "/case/template/field/:project_id",
-    params(QueryTemplateFieldParam),
+    params(QueryTemplateParam),
     responses(),
     security(("jwt" = []))
 )]
 pub async fn template_field(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
-    Query(param): Query<QueryTemplateFieldParam>,
-) -> AppResult<Json<Vec<()>>> {
+    Query(param): Query<QueryTemplateParam>,
+) -> AppResult<Json<TemplateResponse>> {
     info!("case template field query param: {param:?}, project_id: {project_id:?}");
-    Ok(Json(vec![]))
+    match case::template(&state, &project_id, &param).await {
+        Ok(resp) => {
+            Ok(Json(resp))
+        }
+        Err(e) => {
+            Err(e)
+        }
+    }
 }
 
 #[utoipa::path(

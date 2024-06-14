@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -82,4 +82,33 @@ pub struct FileModule {
     pub module_type: String,
     pub position: i32,
     pub parent_id: Option<i32>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct Template {
+    pub id: i32,
+    pub name: String,
+    pub internal: bool,
+    pub description: Option<String>,
+    pub created_by: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct CustomField {
+    pub id: i32,
+    pub name: String,
+    pub required: bool,
+    pub field_type: String,
+    pub internal: bool,
+    pub options: Vec<FieldOption>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct FieldOption {
+    pub id: i32,
+    pub name: String,
+    pub valur: String,
+    pub position: i32,
 }

@@ -7,8 +7,6 @@ use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, Server
 use rustls_pki_types::{CertificateDer, ServerName, UnixTime};
 pub use tokio_postgres::Error as TokioPostgresError;
 
-pub use queries::user::User;
-
 pub mod redis;
 
 pub fn create_pool(database_url: &str) -> Pool {

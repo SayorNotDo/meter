@@ -1,12 +1,11 @@
 use std::vec;
 
+use crate::dao::entity;
+use crate::errors::{AppError, AppResult, Resource, ResourceType};
 use chrono::DateTime;
+use db::queries::user::*;
 use tracing::log::info;
 use uuid::Uuid;
-use db::queries::user::*;
-use crate::errors::{AppError, AppResult, Resource, ResourceType};
-use crate::dao::entity;
-
 
 trait ToUser {
     fn to_user(&self) -> entity::User;
@@ -44,7 +43,7 @@ macro_rules! impl_to_user {
 
 // 使用宏为查询的结构体实现ToUser trait
 impl_to_user!(true, GetUserByUsername, GetUserByUuid);
-impl_to_user!(false, GetUsersByRoleAndProjectId);
+impl_to_user!(false, GetUsersByRoleAndProjectId, GetUsers);
 
 #[derive(Debug)]
 pub struct UserDao<'a> {
@@ -57,34 +56,33 @@ impl<'a> UserDao<'a> {
     }
     pub async fn find_by_uid(&self, uid: &Uuid) -> AppResult<entity::User> {
         /* 通过uid查询用户 */
-        let ret = get_user_by_uuid()
-            .bind(self.client, uid)
-            .opt()
-            .await?;
+        let ret = get_user_by_uuid().bind(self.client, uid).opt().await?;
         match ret {
             Some(user) => {
                 let user = user.to_user();
                 info!("Successfully find by uid: {user:?}.");
                 Ok(user)
             }
-            None => {
-                Err(AppError::NotFoundError(Resource {
-                    details: vec![],
-                    resource_type: ResourceType::User,
-                }))
-            }
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::User,
+            })),
         }
     }
 
-    pub async fn find_by_role_and_project_id(&self, role: &str, project_id: i32) -> AppResult<Vec<entity::User>> {
+    pub async fn find_by_role_and_project_id(
+        &self,
+        role: &str,
+        project_id: i32,
+    ) -> AppResult<Vec<entity::User>> {
         /*  通过项目id和角色id查询用户 */
         let users = get_users_by_role_and_project_id()
             .bind(self.client, &project_id, &role)
             .all()
             .await?
             .into_iter()
-            .map(|item| item.to_user()
-            ).collect::<Vec<_>>();
+            .map(|item| item.to_user())
+            .collect::<Vec<_>>();
         Ok(users)
     }
 
@@ -100,12 +98,10 @@ impl<'a> UserDao<'a> {
                 info!("Successfully find by name: {user:?}.");
                 Ok(user)
             }
-            None => {
-                Err(AppError::NotFoundError(Resource {
-                    details: vec![],
-                    resource_type: ResourceType::User,
-                }))
-            }
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::User,
+            })),
         }
     }
 
@@ -116,12 +112,10 @@ impl<'a> UserDao<'a> {
             .await?;
         match user {
             None => Ok(()),
-            Some(_) => {
-                Err(AppError::ResourceExistsError(Resource {
-                    details: vec![],
-                    resource_type: ResourceType::User,
-                }))
-            }
+            Some(_) => Err(AppError::ResourceExistsError(Resource {
+                details: vec![],
+                resource_type: ResourceType::User,
+            })),
         }
     }
 
@@ -132,12 +126,10 @@ impl<'a> UserDao<'a> {
             .await?;
         match user {
             None => Ok(()),
-            Some(_) => {
-                Err(AppError::ResourceExistsError(Resource {
-                    details: vec![],
-                    resource_type: ResourceType::User,
-                }))
-            }
+            Some(_) => Err(AppError::ResourceExistsError(Resource {
+                details: vec![],
+                resource_type: ResourceType::User,
+            })),
         }
     }
 
@@ -150,7 +142,7 @@ impl<'a> UserDao<'a> {
         for item in user_roles {
             let timestamp_updated_at = match item.updated_at {
                 Some(t) => t.assume_utc().unix_timestamp_nanos(),
-                None => 0
+                None => 0,
             };
             let timestamp_created_at = item.created_at.assume_utc().unix_timestamp_nanos();
             let user_role = entity::UserRole {
@@ -160,7 +152,9 @@ impl<'a> UserDao<'a> {
                 internal: item.internal,
                 created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
                 created_by: item.created_by,
-                updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
+                updated_at: Option::from(DateTime::from_timestamp_nanos(
+                    timestamp_updated_at as i64,
+                )),
                 description: item.description,
             };
             ret.push(user_role);
@@ -168,7 +162,10 @@ impl<'a> UserDao<'a> {
         Ok(ret)
     }
 
-    pub async fn get_user_role_relations_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<entity::UserRoleRelation>> {
+    pub async fn get_user_role_relations_by_uuid(
+        &self,
+        uuid: &Uuid,
+    ) -> AppResult<Vec<entity::UserRoleRelation>> {
         let mut ret = vec![];
         let user_role_relations = get_user_role_relations_by_uuid()
             .bind(self.client, uuid)
@@ -189,7 +186,10 @@ impl<'a> UserDao<'a> {
         Ok(ret)
     }
 
-    pub async fn get_user_role_permissions_by_role_id(&self, role_id: &i32) -> AppResult<Vec<entity::Permission>> {
+    pub async fn get_user_role_permissions_by_role_id(
+        &self,
+        role_id: &i32,
+    ) -> AppResult<Vec<entity::Permission>> {
         let mut ret = vec![];
         let user_role_permissions = get_user_role_permissions_by_role_id()
             .bind(self.client, role_id)
@@ -221,13 +221,15 @@ impl<'a> UserDao<'a> {
     }
 
     pub async fn all(&self) -> AppResult<Vec<entity::User>> {
-        let _users = get_users()
+        let users = get_users()
             .bind(self.client)
             .all()
-            .await
-            .unwrap();
+            .await?
+            .into_iter()
+            .map(|item| item.to_user())
+            .collect::<Vec<_>>();
 
-        Ok(vec![])
+        Ok(users)
     }
 }
 
@@ -244,10 +246,9 @@ mod tests {
         let password = "password";
         let email = "test_email@test.com";
 
-
         let username_expected = "medzik";
 
-        let user = User::new(username, password, email, false);
+        let user = entity::User::new(username, password, email, false);
         assert_eq!(user.username, username_expected)
     }
 
@@ -257,8 +258,7 @@ mod tests {
         let password = "password";
         let email = "test_email@test.com";
 
-
-        let user = User::new(username, password, email, false);
+        let user = entity::User::new(username, password, email, false);
 
         assert_ne!(user.hashed_password, password)
     }
@@ -269,7 +269,7 @@ mod tests {
         let password = "test_password";
         let email = "test_email@test.com";
 
-        let user = User::new(username, password, email, true);
+        let user = entity::User::new(username, password, email, true);
 
         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
         let pool = db::create_pool(&db_url);
@@ -288,7 +288,7 @@ mod tests {
         let password = "test_password";
         let email = "test_email@test.com";
 
-        let user = User::new(username, password, email, true);
+        let user = entity::User::new(username, password, email, true);
 
         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
         let pool = db::create_pool(&db_url);
@@ -322,7 +322,7 @@ mod tests {
         let client = pool.get().await.unwrap();
         let user_dao = UserDao::new(&client);
 
-        let result = user_dao.check_unique_by_username(&username).await;
+        let _result = user_dao.check_unique_by_username(&username).await;
 
         // assert_eq!(result, true)
         dbg!(())

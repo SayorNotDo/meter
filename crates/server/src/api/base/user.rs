@@ -1,11 +1,10 @@
-use axum::{Extension, Json};
-use tracing::{info, warn};
-use crate::errors::AppResult;
 use crate::dto::response::UserInfoResponse;
+use crate::errors::AppResult;
 use crate::service;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
-
+use axum::{Extension, Json};
+use tracing::{info, warn};
 
 #[utoipa::path(
     get,
@@ -33,4 +32,9 @@ pub async fn info(
             Err(e)
         }
     }
+}
+
+#[utoipa::path(get, path = "/user/list", responses())]
+pub async fn list() -> AppResult<()> {
+    Ok(())
 }

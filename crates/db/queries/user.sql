@@ -1,10 +1,13 @@
---: User()
---! get_users : User
+--! get_users : (updated_at?, last_organization_id?, last_project_id?)
 SELECT id,
+       uuid,
        username,
+       hashed_password,
        email,
        created_at,
-       updated_at
+       updated_at,
+       last_organization_id,
+       last_project_id
 FROM users;
 
 --! insert_user

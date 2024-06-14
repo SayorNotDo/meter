@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::constant::BEARER;
+use crate::dao::entity::{CustomField, User, UserRole, UserRolePermission, UserRoleRelation};
 use crate::dao::project::ProjectInfo;
-use crate::dao::entity::{User, UserRole, UserRolePermission, UserRoleRelation};
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
 pub struct MessageResponse {
@@ -13,7 +13,9 @@ pub struct MessageResponse {
 
 impl MessageResponse {
     pub fn new<S: Into<String>>(message: S) -> Self {
-        Self { message: message.into() }
+        Self {
+            message: message.into(),
+        }
     }
 }
 
@@ -41,7 +43,6 @@ pub struct ProjectListResponse {
     pub projects: Vec<ProjectInfo>,
 }
 
-
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct RegisterResponse {
     pub id: i32,
@@ -50,10 +51,7 @@ pub struct RegisterResponse {
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub enum LoginResponse {
     Token(TokenResponse),
-    Code {
-        message: String,
-        expire_in: u64,
-    },
+    Code { message: String, expire_in: u64 },
 }
 
 impl From<TokenResponse> for LoginResponse {
@@ -81,7 +79,6 @@ impl TokenResponse {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UserInfoResponse {
     pub username: String,
@@ -102,6 +99,7 @@ pub struct FileModuleResponse {
     pub path: String,
     pub parent_id: Option<i32>,
     pub module_type: String,
+    pub count: i32,
     pub children: Vec<FileModuleResponse>,
 }
 
@@ -116,4 +114,16 @@ pub struct CaseInfoResponse {
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct TemplateResponse {
+    pub id: i32,
+    pub name: String,
+    pub internal: bool,
+    pub description: Option<String>,
+    pub created_by: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub custom_fields: Vec<CustomField>,
 }

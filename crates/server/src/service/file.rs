@@ -21,6 +21,7 @@ pub async fn file_module_tree(state: &AppState, project_id: &i32) -> AppResult<V
             module_type: item.module_type.clone(),
             parent_id: item.parent_id,
             children: Vec::new(),
+            count: 0,
         });
     }
     /* 构建树结构 */
