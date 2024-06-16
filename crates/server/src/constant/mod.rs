@@ -3,7 +3,8 @@ use std::time::Duration;
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use once_cell::sync::Lazy;
 
-pub const EXPIRE_SESSION_CODE_SECS: Duration = Duration::from_secs(120);
+// Development mode change 120 to 604800
+pub const EXPIRE_SESSION_CODE_SECS: Duration = Duration::from_secs(604800);
 pub const EXPIRE_REFRESH_TOKEN_SECS: Duration = Duration::from_secs(604800);
 pub const BEARER: &str = "Bearer";
 pub const AUTHORIZATION: &str = "Authorization";

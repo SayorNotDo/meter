@@ -21,6 +21,6 @@ pub async fn template(
         created_by: template.created_by,
         created_at: template.created_at,
         updated_at: template.updated_at,
-        custom_fields: Vec::new(),
+        custom_fields: template.custom_fields
     })
 }

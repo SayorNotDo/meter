@@ -93,6 +93,7 @@ pub struct Template {
     pub created_by: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
+    pub custom_fields: Vec<CustomField>
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

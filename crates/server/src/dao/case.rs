@@ -1,5 +1,6 @@
 use crate::errors::{AppError, AppResult, Resource, ResourceType};
 use chrono::DateTime;
+use tracing::info;
 use db::queries::template::*;
 
 use super::entity;
@@ -23,6 +24,7 @@ macro_rules! impl_to_template {
                         None => 0
                     };
                     let timestamp_created_at = self.created_at.assume_utc().unix_timestamp_nanos();
+                    /* construct customs fields array */
                     entity::Template {
                         id: self.id,
                         name: self.name.clone(),
@@ -31,6 +33,7 @@ macro_rules! impl_to_template {
                         created_by: self.created_by.clone(),
                         created_at: DateTime::from_timestamp_nanos(timestamp_updated_at as i64),
                         updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_created_at as i64)),
+                        custom_fields: Vec::new()
                     }
                 }
             }
@@ -56,6 +59,7 @@ impl<'a> CaseDao<'a> {
             .await?;
         match ret {
             Some(t) => {
+                info!("template: {t:?}");
                 let template = t.to_template();
                 Ok(template)
             }
@@ -65,4 +69,14 @@ impl<'a> CaseDao<'a> {
             })),
         }
     }
+
+    // pub async fn get_custom_field(
+    //     &self,
+    //     template_id: &i32
+    // ) -> AppResult<entity::CustomField> {
+    //     let ret = get_template_custom_field()
+    //         .bind(self.client, template_id)
+    //         .opt()
+    //         .await?;
+    // }
 }
