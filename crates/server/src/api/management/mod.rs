@@ -1,15 +1,21 @@
-use axum::Router;
 use axum::routing::get;
+use axum::Router;
 
-mod project;
 mod case;
+mod project;
 
 pub fn app() -> Router {
     Router::new()
         .route("/project/:project_id", get(project::info))
         .route("/project/list", get(project::list))
-        .route("/project/has-permission/:project_id", get(project::permission))
+        .route(
+            "/project/has-permission/:project_id",
+            get(project::permission),
+        )
+        .route("/project/member/list/:project_id", get(project::member))
         .route("/case/module/tree/:project_id", get(case::tree))
-        .route("/case/template/field/:project_id", get(case::template_field))
+        .route("/case/template/:project_id", get(case::template))
+        .route("/case/field/:project_id", get(case::field))
         .route("/case/list/:project_id", get(case::list))
+        .route("/case/info/requirement/:project_id", get(case::info))
 }

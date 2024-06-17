@@ -1,4 +1,31 @@
 -- migrate:up
+DROP TABLE IF EXISTS custom_field;
+
+CREATE TABLE custom_field (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    field_type VARCHAR NOT NULL,
+    project_id INT NOT NULL,
+    remark VARCHAR,
+    internal BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL,
+    updated_at TIMESTAMP,
+    updated_by UUID,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    deleted_by UUID
+);
+
+-- create trigger: set updated_at field
+CREATE TRIGGER set_timestamp_template
+    BEFORE UPDATE
+    ON custom_field
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+
 DROP TABLE IF EXISTS template;
 
 CREATE TABLE template
@@ -89,4 +116,3 @@ COMMENT ON COLUMN custom_field_option.id IS '选项值ID';
 
 
 -- migrate:down
-

@@ -1,10 +1,11 @@
+use crate::errors::{AppError, AppResult, Resource, ResourceType};
 use chrono::{DateTime, Utc};
+use db::queries::project::*;
 use garde::rules::AsStr;
 use serde::{Deserialize, Serialize};
-use db::queries::project::*;
 use uuid::Uuid;
-use crate::errors::{AppResult, AppError, Resource, ResourceType};
 
+use super::entity::ProjectMember;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Project {
@@ -41,11 +42,13 @@ pub struct ProjectInfo {
 
 impl Project {
     #[allow(dead_code)]
-    pub fn new(name: String,
-               organization_id: i32,
-               created_by: Uuid,
-               description: Option<String>,
-               module_setting: Option<String>) -> Self {
+    pub fn new(
+        name: String,
+        organization_id: i32,
+        created_by: Uuid,
+        description: Option<String>,
+        module_setting: Option<String>,
+    ) -> Self {
         Self {
             id: 0,
             name,
@@ -118,7 +121,11 @@ impl<'a> ProjectDao<'a> {
         Ok(())
     }
 
-    pub async fn find_projects_by_uid(&self, uid: Uuid, organization_id: i32) -> AppResult<Vec<ProjectInfo>> {
+    pub async fn find_projects_by_uid(
+        &self,
+        uid: Uuid,
+        organization_id: i32,
+    ) -> AppResult<Vec<ProjectInfo>> {
         let ret = find_projects_by_uid()
             .bind(self.client, &uid, &organization_id)
             .all()
@@ -133,11 +140,11 @@ impl<'a> ProjectDao<'a> {
     async fn insert(&self, object: Project) -> AppResult<i32> {
         let description = match &object.description {
             Some(s) => s.as_str(),
-            None => "".as_str()
+            None => "".as_str(),
         };
         let module_setting = match &object.module_setting {
             Some(s) => s.as_str(),
-            None => "".as_str()
+            None => "".as_str(),
         };
         let project_id = insert_project()
             .bind(
@@ -154,18 +161,18 @@ impl<'a> ProjectDao<'a> {
     }
 
     pub async fn find_by_id(&self, id: i32) -> AppResult<ProjectInfo> {
-        let ret = find_project_by_id()
-            .bind(self.client, &id)
-            .opt()
-            .await?;
+        let ret = find_project_by_id().bind(self.client, &id).opt().await?;
         match ret {
             Some(project) => Ok(project.to_project()),
-            None => {
-                Err(AppError::NotFoundError(Resource {
-                    details: vec![],
-                    resource_type: ResourceType::Project,
-                }))
-            }
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::Project,
+            })),
         }
+    }
+
+    pub async fn get_project_members(&self, id: &i32) -> AppResult<Vec<ProjectMember>> {
+        let members = get_project_members().bind(self.client, id).all().await?;
+        Ok(vec![])
     }
 }

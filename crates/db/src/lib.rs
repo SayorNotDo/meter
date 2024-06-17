@@ -81,7 +81,7 @@ mod tests {
 
         let client = pool.get().await.unwrap();
 
-        let users = crate::queries::users::get_users()
+        let users = crate::queries::user::get_users()
             .bind(&client)
             .all()
             .await

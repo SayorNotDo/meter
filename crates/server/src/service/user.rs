@@ -4,8 +4,8 @@ use uuid::Uuid;
 use crate::dao;
 use crate::dao::{entity::UserRolePermission, user::UserDao};
 use crate::dto::request::*;
-use crate::dto::response::{LoginResponse, UserInfoResponse};
 use crate::dto::response::MessageResponse;
+use crate::dto::response::{LoginResponse, UserInfoResponse};
 use crate::errors::AppResult;
 use crate::service::redis::SessionKey;
 use crate::service::session;
@@ -20,12 +20,8 @@ pub async fn register(state: &AppState, request: RegisterRequest) -> AppResult<i
     check_unique_username_or_email(&state.pool, &request.username, &request.email).await?;
     /* 创建用户 */
     let hashed_password = utils::password::hash(request.password).await?;
-    let new_user = dao::entity::User::new(
-        &request.username,
-        &hashed_password,
-        &request.email,
-        true,
-    );
+    let new_user =
+        dao::entity::User::new(&request.username, &hashed_password, &request.email, true);
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
     let user_id = user_dao.insert(new_user).await?;
@@ -78,7 +74,9 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
     /* 获取用户角色对应的权限 */
     let mut permissions_list = vec![];
     for item in user_roles.iter() {
-        let permissions = user_dao.get_user_role_permissions_by_role_id(&item.id).await?;
+        let permissions = user_dao
+            .get_user_role_permissions_by_role_id(&item.id)
+            .await?;
         let user_role_permissions = UserRolePermission {
             user_role: item.clone(),
             user_role_permissions: permissions,

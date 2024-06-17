@@ -127,3 +127,6 @@ pub struct TemplateResponse {
     pub updated_at: Option<DateTime<Utc>>,
     pub custom_fields: Vec<CustomField>,
 }
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct RequirementInfoResponse {}

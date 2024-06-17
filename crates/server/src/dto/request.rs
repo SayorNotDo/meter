@@ -45,7 +45,11 @@ mod tests {
 
     #[test]
     pub fn test_invalid_email_register_request() {
-        let req = RegisterRequest::new("username", "email", "password");
+        let req = RegisterRequest {
+            username: "username".into(),
+            email: "email".into(),
+            password: "password".into(),
+        };
         assert!(req.validate(&()).is_err());
     }
 }

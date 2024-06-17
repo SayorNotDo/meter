@@ -12,8 +12,22 @@ SELECT t.id,
                                JSON_BUILD_OBJECT(
                                        'id', tcf.id,
                                        'name', tcf.name,
-                                       'type' , tcf.field_type,
-                                       'internal', tcf.internal
+                                       'field_type' , tcf.field_type,
+                                       'internal', tcf.internal,
+                                       'required', tcf.required,
+                                       'default_value', tcf.default_value,
+                                       'options', COALESCE(
+                                                    (SELECT JSON_AGG(
+                                                    JSON_BUILD_OBJECT(
+                                                            'id', cfo.id,
+                                                            'name', cfo.name,
+                                                            'value', cfo.value,
+                                                            'position', cfo.position
+                                                            )
+                                                        )
+                                                FROM custom_field_option cfo
+                                                WHERE cfo.field_id = tcf.id), '[]'
+                                    )
                                )
                        )
                 FROM template_custom_field tcf
@@ -23,17 +37,28 @@ FROM template t
 WHERE t.project_id = :project_id
   AND t.internal = :internal;
 
---! get_template_custom_field
-SELECT tcf.id,
-       tcf.template_id,
-       tcf.name,
-       tcf.field_type,
-       tcf.remark,
-       tcf.default_value,
-       tcf.internal,
-       tcf.created_by
-FROM template_custom_field tcf
-WHERE tcf.template_id = :template_id;
+
+--! get_fields
+SELECT cf.id,
+       cf.name,
+       cf.field_type,
+       cf.internal,
+       COALESCE(
+               (SELECT JSON_AGG(
+                               JSON_BUILD_OBJECT(
+                                       'id', cfo.id,
+                                       'name', cfo.name,
+                                       'value', cfo.value,
+                                       'position', cfo.position
+                               )
+                       )
+                FROM custom_field_option cfo
+                WHERE cfo.field_id = cf.id), '[]'
+       ) AS options
+FROM custom_field cf
+WHERE cf.project_id = :project_id
+AND cf.internal = :internal;
+
 
 --! get_field_option_by_id
 SELECT id,

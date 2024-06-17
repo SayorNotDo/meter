@@ -1,10 +1,11 @@
-use axum::{Extension, Json};
-use axum::extract::{Path, Query};
-use tracing::info;
+use crate::dao::entity::ProjectMember;
 use crate::dao::project::ProjectInfo;
+use axum::extract::{Path, Query};
+use axum::{Extension, Json};
+use tracing::info;
 
-use crate::dto::response::{ProjectInfoResponse, MessageResponse};
 use crate::dto::request::ProjectQueryParam;
+use crate::dto::response::{MessageResponse, ProjectInfoResponse};
 use crate::errors::AppResult;
 use crate::service::project;
 use crate::state::AppState;
@@ -94,5 +95,21 @@ pub async fn permission(
             info!("Failed to get project list");
             Err(e)
         }
+    }
+}
+
+#[utoipa::path(
+    get,
+    path = "/project/member/list/:project_id",
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn member(
+    Extension(state): Extension<AppState>,
+    Path(project_id): Path<i32>,
+) -> AppResult<Json<Vec<ProjectMember>>> {
+    match project::member(&state, &project_id).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
     }
 }

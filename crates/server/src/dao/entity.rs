@@ -69,6 +69,11 @@ pub struct UserRolePermission {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ProjectMember {
+    pub id: i32,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Permission {
     pub id: i32,
     pub role_id: i32,
@@ -93,7 +98,7 @@ pub struct Template {
     pub created_by: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
-    pub custom_fields: Vec<CustomField>
+    pub custom_fields: Vec<CustomField>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -110,6 +115,6 @@ pub struct CustomField {
 pub struct FieldOption {
     pub id: i32,
     pub name: String,
-    pub valur: String,
+    pub value: String,
     pub position: i32,
 }

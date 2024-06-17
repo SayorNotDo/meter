@@ -49,6 +49,21 @@ FROM projects p
 WHERE p.created_by = :uid
   AND p.organization_id = :organization_id;
 
+
+--! get_project_members : (last_project_id?, last_organization_id?)
+SELECT
+    u.id,
+    u.username,
+    u.email,
+    u.created_at,
+    u.last_project_id,
+    u.last_organization_id
+FROM users u
+    INNER JOIN user_role_relation urr ON urr.user_id = u.uuid
+    INNER JOIN projects p ON urr.organization_id = p.organization_id
+WHERE p.id = :project_id;
+
+
 --! insert_project
 INSERT INTO projects (name,
                       organization_id,

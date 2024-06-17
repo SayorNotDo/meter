@@ -1,7 +1,10 @@
-use crate::errors::{AppError, AppResult, Resource, ResourceType};
+use crate::{
+    dao::entity::FieldOption,
+    errors::{AppError, AppResult, Resource, ResourceType},
+};
 use chrono::DateTime;
-use tracing::info;
 use db::queries::template::*;
+use serde_json::from_value;
 
 use super::entity;
 
@@ -25,6 +28,12 @@ macro_rules! impl_to_template {
                     };
                     let timestamp_created_at = self.created_at.assume_utc().unix_timestamp_nanos();
                     /* construct customs fields array */
+                    let custom_fields: Vec<entity::CustomField> = match from_value(self.custom_fields.clone()) {
+                        Ok(fields) => fields,
+                        Err(_) => {
+                            vec![]
+                        }
+                    };
                     entity::Template {
                         id: self.id,
                         name: self.name.clone(),
@@ -33,7 +42,7 @@ macro_rules! impl_to_template {
                         created_by: self.created_by.clone(),
                         created_at: DateTime::from_timestamp_nanos(timestamp_updated_at as i64),
                         updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_created_at as i64)),
-                        custom_fields: Vec::new()
+                        custom_fields,
                     }
                 }
             }
@@ -59,7 +68,6 @@ impl<'a> CaseDao<'a> {
             .await?;
         match ret {
             Some(t) => {
-                info!("template: {t:?}");
                 let template = t.to_template();
                 Ok(template)
             }
@@ -70,13 +78,31 @@ impl<'a> CaseDao<'a> {
         }
     }
 
-    // pub async fn get_custom_field(
-    //     &self,
-    //     template_id: &i32
-    // ) -> AppResult<entity::CustomField> {
-    //     let ret = get_template_custom_field()
-    //         .bind(self.client, template_id)
-    //         .opt()
-    //         .await?;
-    // }
+    pub async fn get_fields(
+        &self,
+        project_id: &i32,
+        internal: bool,
+    ) -> AppResult<Vec<entity::CustomField>> {
+        let fields = get_fields()
+            .bind(self.client, project_id, &internal)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| {
+                let options: Vec<FieldOption> = match from_value(item.options) {
+                    Ok(s) => s,
+                    Err(_) => vec![],
+                };
+                entity::CustomField {
+                    id: item.id,
+                    name: item.name.clone(),
+                    internal: item.internal,
+                    field_type: item.field_type,
+                    required: false,
+                    options,
+                }
+            })
+            .collect::<Vec<_>>();
+        Ok(fields)
+    }
 }
