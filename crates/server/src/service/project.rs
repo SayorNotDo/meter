@@ -64,7 +64,7 @@ pub async fn permission(
     })
 }
 
-pub async fn member(state: &AppState, project_id: &i32) -> AppResult<Vec<ProjectMember>> {
+pub async fn members(state: &AppState, project_id: &i32) -> AppResult<Vec<ProjectMember>> {
     let client = state.pool.get().await?;
     let project_dao = ProjectDao::new(&client);
     let members = project_dao.get_project_members(project_id).await?;

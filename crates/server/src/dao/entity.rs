@@ -71,6 +71,11 @@ pub struct UserRolePermission {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ProjectMember {
     pub id: i32,
+    pub username: String,
+    pub email: String,
+    pub created_at: DateTime<Utc>,
+    pub last_project_id: Option<i32>,
+    pub last_organization_id: Option<i32>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

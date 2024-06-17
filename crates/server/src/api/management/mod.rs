@@ -12,7 +12,7 @@ pub fn app() -> Router {
             "/project/has-permission/:project_id",
             get(project::permission),
         )
-        .route("/project/member/list/:project_id", get(project::member))
+        .route("/project/member/list/:project_id", get(project::members))
         .route("/case/module/tree/:project_id", get(case::tree))
         .route("/case/template/:project_id", get(case::template))
         .route("/case/field/:project_id", get(case::field))

@@ -104,11 +104,11 @@ pub async fn permission(
     responses(),
     security(("jwt" = []))
 )]
-pub async fn member(
+pub async fn members(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
 ) -> AppResult<Json<Vec<ProjectMember>>> {
-    match project::member(&state, &project_id).await {
+    match project::members(&state, &project_id).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

@@ -3,7 +3,10 @@ use chrono::{DateTime, Utc};
 use db::queries::project::*;
 use garde::rules::AsStr;
 use serde::{Deserialize, Serialize};
+use time::PrimitiveDateTime;
 use uuid::Uuid;
+use crate::utils;
+use crate::utils::time::{to_utc, to_utc_or_default};
 
 use super::entity::ProjectMember;
 
@@ -74,28 +77,22 @@ macro_rules! impl_to_project {
         $(
         impl ToProject for $t {
             fn to_project(&self) -> ProjectInfo {
-                let timestamp_created_at = self.created_at.assume_utc().unix_timestamp_nanos();
-                let timestamp_updated_at = match self.updated_at {
-                    Some(t) => t.assume_utc().unix_timestamp_nanos(),
-                    None => 0
-                };
-                let timestamp_deleted_at = match self.deleted_at {
-                    Some(t) => t.assume_utc().unix_timestamp_nanos(),
-                    None => 0
-                };
+                let created_at = utils::time::to_utc(self.created_at);
+                let updated_at = to_utc_or_default(self.updated_at);
+                let deleted_at = to_utc_or_default(self.deleted_at);
                 ProjectInfo {
                     id: self.id,
                     name: self.name.clone(),
                     organization: self.organization.clone(),
                     member_count: self.member_count,
-                    created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
+                    created_at,
                     created_by: self.created_by.clone(),
-                    updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
+                    updated_at,
                     updated_by: Option::from(self.updated_by.clone()),
                     enable: self.enable,
                     deleted: self.deleted,
                     deleted_by: Option::from(self.deleted_by.clone()),
-                    deleted_at: Option::from(DateTime::from_timestamp_nanos(timestamp_deleted_at as i64)),
+                    deleted_at,
                     description: self.description.clone(),
                     module_setting: self.module_setting.clone(),
                 }
@@ -172,7 +169,23 @@ impl<'a> ProjectDao<'a> {
     }
 
     pub async fn get_project_members(&self, id: &i32) -> AppResult<Vec<ProjectMember>> {
-        let members = get_project_members().bind(self.client, id).all().await?;
-        Ok(vec![])
+        let members = get_project_members()
+            .bind(self.client, id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| {
+                let created_at = to_utc(item.created_at);
+
+                ProjectMember {
+                    id: item.id,
+                    username: item.username,
+                    email: item.email,
+                    created_at,
+                    last_project_id: item.last_project_id,
+                    last_organization_id: item.last_organization_id,
+                }
+            }).collect::<Vec<_>>();
+        Ok(members)
     }
 }
