@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 use crate::constant::BEARER;
-use crate::dao::entity::{CustomField, User, UserRole, UserRolePermission, UserRoleRelation};
+use crate::dao::entity::{
+    CaseInfo, CustomField, User, UserRole, UserRolePermission, UserRoleRelation,
+};
 use crate::dao::project::ProjectInfo;
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
@@ -114,6 +116,14 @@ pub struct CaseInfoResponse {
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct ListCaseResponse {
+    pub total: i64,
+    pub page_size: i64,
+    pub next_page_token: String,
+    pub list: Vec<CaseInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

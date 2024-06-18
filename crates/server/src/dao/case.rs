@@ -3,10 +3,13 @@ use crate::{
     errors::{AppError, AppResult, Resource, ResourceType},
 };
 use chrono::DateTime;
-use db::queries::template::*;
+use db::queries::{
+    case::{count, get_case_list},
+    template::*,
+};
 use serde_json::from_value;
 
-use super::entity;
+use super::entity::{self, CaseInfo};
 
 #[derive(Debug)]
 pub struct CaseDao<'a> {
@@ -104,5 +107,26 @@ impl<'a> CaseDao<'a> {
             })
             .collect::<Vec<_>>();
         Ok(fields)
+    }
+
+    pub async fn get_case_list(
+        &self,
+        project_id: &i32,
+        page_size: &i64,
+        offset: &i64,
+    ) -> AppResult<Vec<CaseInfo>> {
+        let case_list = get_case_list()
+            .bind(self.client, project_id, page_size, offset)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| CaseInfo {})
+            .collect::<Vec<_>>();
+        Ok(case_list)
+    }
+
+    pub async fn count(&self, project_id: &i32) -> AppResult<i64> {
+        let count = count().bind(self.client, project_id).one().await?;
+        Ok(count)
     }
 }

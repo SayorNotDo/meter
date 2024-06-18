@@ -1,10 +1,13 @@
 use std::time::Duration;
 
-use axum::{async_trait};
+use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::RequestPartsExt;
-use axum_extra::{headers::{Authorization, authorization::Bearer}, TypedHeader};
+use axum_extra::{
+    headers::{authorization::Bearer, Authorization},
+    TypedHeader,
+};
 use chrono::Utc;
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use once_cell::sync::Lazy;
@@ -17,7 +20,6 @@ use crate::errors::{AppError, AppResult};
 
 pub static DECODE_HEADER: Lazy<Validation> = Lazy::new(|| Validation::new(Algorithm::RS256));
 pub static ENCODE_HEADER: Lazy<Header> = Lazy::new(|| Header::new(Algorithm::RS256));
-
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, ToSchema)]
 pub struct UserClaims {
@@ -38,7 +40,10 @@ impl UserClaims {
         }
     }
 
-    pub fn decode(token: &str, key: &DecodingKey) -> Result<TokenData<Self>, jsonwebtoken::errors::Error> {
+    pub fn decode(
+        token: &str,
+        key: &DecodingKey,
+    ) -> Result<TokenData<Self>, jsonwebtoken::errors::Error> {
         jsonwebtoken::decode::<UserClaims>(token, key, &DECODE_HEADER)
     }
 
@@ -49,8 +54,8 @@ impl UserClaims {
 
 #[async_trait]
 impl<S> FromRequestParts<S> for UserClaims
-    where
-        S: Send + Sync,
+where
+    S: Send + Sync,
 {
     type Rejection = AppError;
 
@@ -72,17 +77,41 @@ pub trait UserClaimsRequest {
 
 impl UserClaimsRequest for axum::extract::Request {
     fn get_user_id(&self) -> AppResult<Uuid> {
-        self
-            .extensions()
+        self.extensions()
             .get::<UserClaims>()
             .map(|u| u.uid)
             .ok_or_else(|| AppError::UnauthorizedError("User Must Login".to_string()))
     }
     fn get_user_claims(&self) -> AppResult<UserClaims> {
-        self
-            .extensions()
+        self.extensions()
             .get::<UserClaims>()
             .cloned()
             .ok_or_else(|| AppError::UnauthorizedError("User Must Login".to_string()))
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, ToSchema)]
+pub struct PageClaims {
+    pub page_size: i64,
+    pub page_num: i64,
+}
+
+impl PageClaims {
+    pub fn new(page_size: i64, page_num: i64) -> Self {
+        Self {
+            page_size,
+            page_num,
+        }
+    }
+
+    pub fn decode(
+        token: &str,
+        key: &DecodingKey,
+    ) -> Result<TokenData<Self>, jsonwebtoken::errors::Error> {
+        jsonwebtoken::decode::<PageClaims>(token, key, &DECODE_HEADER)
+    }
+
+    pub fn encode(&self, key: &EncodingKey) -> Result<String, jsonwebtoken::errors::Error> {
+        jsonwebtoken::encode(&ENCODE_HEADER, self, key)
     }
 }

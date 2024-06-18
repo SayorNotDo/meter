@@ -11,7 +11,9 @@ pub const AUTHORIZATION: &str = "Authorization";
 
 pub const WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/register"];
 
-pub static CONFIG: Lazy<crate::config::Config> = Lazy::new(|| crate::config::Config::parse("./config.toml").unwrap());
+pub static CONFIG: Lazy<crate::config::Config> =
+    Lazy::new(|| crate::config::Config::parse("./config.toml").unwrap());
+
 pub static ACCESS_TOKEN_ENCODE_KEY: Lazy<EncodingKey> = Lazy::new(|| {
     let key = CONFIG.jwt.read_private_access_key().unwrap();
     EncodingKey::from_rsa_pem(key.as_bytes()).unwrap()
@@ -28,3 +30,9 @@ pub static REFRESH_TOKEN_DECODE_KEY: Lazy<DecodingKey> = Lazy::new(|| {
     let key = CONFIG.jwt.read_public_refresh_key().unwrap();
     DecodingKey::from_rsa_pem(key.as_bytes()).unwrap()
 });
+
+pub static PAGE_ENCODE_KEY: Lazy<EncodingKey> =
+    Lazy::new(|| EncodingKey::from_base64_secret("U29tZVNlY3JldEtleQ==".into()).unwrap());
+
+pub static PAGE_DECODE_KEY: Lazy<DecodingKey> =
+    Lazy::new(|| DecodingKey::from_base64_secret("U29tZVNlY3JldEtleQ==".into()).unwrap());

@@ -84,9 +84,10 @@ CREATE TABLE functional_cases
     name       VARCHAR   NOT NULL,
     module_id  INT       NOT NULL,
     project_id INT       NOT NULL,
+    template_id INT NOT NULL,
     tags       VARCHAR,
     status     INT       NOT NULL DEFAULT 0,
-    script_id  VARCHAR   NOT NULL,
+    script_id  VARCHAR,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP,
     created_by UUID,
@@ -108,6 +109,7 @@ COMMENT ON COLUMN functional_cases.id IS '功能测试用例ID';
 COMMENT ON COLUMN functional_cases.name IS '功能测试用例名称';
 COMMENT ON COLUMN functional_cases.module_id IS '功能测试用例所属模块ID';
 COMMENT ON COLUMN functional_cases.project_id IS '功能测试用例所属项目ID';
+COMMENT ON COLUMN functional_cases.template_id IS '功能测试用例所属模版ID';
 COMMENT ON COLUMN functional_cases.tags IS '功能测试用例标签';
 COMMENT ON COLUMN functional_cases.status IS '功能测试用例状态';
 COMMENT ON COLUMN functional_cases.script_id IS '功能测试用例脚本ID';
@@ -127,7 +129,7 @@ CREATE TABLE file_module
     project_id  INT       NOT NULL,
     name        VARCHAR,
     position    INT       NOT NULL DEFAULT 0,
-    module_type VARCHAR,
+    module_type VARCHAR NOT NULL,
     attach_info VARCHAR,
     parent_id   INT,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -148,7 +150,7 @@ COMMENT ON COLUMN file_module.id IS '文件管理模块ID';
 COMMENT ON COLUMN file_module.project_id IS '关联项目ID';
 COMMENT ON COLUMN file_module.name IS '文件管理模块名称';
 COMMENT ON COLUMN file_module.position IS '文件管理模块排序标识';
-COMMENT ON COLUMN file_module.module_type IS '文件管理模块类型：module/repository';
+COMMENT ON COLUMN file_module.module_type IS '文件管理模块类型：CASE/BUG/PLAN';
 COMMENT ON COLUMN file_module.parent_id IS '文件管理模块父级ID';
 COMMENT ON COLUMN file_module.created_at IS '创建时间';
 COMMENT ON COLUMN file_module.updated_at IS '更新时间';
@@ -157,4 +159,3 @@ COMMENT ON COLUMN file_module.updated_by IS '更新人';
 
 
 -- migrate:down
-

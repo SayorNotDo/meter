@@ -1,10 +1,7 @@
 use crate::dao::entity;
 use crate::dao::entity::FileModule;
-use db::queries::file::*;
 use crate::errors::AppResult;
-
-
-
+use db::queries::file::*;
 
 trait ToFileModule {
     fn to_file_module(&self) -> entity::FileModule;
@@ -39,14 +36,18 @@ impl<'a> FileDao<'a> {
         FileDao { client }
     }
 
-    pub async fn get_file_modules(&self, project_id: &i32) -> AppResult<Vec<FileModule>> {
+    pub async fn get_file_modules(
+        &self,
+        project_id: &i32,
+        module_type: &str,
+    ) -> AppResult<Vec<FileModule>> {
         let file_modules = get_file_modules()
-            .bind(self.client, project_id)
+            .bind(self.client, project_id, &module_type)
             .all()
             .await?
             .into_iter()
-            .map(|item| item.to_file_module()
-            ).collect::<Vec<_>>();
+            .map(|item| item.to_file_module())
+            .collect::<Vec<_>>();
         Ok(file_modules)
     }
 }

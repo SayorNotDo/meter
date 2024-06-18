@@ -39,6 +39,13 @@ pub struct QueryTemplateParam {
     pub is_default: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct ListQueryParam {
+    pub page_size: Option<i64>,
+    pub page_token: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

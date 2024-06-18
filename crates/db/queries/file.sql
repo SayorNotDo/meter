@@ -6,6 +6,7 @@ WITH RECURSIVE file_module_tree AS (SELECT id,
                                            parent_id
                                     FROM file_module
                                     WHERE project_id = :project_id
+                                    AND module_type = :module_type
                                     UNION ALL
                                     SELECT f.id,
                                            f.name,

@@ -123,3 +123,6 @@ pub struct FieldOption {
     pub value: String,
     pub position: i32,
 }
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct CaseInfo {}

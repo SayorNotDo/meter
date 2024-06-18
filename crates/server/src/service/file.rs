@@ -1,28 +1,34 @@
-use std::collections::HashMap;
 use crate::dao;
 use crate::dto::response::FileModuleResponse;
 use crate::errors::AppResult;
 use crate::state::AppState;
+use std::collections::HashMap;
 
-pub async fn file_module_tree(state: &AppState, project_id: &i32) -> AppResult<Vec<FileModuleResponse>> {
+pub async fn file_module_tree(
+    state: &AppState,
+    project_id: &i32,
+) -> AppResult<Vec<FileModuleResponse>> {
     let mut file_module_tree = Vec::new();
     let client = state.pool.get().await?;
     let file_dao = dao::file::FileDao::new(&client);
-    let file_modules = file_dao.get_file_modules(project_id).await?;
+    let file_modules = file_dao.get_file_modules(project_id, "CASE").await?;
     /* 创建HashMap 用于快速查找父节点 */
     let mut module_map: HashMap<i32, FileModuleResponse> = HashMap::new();
 
     /* 初始化节点 */
     for item in file_modules.iter() {
-        module_map.insert(item.id, FileModuleResponse {
-            id: item.id,
-            name: item.name.clone(),
-            path: "".to_string(),
-            module_type: item.module_type.clone(),
-            parent_id: item.parent_id,
-            children: Vec::new(),
-            count: 0,
-        });
+        module_map.insert(
+            item.id,
+            FileModuleResponse {
+                id: item.id,
+                name: item.name.clone(),
+                path: "".to_string(),
+                module_type: item.module_type.clone(),
+                parent_id: item.parent_id,
+                children: Vec::new(),
+                count: 0,
+            },
+        );
     }
     /* 构建树结构 */
     for item in file_modules.iter() {

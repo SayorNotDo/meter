@@ -2,9 +2,9 @@ use axum::extract::{Path, Query};
 use axum::{Extension, Json};
 
 use crate::dao::entity::CustomField;
-use crate::dto::response::{CaseInfoResponse, TemplateResponse};
+use crate::dto::response::{ListCaseResponse, TemplateResponse};
 use crate::dto::{
-    request::QueryTemplateParam,
+    request::{ListQueryParam, QueryTemplateParam},
     response::{FileModuleResponse, RequirementInfoResponse},
 };
 use crate::errors::AppResult;
@@ -100,6 +100,7 @@ pub async fn info(
 #[utoipa::path(
     get,
     path = "/case/list/:project_id",
+    params(ListQueryParam),
     responses(
         (status = 200, description = "Get case list", body = [()]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
@@ -108,6 +109,14 @@ pub async fn info(
     ),
     security(("jwt" = []))
 )]
-pub async fn list() -> AppResult<Json<Vec<CaseInfoResponse>>> {
-    Ok(Json(vec![]))
+pub async fn list(
+    Extension(state): Extension<AppState>,
+    Path(project_id): Path<i32>,
+    Query(param): Query<ListQueryParam>,
+) -> AppResult<Json<ListCaseResponse>> {
+    info!("case list query with param: {param:?}");
+    match case::list(&state, &project_id, &param).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
 }
