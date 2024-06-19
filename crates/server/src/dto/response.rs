@@ -120,8 +120,6 @@ pub struct CaseInfoResponse {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ListCaseResponse {
-    pub total: i64,
-    pub page_size: i64,
     pub next_page_token: String,
     pub list: Vec<CaseInfo>,
 }

@@ -220,6 +220,7 @@ impl<'a> UserDao<'a> {
         Ok(user_id)
     }
 
+    #[allow(dead_code)]
     pub async fn all(&self) -> AppResult<Vec<entity::User>> {
         let users = get_users()
             .bind(self.client)

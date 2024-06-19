@@ -1,8 +1,8 @@
 use crate::{
     dao::entity::FieldOption,
     errors::{AppError, AppResult, Resource, ResourceType},
+    utils,
 };
-use chrono::DateTime;
 use db::queries::{
     case::{count, get_case_list},
     template::*,
@@ -25,11 +25,8 @@ macro_rules! impl_to_template {
         $(
             impl ToTemplate for $t {
                 fn to_template(&self) -> entity::Template {
-                    let timestamp_updated_at = match self.updated_at {
-                        Some(t) => t.assume_utc().unix_timestamp_nanos(),
-                        None => 0
-                    };
-                    let timestamp_created_at = self.created_at.assume_utc().unix_timestamp_nanos();
+                    let updated_at = utils::time::to_utc_or_default(self.updated_at);
+                    let created_at = utils::time::to_utc(self.created_at);
                     /* construct customs fields array */
                     let custom_fields: Vec<entity::CustomField> = match from_value(self.custom_fields.clone()) {
                         Ok(fields) => fields,
@@ -43,8 +40,8 @@ macro_rules! impl_to_template {
                         internal: self.internal,
                         description: self.description.clone(),
                         created_by: self.created_by.clone(),
-                        created_at: DateTime::from_timestamp_nanos(timestamp_updated_at as i64),
-                        updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_created_at as i64)),
+                        created_at,
+                        updated_at,
                         custom_fields,
                     }
                 }
@@ -112,19 +109,44 @@ impl<'a> CaseDao<'a> {
     pub async fn get_case_list(
         &self,
         project_id: &i32,
+        module_id: &Vec<i32>,
         page_size: &i64,
         offset: &i64,
     ) -> AppResult<Vec<CaseInfo>> {
         let case_list = get_case_list()
-            .bind(self.client, project_id, page_size, offset)
+            .bind(self.client, project_id, module_id, page_size, offset)
             .all()
             .await?
             .into_iter()
-            .map(|item| CaseInfo {})
+            .map(|item| {
+                let created_at = utils::time::to_utc(item.created_at);
+                let updated_at = utils::time::to_utc_or_default(item.updated_at);
+                let custom_fields: Vec<entity::CustomField> =
+                    match from_value(item.custom_fields.clone()) {
+                        Ok(fields) => fields,
+                        Err(_) => {
+                            vec![]
+                        }
+                    };
+                CaseInfo {
+                    id: item.id,
+                    name: item.name,
+                    module_id: item.module_id,
+                    template_id: item.template_id,
+                    tags: item.tags,
+                    status: item.status,
+                    created_at,
+                    created_by: item.created_by,
+                    updated_at,
+                    updated_by: item.updated_by,
+                    custom_fields,
+                }
+            })
             .collect::<Vec<_>>();
         Ok(case_list)
     }
 
+    #[allow(dead_code)]
     pub async fn count(&self, project_id: &i32) -> AppResult<i64> {
         let count = count().bind(self.client, project_id).one().await?;
         Ok(count)

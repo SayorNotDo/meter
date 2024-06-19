@@ -1,12 +1,11 @@
 use crate::errors::{AppError, AppResult, Resource, ResourceType};
+use crate::utils;
+use crate::utils::time::{to_utc, to_utc_or_default};
 use chrono::{DateTime, Utc};
 use db::queries::project::*;
 use garde::rules::AsStr;
 use serde::{Deserialize, Serialize};
-use time::PrimitiveDateTime;
 use uuid::Uuid;
-use crate::utils;
-use crate::utils::time::{to_utc, to_utc_or_default};
 
 use super::entity::ProjectMember;
 
@@ -185,7 +184,8 @@ impl<'a> ProjectDao<'a> {
                     last_project_id: item.last_project_id,
                     last_organization_id: item.last_organization_id,
                 }
-            }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
         Ok(members)
     }
 }

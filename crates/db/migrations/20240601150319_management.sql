@@ -86,7 +86,7 @@ CREATE TABLE functional_cases
     project_id INT       NOT NULL,
     template_id INT NOT NULL,
     tags       VARCHAR,
-    status     INT       NOT NULL DEFAULT 0,
+    status     VARCHAR       NOT NULL DEFAULT 'UN_REVIEWED',
     script_id  VARCHAR,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP,

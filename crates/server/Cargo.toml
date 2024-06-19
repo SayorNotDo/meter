@@ -8,7 +8,11 @@ edition = "2021"
 [dependencies]
 axum = "0.7.5"
 db = { path = "../db" }
-tokio = { version = "1.37.0", default-features = false, features = ["macros", "fs", "rt-multi-thread"] }
+tokio = { version = "1.37.0", default-features = false, features = [
+    "macros",
+    "fs",
+    "rt-multi-thread",
+] }
 
 serde = { version = "1.0.198", features = ["derive"] }
 tower-http = { version = "0.5.2", features = ["cors", "trace"] }
@@ -18,7 +22,11 @@ anyhow = "1.0.86"
 
 # Observability
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
-tracing = { version = "0.1.40", features = ["max_level_debug", "release_max_level_info", "log"] }
+tracing = { version = "0.1.40", features = [
+    "max_level_debug",
+    "release_max_level_info",
+    "log",
+] }
 
 # Backtrace in panic hook
 backtrace = "0.3.71"

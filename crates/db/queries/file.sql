@@ -17,3 +17,13 @@ WITH RECURSIVE file_module_tree AS (SELECT id,
                                              INNER JOIN file_module_tree fr ON f.parent_id = fr.id)
 SELECT DISTINCT *
 FROM file_module_tree;
+
+--! get_root_module
+SELECT
+    id
+FROM
+    file_module
+WHERE
+    parent_id IS NULL
+    AND project_id = :project_id
+    AND module_type = :module_type;

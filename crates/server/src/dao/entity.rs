@@ -125,4 +125,16 @@ pub struct FieldOption {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct CaseInfo {}
+pub struct CaseInfo {
+    pub id: i32,
+    pub name: String,
+    pub module_id: i32,
+    pub template_id: i32,
+    pub tags: Option<String>,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+    pub custom_fields: Vec<CustomField>,
+}

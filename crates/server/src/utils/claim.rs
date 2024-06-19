@@ -21,6 +21,14 @@ use crate::errors::{AppError, AppResult};
 pub static DECODE_HEADER: Lazy<Validation> = Lazy::new(|| Validation::new(Algorithm::RS256));
 pub static ENCODE_HEADER: Lazy<Header> = Lazy::new(|| Header::new(Algorithm::RS256));
 
+pub static PAGE_ENCODE_HEADER: Lazy<Header> = Lazy::new(|| Header::new(Algorithm::HS256));
+pub static PAGE_DECODE_HEADER: Lazy<Validation> = Lazy::new(|| {
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.validate_exp = false;
+    validation.required_spec_claims.clear();
+    validation
+});
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, ToSchema)]
 pub struct UserClaims {
     pub iat: i64,
@@ -108,10 +116,10 @@ impl PageClaims {
         token: &str,
         key: &DecodingKey,
     ) -> Result<TokenData<Self>, jsonwebtoken::errors::Error> {
-        jsonwebtoken::decode::<PageClaims>(token, key, &DECODE_HEADER)
+        jsonwebtoken::decode::<PageClaims>(token, key, &PAGE_DECODE_HEADER)
     }
 
     pub fn encode(&self, key: &EncodingKey) -> Result<String, jsonwebtoken::errors::Error> {
-        jsonwebtoken::encode(&ENCODE_HEADER, self, key)
+        jsonwebtoken::encode(&PAGE_ENCODE_HEADER, self, key)
     }
 }

@@ -114,7 +114,6 @@ pub async fn list(
     Path(project_id): Path<i32>,
     Query(param): Query<ListQueryParam>,
 ) -> AppResult<Json<ListCaseResponse>> {
-    info!("case list query with param: {param:?}");
     match case::list(&state, &project_id, &param).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),

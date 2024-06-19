@@ -50,4 +50,16 @@ impl<'a> FileDao<'a> {
             .collect::<Vec<_>>();
         Ok(file_modules)
     }
+
+    pub async fn get_root_module_id(
+        &self,
+        project_id: &i32,
+        module_type: &str,
+    ) -> AppResult<Vec<i32>> {
+        let module_id_list = get_root_module()
+            .bind(self.client, project_id, &module_type)
+            .all()
+            .await?;
+        Ok(module_id_list)
+    }
 }

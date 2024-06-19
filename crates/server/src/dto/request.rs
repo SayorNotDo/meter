@@ -42,6 +42,7 @@ pub struct QueryTemplateParam {
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListQueryParam {
+    pub module_id: Option<i32>,
     pub page_size: Option<i64>,
     pub page_token: Option<String>,
 }
