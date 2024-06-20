@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     dao::entity::FieldOption,
     errors::{AppError, AppResult, Resource, ResourceType},
@@ -8,6 +10,7 @@ use db::queries::{
     template::*,
 };
 use serde_json::from_value;
+use tracing::info;
 
 use super::entity::{self, CaseInfo};
 
@@ -98,6 +101,7 @@ impl<'a> CaseDao<'a> {
                     name: item.name.clone(),
                     internal: item.internal,
                     field_type: item.field_type,
+                    default_value: None,
                     required: false,
                     options,
                 }
@@ -146,9 +150,22 @@ impl<'a> CaseDao<'a> {
         Ok(case_list)
     }
 
-    #[allow(dead_code)]
-    pub async fn count(&self, project_id: &i32) -> AppResult<i64> {
-        let count = count().bind(self.client, project_id).one().await?;
-        Ok(count)
+    pub async fn count(
+        &self,
+        project_id: &i32,
+        is_deleted: &bool,
+    ) -> AppResult<HashMap<String, i64>> {
+        let mut module_case_count: HashMap<String, i64> = HashMap::new();
+        let _ = count()
+            .bind(self.client, project_id, is_deleted)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| {
+                info!("{item:?}");
+                module_case_count.insert(item.module_name.clone(), item.case_count)
+            })
+            .collect::<Vec<_>>();
+        Ok(module_case_count)
     }
 }

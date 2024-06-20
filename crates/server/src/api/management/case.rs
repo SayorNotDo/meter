@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
 use axum::extract::{Path, Query};
 use axum::{Extension, Json};
 
 use crate::dao::entity::CustomField;
+use crate::dto::request::CaseQueryParam;
 use crate::dto::response::{ListCaseResponse, TemplateResponse};
 use crate::dto::{
     request::{ListQueryParam, QueryTemplateParam},
@@ -99,7 +102,7 @@ pub async fn info(
 
 #[utoipa::path(
     get,
-    path = "/case/list/:project_id",
+    path = "/management/case/list/:project_id",
     params(ListQueryParam),
     responses(
         (status = 200, description = "Get case list", body = [()]),
@@ -114,7 +117,32 @@ pub async fn list(
     Path(project_id): Path<i32>,
     Query(param): Query<ListQueryParam>,
 ) -> AppResult<Json<ListCaseResponse>> {
+    info!("controller layer case list proejct_id: {project_id:?} query with param: {param:?}");
     match case::list(&state, &project_id, &param).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    get,
+    path = "/management/case/count/:project_id",
+    params(),
+    responses(
+        (status = 200, description = "Get case module info", body = [()]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
+        (status = 404, description = "case module info not found", body = [AppResponseError]),
+        (status = 500, description = "Internal server error", body = [AppResponseError]),
+    ),
+    security(("jwt" = []))
+)]
+pub async fn count(
+    Extension(state): Extension<AppState>,
+    Path(project_id): Path<i32>,
+    Query(param): Query<CaseQueryParam>,
+) -> AppResult<Json<HashMap<String, i64>>> {
+    info!("controller layer case count group by module in project: {project_id:?}");
+    match case::count(&state, &project_id, &param).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

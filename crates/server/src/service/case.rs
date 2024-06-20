@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 use crate::constant::PAGE_DECODE_KEY;
 use crate::dao::case::CaseDao;
 use crate::dao::entity::CustomField;
 use crate::dao::file::FileDao;
-use crate::dto::request::ListQueryParam;
+use crate::dto::request::{CaseQueryParam, ListQueryParam};
 use crate::dto::response::{ListCaseResponse, RequirementInfoResponse};
 use crate::dto::{request::QueryTemplateParam, response::TemplateResponse};
 use crate::errors::AppResult;
@@ -86,4 +88,21 @@ pub async fn list(
         next_page_token,
         list,
     })
+}
+
+pub async fn count(
+    state: &AppState,
+    project_id: &i32,
+    param: &CaseQueryParam,
+) -> AppResult<HashMap<String, i64>> {
+    info!("service layer for case count with project_id: {project_id:?}");
+    let client = state.pool.get().await?;
+    let case_dao = CaseDao::new(&client);
+    let is_deleted = if let Some(is_deleted) = param.is_deleted {
+        is_deleted
+    } else {
+        false
+    };
+    let hmap = case_dao.count(project_id, &is_deleted).await?;
+    Ok(hmap)
 }

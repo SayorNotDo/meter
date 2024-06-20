@@ -47,6 +47,12 @@ pub struct ListQueryParam {
     pub page_token: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct CaseQueryParam {
+    pub is_deleted: Option<bool>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

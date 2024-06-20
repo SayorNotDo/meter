@@ -113,6 +113,7 @@ pub struct CustomField {
     pub required: bool,
     pub field_type: String,
     pub internal: bool,
+    pub default_value: Option<String>,
     pub options: Vec<FieldOption>,
 }
 
@@ -137,4 +138,11 @@ pub struct CaseInfo {
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
     pub custom_fields: Vec<CustomField>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct CaseModuleInfo {
+    pub id: i32,
+    pub name: String,
+    pub case_count: i64,
 }

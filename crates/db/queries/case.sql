@@ -44,8 +44,13 @@ OFFSET :offset;
 
 --! count
 SELECT
-    COUNT(*) as total,
-    (SELECT name FROM file_module fm WHERE fm.project_id = :project_id) as module_names
-FROM functional_cases fc
-WHERE project_id = :project_id
-AND deleted = FALSE;
+    fm.name AS module_name,
+    COUNT(fc.id) AS case_count
+FROM file_module fm
+LEFT JOIN functional_cases fc
+    ON fc.module_id = fm.id
+    AND fc.project_id = :project_id
+    AND fc.deleted = :is_deleted
+WHERE
+    fm.project_id = :project_id
+GROUP BY fm.name;

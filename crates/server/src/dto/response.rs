@@ -106,19 +106,6 @@ pub struct FileModuleResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct CaseInfoResponse {
-    pub id: i32,
-    pub name: String,
-    pub module_id: i32,
-    pub tags: Vec<String>,
-    pub status: i32,
-    pub created_at: DateTime<Utc>,
-    pub created_by: String,
-    pub updated_at: Option<DateTime<Utc>>,
-    pub updated_by: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ListCaseResponse {
     pub next_page_token: String,
     pub list: Vec<CaseInfo>,

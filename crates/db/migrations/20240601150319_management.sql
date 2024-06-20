@@ -121,6 +121,16 @@ COMMENT ON COLUMN functional_cases.deleted IS '是否删除';
 COMMENT ON COLUMN functional_cases.deleted_at IS '删除时间';
 COMMENT ON COLUMN functional_cases.deleted_by IS '删除人';
 
+DROP TABLE IF EXISTS functional_case_custom_field;
+
+CREATE TABLE functional_case_custom_field (
+    id SERIAL PRIMARY KEY,
+    case_id VARCHAR NOT NULL,
+    field_id VARCHAR NOT NULL,
+    value   VARCHAR NOT NULL
+)
+
+
 DROP TABLE IF EXISTS file_module;
 
 CREATE TABLE file_module
