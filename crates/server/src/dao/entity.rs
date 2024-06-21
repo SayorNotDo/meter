@@ -141,6 +141,21 @@ pub struct CaseInfo {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct CaseDetail {
+    pub id: i32,
+    pub name: String,
+    pub module_name: String,
+    pub template_id: i32,
+    pub script_id: Option<i32>,
+    pub tags: String,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub custom_fields: Vec<CustomField>,
+    pub attach_info: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CaseModuleInfo {
     pub id: i32,
     pub name: String,

@@ -18,5 +18,6 @@ pub fn app() -> Router {
         .route("/case/template/:project_id", get(case::template))
         .route("/case/field/:project_id", get(case::field))
         .route("/case/list/:project_id", get(case::list))
+        .route("/case/detail/:case_id", get(case::detail))
         .route("/case/info/requirement/:project_id", get(case::info))
 }

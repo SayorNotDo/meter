@@ -5,7 +5,7 @@ use axum::{Extension, Json};
 
 use crate::dao::entity::CustomField;
 use crate::dto::request::CaseQueryParam;
-use crate::dto::response::{ListCaseResponse, TemplateResponse};
+use crate::dto::response::{CaseDetailResponse, ListCaseResponse, TemplateResponse};
 use crate::dto::{
     request::{ListQueryParam, QueryTemplateParam},
     response::{FileModuleResponse, RequirementInfoResponse},
@@ -127,7 +127,7 @@ pub async fn list(
 #[utoipa::path(
     get,
     path = "/management/case/count/:project_id",
-    params(),
+    params(CaseQueryParam),
     responses(
         (status = 200, description = "Get case module info", body = [()]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
@@ -143,6 +143,18 @@ pub async fn count(
 ) -> AppResult<Json<HashMap<String, i64>>> {
     info!("controller layer case count group by module in project: {project_id:?}");
     match case::count(&state, &project_id, &param).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(get, path = "/management/case/detail/:case_id", params(), responses())]
+pub async fn detail(
+    Extension(state): Extension<AppState>,
+    Path(case_id): Path<i32>,
+) -> AppResult<Json<CaseDetailResponse>> {
+    info!("controller layer case detail with id: {case_id:?}");
+    match case::detail(&state, &case_id).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

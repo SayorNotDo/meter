@@ -5,7 +5,7 @@ use crate::dao::case::CaseDao;
 use crate::dao::entity::CustomField;
 use crate::dao::file::FileDao;
 use crate::dto::request::{CaseQueryParam, ListQueryParam};
-use crate::dto::response::{ListCaseResponse, RequirementInfoResponse};
+use crate::dto::response::{CaseDetailResponse, ListCaseResponse, RequirementInfoResponse};
 use crate::dto::{request::QueryTemplateParam, response::TemplateResponse};
 use crate::errors::AppResult;
 use crate::service::token::generate_page_token;
@@ -105,4 +105,31 @@ pub async fn count(
     };
     let hmap = case_dao.count(project_id, &is_deleted).await?;
     Ok(hmap)
+}
+
+pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<CaseDetailResponse> {
+    info!("service layer for case detail with case id: {case_id:?}");
+    let client = state.pool.get().await?;
+    let case_dao = CaseDao::new(&client);
+    let detail = case_dao.detail(case_id).await?;
+    let tags: Vec<String> = detail
+        .tags
+        .split(",")
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect::<Vec<_>>();
+    Ok(CaseDetailResponse {
+        id: detail.id,
+        name: detail.name,
+        project_id: detail.id,
+        script_id: detail.script_id,
+        template_id: detail.template_id,
+        status: detail.status,
+        tags,
+        module_name: detail.module_name,
+        attach_info: detail.attach_info,
+        created_at: detail.created_at,
+        created_by: detail.created_by,
+        custom_fields: detail.custom_fields,
+    })
 }

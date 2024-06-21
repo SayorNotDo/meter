@@ -101,7 +101,7 @@ pub struct FileModuleResponse {
     pub path: String,
     pub parent_id: Option<i32>,
     pub module_type: String,
-    pub count: i32,
+    pub count: i64,
     pub children: Vec<FileModuleResponse>,
 }
 
@@ -125,3 +125,19 @@ pub struct TemplateResponse {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct RequirementInfoResponse {}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct CaseDetailResponse {
+    pub id: i32,
+    pub name: String,
+    pub tags: Vec<String>,
+    pub template_id: i32,
+    pub project_id: i32,
+    pub script_id: Option<i32>,
+    pub module_name: String,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub attach_info: Option<String>,
+    pub custom_fields: Vec<CustomField>,
+}

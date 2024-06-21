@@ -6,13 +6,13 @@ use crate::{
     utils,
 };
 use db::queries::{
-    case::{count, get_case_list},
+    case::{count, count_by_module_id, detail, get_case_list},
     template::*,
 };
 use serde_json::from_value;
 use tracing::info;
 
-use super::entity::{self, CaseInfo};
+use super::entity::{self, CaseDetail, CaseInfo};
 
 #[derive(Debug)]
 pub struct CaseDao<'a> {
@@ -167,5 +167,48 @@ impl<'a> CaseDao<'a> {
             })
             .collect::<Vec<_>>();
         Ok(module_case_count)
+    }
+
+    pub async fn count_by_module_id(
+        &self,
+        project_id: &i32,
+        module_id: &i32,
+        is_deleted: &bool,
+    ) -> AppResult<i64> {
+        let count = count_by_module_id()
+            .bind(self.client, project_id, module_id, is_deleted)
+            .opt()
+            .await?;
+        match count {
+            Some(c) => Ok(c),
+            None => Ok(0),
+        }
+    }
+
+    pub async fn detail(&self, case_id: &i32) -> AppResult<entity::CaseDetail> {
+        let detail = detail().bind(self.client, case_id).opt().await?;
+        match detail {
+            Some(u) => {
+                let created_at = utils::time::to_utc(u.created_at);
+                let case = CaseDetail {
+                    id: u.id,
+                    name: u.name,
+                    module_name: u.module_name,
+                    script_id: u.script_id,
+                    template_id: u.template_id,
+                    status: u.status,
+                    tags: u.tags,
+                    attach_info: u.attach_info,
+                    created_at,
+                    created_by: u.created_by,
+                    custom_fields: from_value::<Vec<entity::CustomField>>(u.custom_fields)?,
+                };
+                Ok(case)
+            }
+            None => Err(AppError::NotFoundError(Resource {
+                resource_type: ResourceType::File,
+                details: vec![],
+            })),
+        }
     }
 }

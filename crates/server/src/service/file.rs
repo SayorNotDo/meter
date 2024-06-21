@@ -1,8 +1,25 @@
+use tracing::info;
+
 use crate::dao;
 use crate::dto::response::FileModuleResponse;
 use crate::errors::AppResult;
 use crate::state::AppState;
 use std::collections::HashMap;
+
+#[derive(Debug)]
+enum ModuleType {
+    Case,
+    Unknown,
+}
+
+impl ModuleType {
+    fn from_str(module_type: &str) -> Self {
+        match module_type {
+            "CASE" => ModuleType::Case,
+            _ => ModuleType::Unknown,
+        }
+    }
+}
 
 pub async fn file_module_tree(
     state: &AppState,
@@ -14,9 +31,23 @@ pub async fn file_module_tree(
     let file_modules = file_dao.get_file_modules(project_id, "CASE").await?;
     /* 创建HashMap 用于快速查找父节点 */
     let mut module_map: HashMap<i32, FileModuleResponse> = HashMap::new();
-
     /* 初始化节点 */
     for item in file_modules.iter() {
+        let item_type = ModuleType::from_str(&item.module_type);
+        let count = match item_type {
+            ModuleType::Case => {
+                info!("get case count by module_id: {:?}", &item.id);
+                let case_dao = dao::case::CaseDao::new(&client);
+                let ret = case_dao
+                    .count_by_module_id(project_id, &item.id, &false)
+                    .await?;
+                ret
+            }
+            ModuleType::Unknown => {
+                info!("unknown type");
+                0
+            }
+        };
         module_map.insert(
             item.id,
             FileModuleResponse {
@@ -26,7 +57,7 @@ pub async fn file_module_tree(
                 module_type: item.module_type.clone(),
                 parent_id: item.parent_id,
                 children: Vec::new(),
-                count: 0,
+                count,
             },
         );
     }
