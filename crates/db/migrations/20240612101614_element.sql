@@ -40,12 +40,12 @@ COMMENT ON COLUMN elements.deleted_by IS '删除人';
 
 DROP TABLE IF EXISTS operation_option;
 
-CREATE TABLE opertaion_option (
+CREATE TABLE operation_option (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR NOT NULL,
     internal    BOOLEAN NOT NULL DEFAULT FALSE,
     exec        VARCHAR NOT NULL,
-    created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by  UUID NOT NULL
 );
 
@@ -56,13 +56,18 @@ COMMENT ON COLUMN operation_option.exec IS '执行方式';
 COMMENT ON COLUMN operation_option.created_at IS '创建人';
 COMMENT ON COLUMN operation_option.created_by IS '创建时间';
 
-DROP TABLE IF element_operation_option;
+DROP TABLE IF EXISTS element_operation_option;
 
 CREATE TABLE element_operation_option (
     id          SERIAL PRIMARY KEY,
     option_id   INT,
     element_id  INT
 );
+
+-- comments
+COMMENT ON COLUMN element_operation_option.option_id IS '元素可选操作关联关系ID';
+COMMENT ON COLUMN element_operation_option.element_id IS '元素ID';
+COMMENT ON COLUMN element_operation_option.option_id IS '可选操作ID';
 
 
 -- migrate:down
