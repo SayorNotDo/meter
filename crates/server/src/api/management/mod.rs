@@ -1,7 +1,8 @@
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::Router;
 
 mod case;
+mod element;
 mod project;
 
 pub fn app() -> Router {
@@ -20,4 +21,6 @@ pub fn app() -> Router {
         .route("/case/list/:project_id", get(case::list))
         .route("/case/detail/:case_id", get(case::detail))
         .route("/case/info/requirement/:project_id", get(case::info))
+        .route("/element", post(element::create))
+        .route("/element/:element_id", get(element::info))
 }

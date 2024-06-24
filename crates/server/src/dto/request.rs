@@ -53,6 +53,10 @@ pub struct CaseQueryParam {
     pub is_deleted: Option<bool>,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateElementRequest {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

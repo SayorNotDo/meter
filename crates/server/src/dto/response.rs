@@ -141,3 +141,6 @@ pub struct CaseDetailResponse {
     pub attach_info: Option<String>,
     pub custom_fields: Vec<CustomField>,
 }
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct ElementResponse {}

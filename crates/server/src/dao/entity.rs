@@ -161,3 +161,24 @@ pub struct CaseModuleInfo {
     pub name: String,
     pub case_count: i64,
 }
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ElementResponse {
+    pub id: i32,
+    pub name: String,
+    pub value: String,
+    pub element_type: String,
+    pub description: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+    pub operation_options: Vec<OperationOption>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct OperationOption {
+    pub id: i32,
+    pub name: String,
+    pub internal: bool,
+}

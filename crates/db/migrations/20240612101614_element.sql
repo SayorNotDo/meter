@@ -3,18 +3,18 @@ DROP TABLE IF EXISTS elements;
 
 CREATE TABLE elements
 (
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR   NOT NULL,
-    description VARCHAR,
-    type        VARCHAR,
-    value       VARCHAR,
-    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMP,
-    created_by  UUID,
-    updated_by  UUID,
-    deleted     BOOLEAN   NOT NULL DEFAULT FALSE,
-    deleted_at  TIMESTAMP,
-    deleted_by  UUID
+    id                  SERIAL PRIMARY KEY,
+    name                VARCHAR   NOT NULL,
+    description         VARCHAR,
+    type                VARCHAR,
+    value               VARCHAR,
+    created_at          TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP,
+    created_by          UUID,
+    updated_by          UUID,
+    deleted             BOOLEAN   NOT NULL DEFAULT FALSE,
+    deleted_at          TIMESTAMP,
+    deleted_by          UUID
 );
 -- create trigger: set updated_at field
 CREATE TRIGGER set_timestamp_elements
@@ -38,6 +38,31 @@ COMMENT ON COLUMN elements.deleted IS '是否删除';
 COMMENT ON COLUMN elements.deleted_at IS '删除时间';
 COMMENT ON COLUMN elements.deleted_by IS '删除人';
 
+DROP TABLE IF EXISTS operation_option;
+
+CREATE TABLE opertaion_option (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR NOT NULL,
+    internal    BOOLEAN NOT NULL DEFAULT FALSE,
+    exec        VARCHAR NOT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+    created_by  UUID NOT NULL
+);
+
+-- comments
+COMMENT ON COLUMN operation_option.id IS '可选操作ID';
+COMMENT ON COLUMN operation_option.name IS '操作名称';
+COMMENT ON COLUMN operation_option.exec IS '执行方式';
+COMMENT ON COLUMN operation_option.created_at IS '创建人';
+COMMENT ON COLUMN operation_option.created_by IS '创建时间';
+
+DROP TABLE IF element_operation_option;
+
+CREATE TABLE element_operation_option (
+    id          SERIAL PRIMARY KEY,
+    option_id   INT,
+    element_id  INT
+);
+
 
 -- migrate:down
-
