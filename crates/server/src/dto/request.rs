@@ -2,7 +2,7 @@ use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
-#[derive(Debug, Deserialize, Serialize, Validate, utoipa::ToSchema)]
+#[derive(Debug, Deserialize, Serialize, Validate, ToSchema)]
 pub struct RegisterRequest {
     #[garde(ascii, length(min = 3, max = 25))]
     pub username: String,
@@ -12,7 +12,7 @@ pub struct RegisterRequest {
     pub password: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate, utoipa::ToSchema)]
+#[derive(Debug, Deserialize, Serialize, Validate, ToSchema)]
 pub struct LoginRequest {
     #[garde(ascii, length(min = 3, max = 25))]
     pub username: String,
@@ -20,7 +20,7 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema, Validate, IntoParams)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct RefreshTokenRequest {
     #[garde(length(min = 30))]
@@ -53,9 +53,14 @@ pub struct CaseQueryParam {
     pub is_deleted: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateElementRequest {}
+pub struct CreateElementRequest {
+    pub name: String,
+    pub value: String,
+    pub element_type: String,
+    pub description: Option<String>,
+}
 
 #[cfg(test)]
 mod tests {

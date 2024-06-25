@@ -70,4 +70,24 @@ COMMENT ON COLUMN element_operation_option.element_id IS '元素ID';
 COMMENT ON COLUMN element_operation_option.option_id IS '可选操作ID';
 
 
+DROP TABLE IF EXISTS script
+
+CREATE TABLE script (
+    id  SERIAL PRIMARY KEY,
+    name    VARCHAR NOT NULL,
+    environment VARCHAR NOL NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL,
+);
+
+DROP TABLE IF EXISTS environment
+
+CREATE TABLE environment (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR NOT NULL,
+    type            VARCHAR NOT NULL,
+    internal        BOOLEAN NOT NULL DEFAULT FALSE,
+    dependenices    VARCHAR,
+)
+
 -- migrate:down

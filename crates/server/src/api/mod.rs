@@ -3,9 +3,9 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 mod base;
-mod system;
+mod engine;
 mod management;
-
+mod system;
 // use axum::routing::*;
 
 pub fn create_router() -> Router {
@@ -13,7 +13,9 @@ pub fn create_router() -> Router {
         SwaggerUi::new("/swagger-ui")
             .url("/api-docs/openapi.json", base::openapi::ApiDoc::openapi()),
     );
-    router.nest("/", base::app())
+    router
+        .nest("/", base::app())
         .nest("/system", system::app())
         .nest("/management", management::app())
+        .nest("/engine", engine::app())
 }

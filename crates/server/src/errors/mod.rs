@@ -1,7 +1,7 @@
 use axum::{
     http::StatusCode,
-    Json,
     response::{IntoResponse, Response},
+    Json,
 };
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
@@ -49,6 +49,8 @@ pub enum AppError {
     InvalidSessionError(String),
     #[error(transparent)]
     InvalidInputError(#[from] garde::Report),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
     #[error("{0}")]
     HashError(String),
     #[error(transparent)]
@@ -77,6 +79,8 @@ pub enum AppError {
     AxumError(#[from] axum::Error),
     #[error(transparent)]
     UnknownError(#[from] anyhow::Error),
+    #[error(transparent)]
+    Infallible(#[from] std::convert::Infallible),
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
@@ -118,13 +122,13 @@ impl AppError {
                 "TIME_CONVERT_ERROR".to_string(),
                 None,
                 vec![],
-                StatusCode::INTERNAL_SERVER_ERROR
+                StatusCode::INTERNAL_SERVER_ERROR,
             ),
             HashError(_err) => (
                 "HASH_ERROR".to_string(),
                 None,
                 vec![],
-                StatusCode::INTERNAL_SERVER_ERROR
+                StatusCode::INTERNAL_SERVER_ERROR,
             ),
             RedisError(_err) => (
                 "REDIS_ERROR".to_string(),
@@ -138,6 +142,24 @@ impl AppError {
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,
             ),
+            IoError(err) => {
+                let (status, kind, code) = match err.kind() {
+                    std::io::ErrorKind::NotFound => (
+                        StatusCode::NOT_FOUND,
+                        format!("{}_NOT_FOUND_ERROR", ResourceType::File),
+                        Some(ResourceType::File as i32),
+                    ),
+                    std::io::ErrorKind::PermissionDenied => {
+                        (StatusCode::FORBIDDEN, "FORBIDDEN_ERROR".to_string(), None)
+                    }
+                    _ => (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        "IO_ERROR".to_string(),
+                        None,
+                    ),
+                };
+                (kind, code, vec![], status)
+            }
             JwtError(_err) => (
                 "UNAUTHORIZED_ERROR".to_string(),
                 None,
@@ -168,13 +190,13 @@ impl AppError {
                 "DATABASE_ERROR".to_string(),
                 None,
                 vec![],
-                StatusCode::INTERNAL_SERVER_ERROR
+                StatusCode::INTERNAL_SERVER_ERROR,
             ),
             DbPoolError(_err) => (
                 "DATABASE_ERROR".to_string(),
                 None,
                 vec![],
-                StatusCode::INTERNAL_SERVER_ERROR
+                StatusCode::INTERNAL_SERVER_ERROR,
             ),
             SpawnTaskError(_err) => (
                 "SPAWN_TASK_ERROR".to_string(),
@@ -192,7 +214,7 @@ impl AppError {
                 "EXTENSION_REJECTION_ERROR".to_string(),
                 None,
                 vec![],
-                StatusCode::INTERNAL_SERVER_ERROR
+                StatusCode::INTERNAL_SERVER_ERROR,
             ),
             AxumError(_err) => (
                 "AXUM_ERROR".to_string(),
@@ -208,6 +230,12 @@ impl AppError {
             ),
             UnknownError(_err) => (
                 "UNKNOWN_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            Infallible(_err) => (
+                "INFALLIBLE".to_string(),
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,

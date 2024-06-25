@@ -163,17 +163,41 @@ pub struct CaseModuleInfo {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct ElementResponse {
+pub struct Element {
     pub id: i32,
     pub name: String,
     pub value: String,
     pub element_type: String,
-    pub description: String,
+    pub description: Option<String>,
     pub created_at: DateTime<Utc>,
-    pub created_by: String,
+    pub created_by: Uuid,
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
     pub operation_options: Vec<OperationOption>,
+}
+
+impl Element {
+    pub fn new(
+        name: &str,
+        value: &str,
+        element_type: &str,
+        description: Option<&str>,
+        created_by: Uuid,
+    ) -> Self {
+        let description = description.map(|s| s.to_string());
+        Element {
+            id: 0,
+            name: name.into(),
+            value: value.into(),
+            element_type: element_type.into(),
+            description,
+            created_at: Utc::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
+            operation_options: Vec::new(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -181,4 +205,11 @@ pub struct OperationOption {
     pub id: i32,
     pub name: String,
     pub internal: bool,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct Script {
+    pub name: String,
+    pub env: String,
+    pub steps: Vec<Element>,
 }
