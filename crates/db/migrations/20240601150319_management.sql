@@ -128,7 +128,28 @@ CREATE TABLE functional_case_custom_field (
     case_id VARCHAR NOT NULL,
     field_id VARCHAR NOT NULL,
     value   VARCHAR NOT NULL
-)
+);
+
+DROP TABLE IF EXISTS case_issue_relation;
+
+CREATE TABLE case_issue_relation (
+    id SERIAL PRIMARY KEY,
+    case_id INT NOT NULL,
+    issue_id VARCHAR NOT NULL,
+    source  VARCHAR NOT NULL,
+    url VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL,
+    updated_at TIMESTAMP,
+    updated_by UUID
+);
+
+-- create trigger: set updated_at field
+CREATE TRIGGER set_timestamp_case_issue_relation
+    BEFORE UPDATE
+    ON case_issue_relation
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 DROP TABLE IF EXISTS file_module;

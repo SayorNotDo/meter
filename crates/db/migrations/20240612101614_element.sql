@@ -75,9 +75,9 @@ DROP TABLE IF EXISTS script
 CREATE TABLE script (
     id  SERIAL PRIMARY KEY,
     name    VARCHAR NOT NULL,
-    environment VARCHAR NOL NULL,
+    environment VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by UUID NOT NULL,
+    created_by UUID NOT NULL
 );
 
 DROP TABLE IF EXISTS environment
@@ -87,7 +87,15 @@ CREATE TABLE environment (
     name            VARCHAR NOT NULL,
     type            VARCHAR NOT NULL,
     internal        BOOLEAN NOT NULL DEFAULT FALSE,
-    dependenices    VARCHAR,
-)
+    dependencies    VARCHAR
+
+);
+
+-- comments
+COMMENT ON COLUMN environment.id IS '依赖环境ID';
+COMMENT ON COLUMN environment.name IS '环境名称';
+COMMENT ON COLUMN environment.type IS '依赖环境类型';
+COMMENT ON COLUMN environment.internal IS '是否为内置';
+COMMENT ON COLUMN environment.dependencies IS '依赖';
 
 -- migrate:down
