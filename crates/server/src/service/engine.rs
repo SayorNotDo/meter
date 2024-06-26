@@ -4,15 +4,25 @@ use std::{
 };
 use tera::{Context, Tera};
 
-#[derive(serde::Serialize)]
+#[derive(Serialize)]
 pub struct CaseInfo {
     name: String,
     env: String,
     description: String,
-    pre_processors: Vec<()>,
+    pre_processors: Vec<StepInfo>,
     steps: Vec<()>,
     after_processors: Vec<()>,
 }
+
+#[derive(Serialize)]
+pub struct StepInfo {
+    action: String,
+    selector: Option<String>,
+    value: Option<String>,
+    expected: HashMap<String, String>,
+}
+
+
 
 #[allow(dead_code)]
 pub async fn generator(case: CaseInfo) -> Result<()> {
