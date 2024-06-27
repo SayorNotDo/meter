@@ -76,8 +76,11 @@ CREATE TABLE script (
     id  SERIAL PRIMARY KEY,
     name    VARCHAR NOT NULL,
     environment VARCHAR NOT NULL,
+    path VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by UUID NOT NULL
+    created_by UUID NOT NULL,
+    updated_at TIMESTAMP,
+    updated_by UUID
 );
 
 DROP TABLE IF EXISTS environment

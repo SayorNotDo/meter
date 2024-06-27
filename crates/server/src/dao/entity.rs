@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -207,9 +209,20 @@ pub struct OperationOption {
     pub internal: bool,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script {
     pub name: String,
-    pub env: String,
-    pub steps: Vec<Element>,
+    pub environment: String,
+    pub description: String,
+    pub pre_processors: Vec<StepInfo>,
+    pub steps: Vec<StepInfo>,
+    pub after_processors: Vec<StepInfo>,
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StepInfo {
+    action: String,
+    selector: Option<String>,
+    value: HashMap<String, String>,
+    expected: Option<HashMap<String, String>>,
 }

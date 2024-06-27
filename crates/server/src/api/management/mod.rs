@@ -20,6 +20,7 @@ pub fn app() -> Router {
         .route("/case/field/:project_id", get(case::field))
         .route("/case/list/:project_id", get(case::list))
         .route("/case/detail/:case_id", get(case::detail))
+        .route("/case/script/generate", post(case::create_script))
         .route("/case/info/requirement/:project_id", get(case::info))
         .route("/element", post(element::create))
         .route("/element/:element_id", get(element::info))

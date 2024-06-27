@@ -146,18 +146,8 @@ pub struct CaseDetailResponse {
 pub struct ElementResponse {}
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct CreateCaseRequest {
+pub struct CreateScriptResponse {
+    pub id: i32,
     pub name: String,
-    pub environment_id: i32,
-    pub pre_processors: Vec<()>,
-    pub steps: Vec<StepInfo>,
-    pub after_processors: Vec<()>,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct StepInfo {
-    pub name: String,
-    pub action: String,
-    pub exec: String,
-    pub expeted: Option<String>,
+    pub path: String,
 }

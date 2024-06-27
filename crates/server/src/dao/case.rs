@@ -211,4 +211,8 @@ impl<'a> CaseDao<'a> {
             })),
         }
     }
+
+    pub async fn insert_script(&self) -> AppResult<()> {
+        Ok(())
+    }
 }

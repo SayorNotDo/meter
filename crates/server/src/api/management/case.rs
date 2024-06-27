@@ -5,14 +5,17 @@ use axum::{Extension, Json};
 
 use crate::dao::entity::CustomField;
 use crate::dto::request::CaseQueryParam;
-use crate::dto::response::{CaseDetailResponse, ListCaseResponse, TemplateResponse};
+use crate::dto::response::{
+    CaseDetailResponse, CreateScriptResponse, ListCaseResponse, TemplateResponse,
+};
 use crate::dto::{
-    request::{ListQueryParam, QueryTemplateParam},
+    request::{CreateScriptRequest, ListQueryParam, QueryTemplateParam},
     response::{FileModuleResponse, RequirementInfoResponse},
 };
 use crate::errors::AppResult;
-use crate::service::{case, file};
+use crate::service::{self, case, file};
 use crate::state::AppState;
+use crate::utils::claim::UserClaims;
 use tracing::info;
 
 #[utoipa::path(
@@ -155,6 +158,23 @@ pub async fn detail(
 ) -> AppResult<Json<CaseDetailResponse>> {
     info!("controller layer case detail with id: {case_id:?}");
     match case::detail(&state, &case_id).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    post,
+    path = "/management/case/script",
+    request_body=CreateScriptRequest,
+    responses()
+)]
+pub async fn create_script(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(reqeust): Json<CreateScriptRequest>,
+) -> AppResult<Json<CreateScriptResponse>> {
+    match service::case::gen_script(&state, user.uid, reqeust).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

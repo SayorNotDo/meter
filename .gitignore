@@ -2,7 +2,7 @@
 .zed
 
 /target
-
+/static/scripts/*
 Cargo.lock
 
 .DS_Store

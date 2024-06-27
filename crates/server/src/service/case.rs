@@ -2,16 +2,20 @@ use std::collections::HashMap;
 
 use crate::constant::PAGE_DECODE_KEY;
 use crate::dao::case::CaseDao;
-use crate::dao::entity::CustomField;
+use crate::dao::entity::{CustomField, Script};
 use crate::dao::file::FileDao;
-use crate::dto::request::{CaseQueryParam, ListQueryParam};
-use crate::dto::response::{CaseDetailResponse, ListCaseResponse, RequirementInfoResponse};
+use crate::dto::request::{CaseQueryParam, CreateScriptRequest, ListQueryParam};
+use crate::dto::response::{
+    CaseDetailResponse, CreateScriptResponse, ListCaseResponse, RequirementInfoResponse,
+};
 use crate::dto::{request::QueryTemplateParam, response::TemplateResponse};
 use crate::errors::AppResult;
+use crate::service::engine;
 use crate::service::token::generate_page_token;
 use crate::state::AppState;
 use crate::utils::claim::PageClaims;
 use tracing::info;
+use uuid::Uuid;
 
 pub async fn template(
     state: &AppState,
@@ -131,5 +135,32 @@ pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<CaseDetailResp
         created_at: detail.created_at,
         created_by: detail.created_by,
         custom_fields: detail.custom_fields,
+    })
+}
+
+pub async fn gen_script(
+    state: &AppState,
+    uid: Uuid,
+    request: CreateScriptRequest,
+) -> AppResult<CreateScriptResponse> {
+    info!("service layer generate script with request: {request:?}");
+    let client = state.pool.get().await?;
+    let case_dao = CaseDao::new(&client);
+    // let related_case = case_dao.detail(&request.case_id).await?;
+    let script = Script {
+        name: request.name,
+        environment: request.environment,
+        description: "".into(),
+        pre_processors: request.pre_processors,
+        steps: request.steps,
+        after_processors: request.after_processors,
+    };
+    let name = engine::generator(script).await?;
+    // script recording
+    case_dao.insert_script().await?;
+    Ok(CreateScriptResponse {
+        id: 0,
+        name,
+        path: "/".into(),
     })
 }
