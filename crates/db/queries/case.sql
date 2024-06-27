@@ -72,7 +72,7 @@ SELECT
     fc.tags,
     fc.template_id,
     fc.project_id,
-    fc.script_id,
+    fc.script_id AS script_id,
     fm.name AS module_name,
     fm.attach_info,
     COALESCE(

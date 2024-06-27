@@ -27,10 +27,11 @@ pub async fn create(
 }
 
 /* Element exec main logic */
+#[allow(dead_code)]
 pub async fn exec(state: &AppState, script_id: i32) -> AppResult {
     info!("execute script: {script_id:?}");
     let client = state.pool.get().await?;
-    let element_dao = ElementDao::new(&client);
+    let _element_dao = ElementDao::new(&client);
     /* get script by id and scan for environment requirement */
     // let script = element_dao.get_script_by_id();
     /* traverse steps field for executing */

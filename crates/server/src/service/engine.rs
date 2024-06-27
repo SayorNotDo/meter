@@ -2,7 +2,7 @@ use crate::{config::Config, errors::AppResult};
 use std::{
     collections::HashMap,
     fs::File,
-    io::{Result, Write},
+    io::Write,
 };
 use tera::{Context, Result as TeraResult, Tera, Value};
 use tracing::info;

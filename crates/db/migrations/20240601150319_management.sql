@@ -151,6 +151,17 @@ CREATE TRIGGER set_timestamp_case_issue_relation
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
+DROP TABLE IF EXISTS script_element_relation;
+
+CREATE TABLE script_element_relation (
+    id                      SERIAL PRIMARY KEY,
+    script_id               INT NOT NULL,
+    field_type              VARCHAR NOT NULL,
+    element_operation_id    INT NOT NULL,
+    position                INT NOT NULL default 0,
+    attach_info             VARCHAR,
+)
+
 
 DROP TABLE IF EXISTS file_module;
 
