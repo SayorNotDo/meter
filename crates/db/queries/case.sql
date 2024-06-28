@@ -65,14 +65,13 @@ WHERE
     AND fc.deleted = :is_deleted;
 
 
---! detail : (attach_info?, script_id?)
+--! detail : (attach_info?)
 SELECT
     fc.id,
     fc.name,
     fc.tags,
     fc.template_id,
     fc.project_id,
-    fc.script_id AS script_id,
     fm.name AS module_name,
     fm.attach_info,
     COALESCE(
@@ -111,3 +110,17 @@ INNER JOIN users u
     ON u.uuid = fc.created_by
 WHERE
     fc.id = :case_id;
+
+--! insert_script
+INSERT INTO script
+(
+    case_id,
+    environment,
+    path,
+    created_by
+) VALUES (
+    :case_id,
+    :environment,
+    :path,
+    :created_by
+) RETURNING id;

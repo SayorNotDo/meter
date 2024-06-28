@@ -74,7 +74,7 @@ DROP TABLE IF EXISTS script
 
 CREATE TABLE script (
     id  SERIAL PRIMARY KEY,
-    name    VARCHAR NOT NULL,
+    case_id INT NOT NULL,
     environment VARCHAR NOT NULL,
     path VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -91,7 +91,6 @@ CREATE TABLE environment (
     type            VARCHAR NOT NULL,
     internal        BOOLEAN NOT NULL DEFAULT FALSE,
     dependencies    VARCHAR
-
 );
 
 -- comments

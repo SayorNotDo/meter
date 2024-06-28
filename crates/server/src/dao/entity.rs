@@ -148,7 +148,6 @@ pub struct CaseDetail {
     pub name: String,
     pub module_name: String,
     pub template_id: i32,
-    pub script_id: Option<i32>,
     pub tags: String,
     pub status: String,
     pub created_at: DateTime<Utc>,
@@ -211,12 +210,11 @@ pub struct OperationOption {
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Script {
-    pub name: String,
+    pub case_id: i32,
+    pub path: String,
     pub environment: String,
-    pub description: String,
-    pub pre_processors: Vec<StepInfo>,
-    pub steps: Vec<StepInfo>,
-    pub after_processors: Vec<StepInfo>,
+    pub created_at: DateTime<Utc>,
+    pub created_by: Uuid,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]

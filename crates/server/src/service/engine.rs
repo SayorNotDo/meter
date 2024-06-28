@@ -1,13 +1,23 @@
-use crate::{config::Config, errors::AppResult};
-use std::{
-    collections::HashMap,
-    fs::File,
-    io::Write,
+use crate::{
+    config::Config,
+    dao::entity::{Script, StepInfo},
+    errors::AppResult,
 };
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, fs::File, io::Write};
 use tera::{Context, Result as TeraResult, Tera, Value};
-use tracing::info;
+use uuid::Uuid;
 
-use crate::dao::entity::Script;
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DriveData {
+    pub name: String,
+    pub environment: String,
+    pub description: String,
+    pub pre_processors: Vec<StepInfo>,
+    pub steps: Vec<StepInfo>,
+    pub after_processors: Vec<StepInfo>,
+}
 
 fn remove_empty_lines(value: &Value, _: &HashMap<String, Value>) -> TeraResult<Value> {
     let s = value.as_str().unwrap_or("");
@@ -19,17 +29,11 @@ fn remove_empty_lines(value: &Value, _: &HashMap<String, Value>) -> TeraResult<V
     Ok(Value::String(cleaned))
 }
 
-pub async fn generator(script: Script) -> AppResult<String> {
+pub async fn generator(script: DriveData) -> AppResult<Script> {
     let config = Config::parse("./config.toml").expect("Failed to parse configuration file");
 
     // initialize Tera template engine.
-    let mut tera = match Tera::new(format!("{}/*.js", config.storage.template_path).as_str()) {
-        Ok(t) => t,
-        Err(e) => {
-            println!("Parsing error(s): {e:?}");
-            std::process::exit(1);
-        }
-    };
+    let mut tera = Tera::new(format!("{}/*.js", config.storage.template_path).as_str())?;
 
     // register customized filter.
     tera.register_filter("remove_empty_lines", remove_empty_lines);
@@ -45,17 +49,17 @@ pub async fn generator(script: Script) -> AppResult<String> {
     ctx.insert("case_steps", &script.steps);
 
     // render by template engine.
-    let rendered = match tera.render("cypress_template.cy.js", &ctx) {
-        Ok(t) => t,
-        Err(e) => {
-            println!("Rendering error(s): {}", e);
-            std::process::exit(1);
-        }
-    };
+    let rendered = tera.render("cypress_template.cy.js", &ctx)?;
 
     // generate filename dynamically.
-    let filename = format!("{}/cypress_test.cy.js", config.storage.script_path);
-    let mut file = File::create(&filename)?;
+    let filepath = format!("{}/cypress_test.cy.js", config.storage.script_path);
+    let mut file = File::create(&filepath)?;
     file.write_all(rendered.as_bytes())?;
-    Ok(filename)
+    Ok(Script {
+        case_id: 0,
+        path: filepath,
+        environment: "".into(),
+        created_at: Utc::now(),
+        created_by: Uuid::nil(),
+    })
 }

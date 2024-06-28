@@ -29,7 +29,7 @@ pub async fn create(
     }
 }
 
-pub async fn info(Extension(state): Extension<AppState>) -> AppResult<Json<ElementResponse>> {
+pub async fn info(Extension(_state): Extension<AppState>) -> AppResult<Json<ElementResponse>> {
     info!("controller layer query element information with params");
     Ok(Json(ElementResponse {}))
 }

@@ -87,7 +87,6 @@ CREATE TABLE functional_cases
     template_id INT NOT NULL,
     tags       VARCHAR,
     status     VARCHAR       NOT NULL DEFAULT 'UN_REVIEWED',
-    script_id  INT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP,
     created_by UUID,
@@ -159,7 +158,7 @@ CREATE TABLE script_element_relation (
     field_type              VARCHAR NOT NULL,
     element_operation_id    INT NOT NULL,
     position                INT NOT NULL default 0,
-    attach_info             VARCHAR,
+    attach_info             VARCHAR
 )
 
 

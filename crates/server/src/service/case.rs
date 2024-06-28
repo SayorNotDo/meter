@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::constant::PAGE_DECODE_KEY;
 use crate::dao::case::CaseDao;
-use crate::dao::entity::{CustomField, Script};
+use crate::dao::element::ElementDao;
+use crate::dao::entity::CustomField;
 use crate::dao::file::FileDao;
 use crate::dto::request::{CaseQueryParam, CreateScriptRequest, ListQueryParam};
 use crate::dto::response::{
@@ -126,7 +127,6 @@ pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<CaseDetailResp
         id: detail.id,
         name: detail.name,
         project_id: detail.id,
-        script_id: detail.script_id,
         template_id: detail.template_id,
         status: detail.status,
         tags,
@@ -144,23 +144,35 @@ pub async fn gen_script(
     request: CreateScriptRequest,
 ) -> AppResult<CreateScriptResponse> {
     info!("service layer generate script with request: {request:?}");
-    let client = state.pool.get().await?;
-    let case_dao = CaseDao::new(&client);
-    // let related_case = case_dao.detail(&request.case_id).await?;
-    let script = Script {
+    /* construct DriveData with request parameters */
+    let mut client = state.pool.get().await?;
+    let element_dao = ElementDao::new(&mut client);
+    let pre_processors = element_dao.get_elements(request.pre_processors).await?;
+
+    /* generate script with engine service */
+    let data = engine::DriveData {
         name: request.name,
-        environment: request.environment,
+        environment: request.environment.clone(),
         description: "".into(),
-        pre_processors: request.pre_processors,
-        steps: request.steps,
-        after_processors: request.after_processors,
+        pre_processors: vec![],
+        steps: vec![],
+        after_processors: vec![],
     };
-    let name = engine::generator(script).await?;
-    // script recording
-    case_dao.insert_script().await?;
+    let mut script = engine::generator(data).await?;
+
+    /* insert script record into database */
+    let case_dao = CaseDao::new(&client);
+    let related_case = case_dao.detail(&request.case_id).await?;
+    let path = script.path.clone();
+    script.case_id = related_case.id;
+    script.environment = request.environment;
+    script.created_by = uid;
+    let script_id: i32 = case_dao.insert_script(script).await?;
+
+    /* binding relationship for element used in script */
+
     Ok(CreateScriptResponse {
-        id: 0,
-        name,
-        path: "/".into(),
+        id: script_id,
+        path,
     })
 }

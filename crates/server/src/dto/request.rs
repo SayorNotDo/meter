@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
 use crate::dao::entity::StepInfo;
-
 #[derive(Debug, Deserialize, Serialize, Validate, ToSchema)]
 pub struct RegisterRequest {
     #[garde(ascii, length(min = 3, max = 25))]
@@ -70,9 +69,9 @@ pub struct CreateScriptRequest {
     pub case_id: i32,
     pub name: String,
     pub environment: String,
-    pub pre_processors: Vec<StepInfo>,
-    pub steps: Vec<StepInfo>,
-    pub after_processors: Vec<StepInfo>,
+    pub pre_processors: Vec<i32>,
+    pub steps: Vec<i32>,
+    pub after_processors: Vec<i32>,
 }
 
 #[cfg(test)]

@@ -5,6 +5,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use strum::EnumString;
+use tera::Error as TeraError;
 use tokio_postgres::Error as TokioPostgresError;
 use utoipa::ToSchema;
 
@@ -81,6 +82,8 @@ pub enum AppError {
     UnknownError(#[from] anyhow::Error),
     #[error(transparent)]
     Infallible(#[from] std::convert::Infallible),
+    #[error(transparent)]
+    TeraError(#[from] TeraError),
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
@@ -236,6 +239,12 @@ impl AppError {
             ),
             Infallible(_err) => (
                 "INFALLIBLE".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            TeraError(_err) => (
+                "TERA_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,

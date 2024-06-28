@@ -133,7 +133,6 @@ pub struct CaseDetailResponse {
     pub tags: Vec<String>,
     pub template_id: i32,
     pub project_id: i32,
-    pub script_id: Option<i32>,
     pub module_name: String,
     pub status: String,
     pub created_at: DateTime<Utc>,
@@ -148,6 +147,5 @@ pub struct ElementResponse {}
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CreateScriptResponse {
     pub id: i32,
-    pub name: String,
     pub path: String,
 }

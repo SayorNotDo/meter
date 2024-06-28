@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
 use crate::{
-    dao::entity::FieldOption,
+    dao::entity::{FieldOption, Script},
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
 };
 use db::queries::{
-    case::{count, count_by_module_id, detail, get_case_list},
+    case::{count, count_by_module_id, detail, get_case_list, insert_script},
     template::*,
 };
 use serde_json::from_value;
@@ -194,7 +194,6 @@ impl<'a> CaseDao<'a> {
                     id: u.id,
                     name: u.name,
                     module_name: u.module_name,
-                    script_id: u.script_id,
                     template_id: u.template_id,
                     status: u.status,
                     tags: u.tags,
@@ -212,7 +211,17 @@ impl<'a> CaseDao<'a> {
         }
     }
 
-    pub async fn insert_script(&self) -> AppResult<()> {
-        Ok(())
+    pub async fn insert_script(&self, script: Script) -> AppResult<i32> {
+        let ret = insert_script()
+            .bind(
+                self.client,
+                &script.case_id,
+                &script.environment,
+                &script.path,
+                &script.created_by,
+            )
+            .one()
+            .await?;
+        Ok(ret)
     }
 }
