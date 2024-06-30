@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -69,9 +70,17 @@ pub struct CreateScriptRequest {
     pub case_id: i32,
     pub name: String,
     pub environment: String,
-    pub pre_processors: Vec<i32>,
+    pub pre_processors: Vec<StepRequest>,
     pub steps: Vec<i32>,
     pub after_processors: Vec<i32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct StepRequest {
+    pub step_pos: i32,
+    pub element_id: i32,
+    pub option_id: i32,
+    pub attach_info: HashMap<String, String>
 }
 
 #[cfg(test)]

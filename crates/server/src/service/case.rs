@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::constant::PAGE_DECODE_KEY;
 use crate::dao::case::CaseDao;
 use crate::dao::element::ElementDao;
-use crate::dao::entity::CustomField;
+use crate::dao::entity::{CustomField, StepInfo};
 use crate::dao::file::FileDao;
 use crate::dto::request::{CaseQueryParam, CreateScriptRequest, ListQueryParam};
 use crate::dto::response::{
@@ -147,15 +147,28 @@ pub async fn gen_script(
     /* construct DriveData with request parameters */
     let mut client = state.pool.get().await?;
     let element_dao = ElementDao::new(&mut client);
-    let pre_processors = element_dao.get_elements(request.pre_processors).await?;
+    let pre_processors_req = request.pre_processors;
+
+    /* construct pre processors */
+    let mut pre_processors: Vec<StepInfo> = Vec::new();
+    for item in pre_processors_req.iter() {
+        let _ = element_dao.get_element(item.element_id, item.option_id).await?;
+        pre_processors.push(StepInfo{
+
+        })
+    }
+    /* construct steps */
+    let mut steps: Vec<StepInfo> = Vec::new();
+
+    /* construct after processors */
 
     /* generate script with engine service */
     let data = engine::DriveData {
         name: request.name,
         environment: request.environment.clone(),
         description: "".into(),
-        pre_processors: vec![],
-        steps: vec![],
+        pre_processors,
+        steps,
         after_processors: vec![],
     };
     let mut script = engine::generator(data).await?;

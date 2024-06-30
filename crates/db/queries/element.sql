@@ -3,13 +3,14 @@ INSERT INTO elements
 (name, value, type, description)
 VALUES(:name, :value, :type, :description);
 
---! get_elements
+--! get_element
 SELECT
+    e.id,
     e.name,
     e.type,
-    e.value
+    e.value,
+    oo.name AS action,
+    oo.exec AS execution
 FROM elements e
-JOIN script_element_relation ser
-ON ser.element_operation_id = :operation_id
-AND ser.field_type = :field_type
-WHERE e.id = ANY(:ids);
+JOIN operation_option oo ON oo.id = :operation_option_id
+WHERE e.id = :id;

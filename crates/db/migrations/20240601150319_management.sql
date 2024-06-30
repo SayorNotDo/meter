@@ -111,7 +111,6 @@ COMMENT ON COLUMN functional_cases.project_id IS '功能测试用例所属项目
 COMMENT ON COLUMN functional_cases.template_id IS '功能测试用例所属模版ID';
 COMMENT ON COLUMN functional_cases.tags IS '功能测试用例标签';
 COMMENT ON COLUMN functional_cases.status IS '功能测试用例状态';
-COMMENT ON COLUMN functional_cases.script_id IS '功能测试用例脚本ID';
 COMMENT ON COLUMN functional_cases.created_at IS '创建时间';
 COMMENT ON COLUMN functional_cases.updated_at IS '更新时间';
 COMMENT ON COLUMN functional_cases.created_by IS '创建人';
@@ -159,7 +158,7 @@ CREATE TABLE script_element_relation (
     element_operation_id    INT NOT NULL,
     position                INT NOT NULL default 0,
     attach_info             VARCHAR
-)
+);
 
 
 DROP TABLE IF EXISTS file_module;
