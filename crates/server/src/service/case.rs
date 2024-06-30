@@ -152,9 +152,9 @@ pub async fn gen_script(
     /* construct pre processors */
     let mut pre_processors: Vec<StepInfo> = Vec::new();
     for item in pre_processors_req.iter() {
-        let _ = element_dao.get_element(item.element_id, item.option_id).await?;
+        let element = element_dao.get_element(item.element_id, item.option_id).await?;
         pre_processors.push(StepInfo{
-
+            action: element.action
         })
     }
     /* construct steps */

@@ -2,6 +2,7 @@ use crate::errors::{AppResponseError, AppResult};
 
 use crate::dao::entity;
 use db::queries::element::*;
+use crate::dao::entity::ElementInfo;
 
 #[derive(Debug)]
 pub struct ElementDao<'a> {
@@ -17,12 +18,12 @@ impl<'a> ElementDao<'a> {
         Ok(0)
     }
 
-    pub async fn get_element(&self, e_id: i32, option_id: i32) -> AppResult<()> {
+    pub async fn get_element(&self, e_id: i32, option_id: i32) -> AppResult<ElementInfo> {
         let element = get_element()
             .bind(self.client, &e_id, &option_id)
             .one()
             .await?;
-        Ok(())
+        Ok(ElementInfo{})
     }
 
     pub async fn insert_elements(&mut self) -> AppResult<()> {

@@ -172,9 +172,9 @@ pub async fn detail(
 pub async fn create_script(
     Extension(state): Extension<AppState>,
     user: UserClaims,
-    Json(reqeust): Json<CreateScriptRequest>,
+    Json(request): Json<CreateScriptRequest>,
 ) -> AppResult<Json<CreateScriptResponse>> {
-    match service::case::gen_script(&state, user.uid, reqeust).await {
+    match service::case::gen_script(&state, user.uid, request).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

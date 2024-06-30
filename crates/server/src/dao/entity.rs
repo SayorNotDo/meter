@@ -202,6 +202,11 @@ impl Element {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ElementInfo {
+    pub action: String,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct OperationOption {
     pub id: i32,
     pub name: String,
@@ -219,8 +224,8 @@ pub struct Script {
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StepInfo {
-    action: String,
-    selector: Option<String>,
-    value: HashMap<String, String>,
-    expected: Option<HashMap<String, String>>,
+    pub action: String,
+    pub selector: Option<String>,
+    pub value: HashMap<String, String>,
+    pub expected: Option<HashMap<String, String>>,
 }
