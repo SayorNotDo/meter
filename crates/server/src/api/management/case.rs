@@ -40,8 +40,8 @@ pub async fn tree(
         Err(e) => {
             info!("Failed to get case module tree");
             Err(e)
-        }
     }
+        }
 }
 
 #[utoipa::path(

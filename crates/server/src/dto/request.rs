@@ -70,8 +70,8 @@ pub struct CreateScriptRequest {
     pub name: String,
     pub environment: String,
     pub pre_processors: Vec<StepRequest>,
-    pub steps: Vec<i32>,
-    pub after_processors: Vec<i32>,
+    pub steps: Vec<StepRequest>,
+    pub after_processors: Vec<StepRequest>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

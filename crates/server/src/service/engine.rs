@@ -17,6 +17,7 @@ pub struct DriveData {
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StepInfo {
+    pub position: i32,
     pub action: String,
     pub selector: Option<String>,
     pub attach_info: Option<HashMap<String, String>>,

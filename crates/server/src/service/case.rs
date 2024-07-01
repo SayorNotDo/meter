@@ -160,14 +160,27 @@ pub async fn gen_script(
             .get_element(item.element_id, item.option_id)
             .await?;
         pre_processors.push(StepInfo {
+            position: item.position,
             action: element.action,
             selector: element.selector,
             attach_info: item.attach_info.clone(),
         })
     }
     /* construct steps */
-    let steps: Vec<StepInfo> = Vec::new();
+    let steps_req = request.steps;
+    let mut steps: Vec<StepInfo> = Vec::new();
+    for item in steps_req.iter() {
+        let element = element_dao
+            .get_element(item.element_id, item.option_id)
+            .await?;
+        steps.push(StepInfo {
+            position: item.position,
+            action: element.action,
+            selector: element.selector,
+            attach_info: item.attach_info.clone()
 
+        })
+    }
     /* construct after processors */
 
     /* generate script with engine service */
