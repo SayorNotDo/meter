@@ -1,4 +1,6 @@
+pub mod custom_extractor;
 use axum::{
+    extract::rejection::JsonRejection,
     http::StatusCode,
     response::{IntoResponse, Response},
     Json,
@@ -59,7 +61,11 @@ pub enum AppError {
     #[error(transparent)]
     ParseJsonError(#[from] serde_json::Error),
     #[error(transparent)]
+    JsonExtractRejection(#[from] JsonRejection),
+    #[error(transparent)]
     JwtError(#[from] jsonwebtoken::errors::Error),
+    #[error(transparent)]
+    HttpClientError(#[from] reqwest::Error),
     #[error("{0} already exists")]
     ResourceExistsError(Resource),
     #[error(transparent)]
@@ -145,6 +151,12 @@ impl AppError {
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,
             ),
+            JsonExtractRejection(err) => (
+                "JSON_EXTRACT_REJECTION".to_string(),
+                None,
+                vec![("err_msg".to_string(), err.body_text())],
+                err.status(),
+            ),
             IoError(err) => {
                 let (status, kind, code) = match err.kind() {
                     std::io::ErrorKind::NotFound => (
@@ -168,6 +180,12 @@ impl AppError {
                 None,
                 vec![],
                 StatusCode::UNAUTHORIZED,
+            ),
+            HttpClientError(_err) => (
+                "HTTP_CLIENT_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
             ),
             BadRequestError(_err) => (
                 "BAD_REQUEST_ERROR".to_string(),

@@ -89,7 +89,7 @@ CREATE TABLE functional_cases
     status     VARCHAR       NOT NULL DEFAULT 'UN_REVIEWED',
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP,
-    created_by UUID,
+    created_by UUID NOT NULL,
     updated_by UUID,
     deleted    BOOLEAN   NOT NULL DEFAULT FALSE,
     deleted_at TIMESTAMP,

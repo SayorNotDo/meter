@@ -1,9 +1,8 @@
-use std::collections::HashMap;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use utoipa::{IntoParams, ToSchema};
 
-use crate::dao::entity::StepInfo;
 #[derive(Debug, Deserialize, Serialize, Validate, ToSchema)]
 pub struct RegisterRequest {
     #[garde(ascii, length(min = 3, max = 25))]
@@ -76,11 +75,12 @@ pub struct CreateScriptRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct StepRequest {
-    pub step_pos: i32,
+    pub position: i32,
     pub element_id: i32,
     pub option_id: i32,
-    pub attach_info: HashMap<String, String>
+    pub attach_info: Option<HashMap<String, String>>,
 }
 
 #[cfg(test)]

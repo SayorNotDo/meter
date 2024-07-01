@@ -65,7 +65,7 @@ WHERE
     AND fc.deleted = :is_deleted;
 
 
---! detail : (attach_info?)
+--! detail : (attach_info?, tags?)
 SELECT
     fc.id,
     fc.name,

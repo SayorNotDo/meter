@@ -1,8 +1,8 @@
-use crate::errors::{AppResponseError, AppResult};
+use crate::errors::AppResult;
 
 use crate::dao::entity;
-use db::queries::element::*;
 use crate::dao::entity::ElementInfo;
+use db::queries::element::*;
 
 #[derive(Debug)]
 pub struct ElementDao<'a> {
@@ -23,9 +23,15 @@ impl<'a> ElementDao<'a> {
             .bind(self.client, &e_id, &option_id)
             .one()
             .await?;
-        Ok(ElementInfo{})
+        Ok(ElementInfo {
+            name: element.name,
+            element_type: element.element_type,
+            action: element.action,
+            selector: element.value,
+        })
     }
 
+    #[allow(dead_code)]
     pub async fn insert_elements(&mut self) -> AppResult<()> {
         Ok(())
     }

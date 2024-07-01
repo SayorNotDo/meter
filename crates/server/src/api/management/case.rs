@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use axum::extract::{Path, Query};
 use axum::{Extension, Json};
+use axum_extra::extract::WithRejection;
 
 use crate::dao::entity::CustomField;
 use crate::dto::request::CaseQueryParam;
@@ -12,7 +13,7 @@ use crate::dto::{
     request::{CreateScriptRequest, ListQueryParam, QueryTemplateParam},
     response::{FileModuleResponse, RequirementInfoResponse},
 };
-use crate::errors::AppResult;
+use crate::errors::{AppError, AppResult};
 use crate::service::{self, case, file};
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
@@ -165,15 +166,16 @@ pub async fn detail(
 
 #[utoipa::path(
     post,
-    path = "/management/case/script",
+    path = "/management/case/script/generate",
     request_body=CreateScriptRequest,
     responses()
 )]
 pub async fn create_script(
     Extension(state): Extension<AppState>,
     user: UserClaims,
-    Json(request): Json<CreateScriptRequest>,
+    WithRejection(Json(request), _): WithRejection<Json<CreateScriptRequest>, AppError>,
 ) -> AppResult<Json<CreateScriptResponse>> {
+    info!("controller layer create script with request: {request:?}");
     match service::case::gen_script(&state, user.uid, request).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),

@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -148,7 +146,7 @@ pub struct CaseDetail {
     pub name: String,
     pub module_name: String,
     pub template_id: i32,
-    pub tags: String,
+    pub tags: Option<String>,
     pub status: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
@@ -203,7 +201,10 @@ impl Element {
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ElementInfo {
+    pub name: String,
     pub action: String,
+    pub element_type: String,
+    pub selector: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -220,12 +221,4 @@ pub struct Script {
     pub environment: String,
     pub created_at: DateTime<Utc>,
     pub created_by: Uuid,
-}
-
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct StepInfo {
-    pub action: String,
-    pub selector: Option<String>,
-    pub value: HashMap<String, String>,
-    pub expected: Option<HashMap<String, String>>,
 }

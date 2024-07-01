@@ -1,8 +1,4 @@
-use crate::{
-    config::Config,
-    dao::entity::{Script, StepInfo},
-    errors::AppResult,
-};
+use crate::{config::Config, dao::entity::Script, errors::AppResult};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs::File, io::Write};
@@ -17,6 +13,13 @@ pub struct DriveData {
     pub pre_processors: Vec<StepInfo>,
     pub steps: Vec<StepInfo>,
     pub after_processors: Vec<StepInfo>,
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StepInfo {
+    pub action: String,
+    pub selector: Option<String>,
+    pub attach_info: Option<HashMap<String, String>>,
 }
 
 fn remove_empty_lines(value: &Value, _: &HashMap<String, Value>) -> TeraResult<Value> {

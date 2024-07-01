@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 
+use crate::service::engine::StepInfo;
+
 use crate::constant::PAGE_DECODE_KEY;
 use crate::dao::case::CaseDao;
 use crate::dao::element::ElementDao;
-use crate::dao::entity::{CustomField, StepInfo};
+use crate::dao::entity::CustomField;
 use crate::dao::file::FileDao;
 use crate::dto::request::{CaseQueryParam, CreateScriptRequest, ListQueryParam};
 use crate::dto::response::{
@@ -117,12 +119,14 @@ pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<CaseDetailResp
     let client = state.pool.get().await?;
     let case_dao = CaseDao::new(&client);
     let detail = case_dao.detail(case_id).await?;
-    let tags: Vec<String> = detail
-        .tags
-        .split(",")
-        .into_iter()
-        .map(|s| s.to_string())
-        .collect::<Vec<_>>();
+    let tags: Vec<String> = if let Some(d) = detail.tags {
+        d.split(",")
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>()
+    } else {
+        Vec::new()
+    };
     Ok(CaseDetailResponse {
         id: detail.id,
         name: detail.name,
@@ -152,13 +156,17 @@ pub async fn gen_script(
     /* construct pre processors */
     let mut pre_processors: Vec<StepInfo> = Vec::new();
     for item in pre_processors_req.iter() {
-        let element = element_dao.get_element(item.element_id, item.option_id).await?;
-        pre_processors.push(StepInfo{
-            action: element.action
+        let element = element_dao
+            .get_element(item.element_id, item.option_id)
+            .await?;
+        pre_processors.push(StepInfo {
+            action: element.action,
+            selector: element.selector,
+            attach_info: item.attach_info.clone(),
         })
     }
     /* construct steps */
-    let mut steps: Vec<StepInfo> = Vec::new();
+    let steps: Vec<StepInfo> = Vec::new();
 
     /* construct after processors */
 
