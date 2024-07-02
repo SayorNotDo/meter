@@ -89,10 +89,7 @@ impl<'a> CaseDao<'a> {
             .await?
             .into_iter()
             .map(|item| {
-                let options: Vec<FieldOption> = match from_value(item.options) {
-                    Ok(s) => s,
-                    Err(_) => vec![],
-                };
+                let options: Vec<FieldOption> = from_value(item.options).unwrap_or_else(|_| vec![]);
                 entity::CustomField {
                     id: item.id,
                     name: item.name.clone(),
@@ -123,12 +120,9 @@ impl<'a> CaseDao<'a> {
                 let created_at = utils::time::to_utc(item.created_at);
                 let updated_at = utils::time::to_utc_or_default(item.updated_at);
                 let custom_fields: Vec<entity::CustomField> =
-                    match from_value(item.custom_fields.clone()) {
-                        Ok(fields) => fields,
-                        Err(_) => {
-                            vec![]
-                        }
-                    };
+                    from_value(item.custom_fields.clone()).unwrap_or_else(|_| {
+                        vec![]
+                    });
                 CaseInfo {
                     id: item.id,
                     name: item.name,

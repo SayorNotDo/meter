@@ -5,13 +5,19 @@ use crate::dao::entity::ElementInfo;
 use db::queries::element::*;
 
 #[derive(Debug)]
-pub struct ElementDao<'a> {
-    pub client: &'a mut db::Client,
+pub struct ElementDao<'a, T>
+where
+  T: db::DbExecutor,
+{
+    pub executor: &'a mut T,
 }
 
-impl<'a> ElementDao<'a> {
-    pub fn new(client: &'a mut db::Client) -> Self {
-        ElementDao { client }
+impl<'a, T> ElementDao<'a, T>
+where
+    T: db::DbExecutor,
+{
+    pub fn new(executor: &'a mut T) -> Self {
+        ElementDao { executor }
     }
 
     pub async fn create(&self, _element: entity::Element) -> AppResult<i32> {
@@ -20,7 +26,7 @@ impl<'a> ElementDao<'a> {
 
     pub async fn get_element(&self, e_id: i32, option_id: i32) -> AppResult<ElementInfo> {
         let element = get_element()
-            .bind(self.client, &e_id, &option_id)
+            .bind(self.executor, &e_id, &option_id)
             .opt()
             .await?;
         match element {
