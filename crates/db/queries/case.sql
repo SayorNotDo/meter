@@ -124,3 +124,18 @@ INSERT INTO script
     :path,
     :created_by
 ) RETURNING id;
+
+--! insert_script_element_relation
+INSERT INTO script_element_relation(
+    script_id,
+    field_type,
+    element_operation_id,
+    position,
+    attach_info
+) VALUES (
+    :script_id,
+    :field_type,
+    (SELECT id FROM element_operation_option WHERE option_id = :option_id AND element_id = :element_id),
+    :position,
+    :attach_info
+) RETURNING id;

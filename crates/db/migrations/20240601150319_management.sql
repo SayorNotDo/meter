@@ -156,7 +156,7 @@ CREATE TABLE script_element_relation (
     script_id               INT NOT NULL,
     field_type              VARCHAR NOT NULL,
     element_operation_id    INT NOT NULL,
-    position                INT NOT NULL default 0,
+    position                INT NOT NULL,
     attach_info             VARCHAR
 );
 

@@ -1,4 +1,4 @@
-use crate::errors::AppResult;
+use crate::errors::{AppError, AppResult, Resource, ResourceType};
 
 use crate::dao::entity;
 use crate::dao::entity::ElementInfo;
@@ -21,14 +21,20 @@ impl<'a> ElementDao<'a> {
     pub async fn get_element(&self, e_id: i32, option_id: i32) -> AppResult<ElementInfo> {
         let element = get_element()
             .bind(self.client, &e_id, &option_id)
-            .one()
+            .opt()
             .await?;
-        Ok(ElementInfo {
-            name: element.name,
-            element_type: element.element_type,
-            action: element.action,
-            selector: element.value,
-        })
+        match element {
+            Some(e) => Ok(ElementInfo {
+                name: e.name,
+                element_type: e.element_type,
+                action: e.action,
+                selector: e.value,
+            }),
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::File,
+            })),
+        }
     }
 
     #[allow(dead_code)]

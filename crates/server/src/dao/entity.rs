@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -221,4 +223,13 @@ pub struct Script {
     pub environment: String,
     pub created_at: DateTime<Utc>,
     pub created_by: Uuid,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Step {
+    pub position: i32,
+    pub element_id: i32,
+    pub option_id: i32,
+    pub attach_info: Option<HashMap<String, String>>,
 }

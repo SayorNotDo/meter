@@ -26,8 +26,8 @@ pub async fn file_module_tree(
     project_id: &i32,
 ) -> AppResult<Vec<FileModuleResponse>> {
     let mut file_module_tree = Vec::new();
-    let client = state.pool.get().await?;
-    let file_dao = dao::file::FileDao::new(&client);
+    let mut client = state.pool.get().await?;
+    let file_dao = dao::file::FileDao::new(&mut client);
     let file_modules = file_dao.get_file_modules(project_id, "CASE").await?;
     /* 创建HashMap 用于快速查找父节点 */
     let mut module_map: HashMap<i32, FileModuleResponse> = HashMap::new();
@@ -37,7 +37,7 @@ pub async fn file_module_tree(
         let count = match item_type {
             ModuleType::Case => {
                 info!("get case count by module_id: {:?}", &item.id);
-                let case_dao = dao::case::CaseDao::new(&client);
+                let case_dao = dao::case::CaseDao::new(&mut client);
                 let ret = case_dao
                     .count_by_module_id(project_id, &item.id, &false)
                     .await?;

@@ -28,11 +28,11 @@ macro_rules! impl_to_file_module {
 impl_to_file_module!(GetFileModules);
 
 pub struct FileDao<'a> {
-    client: &'a db::Client,
+    client: &'a mut db::Client,
 }
 
 impl<'a> FileDao<'a> {
-    pub fn new(client: &'a db::Client) -> Self {
+    pub fn new(client: &'a mut db::Client) -> Self {
         FileDao { client }
     }
 

@@ -5,18 +5,15 @@ use crate::{
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
 };
-use db::queries::{
-    case::{count, count_by_module_id, detail, get_case_list, insert_script},
-    template::*,
-};
+use db::queries::{case::*, template::*};
 use serde_json::from_value;
 use tracing::info;
 
-use super::entity::{self, CaseDetail, CaseInfo};
+use super::entity::{self, CaseDetail, CaseInfo, Step};
 
 #[derive(Debug)]
 pub struct CaseDao<'a> {
-    client: &'a db::Client,
+    client: &'a mut db::Client,
 }
 
 trait ToTemplate {
@@ -56,7 +53,7 @@ macro_rules! impl_to_template {
 impl_to_template!(GetTemplateByProjectId);
 
 impl<'a> CaseDao<'a> {
-    pub fn new(client: &'a db::Client) -> Self {
+    pub fn new(client: &'a mut db::Client) -> Self {
         CaseDao { client }
     }
 
@@ -223,5 +220,31 @@ impl<'a> CaseDao<'a> {
             .one()
             .await?;
         Ok(ret)
+    }
+
+    pub async fn insert_script_element_relation(
+        &mut self,
+        script_id: &i32,
+        field_type: String,
+        steps: &Vec<Step>,
+    ) -> AppResult<()> {
+        let mut transaction = self.client.transaction().await?;
+        for item in steps.iter() {
+            let serialized = serde_json::to_string(&item.attach_info)?;
+            let _ = insert_script_element_relation()
+                .bind(
+                    &mut transaction,
+                    script_id,
+                    &field_type,
+                    &item.option_id,
+                    &item.element_id,
+                    &item.position,
+                    &serialized,
+                )
+                .one()
+                .await?;
+        }
+        transaction.commit().await?;
+        Ok(())
     }
 }

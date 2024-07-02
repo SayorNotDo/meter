@@ -9,8 +9,8 @@ SELECT
     e.name,
     e.type AS element_type,
     e.value,
-    oo.name AS action,
-    oo.exec AS execution
+    oo.name AS option,
+    oo.exec AS action
 FROM elements e
-LEFT JOIN operation_option oo ON oo.id = :operation_option_id
+INNER JOIN operation_option oo ON oo.id = :operation_option_id
 WHERE e.id = :id;
