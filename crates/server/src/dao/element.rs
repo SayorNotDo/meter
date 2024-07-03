@@ -20,10 +20,18 @@ where
         ElementDao { executor }
     }
 
-    pub async fn create(&self, _element: entity::Element) -> AppResult<i32> {
-        let id = insert().
-            bind(self.executor, )
-        Ok(0)
+    pub async fn create(&self, element: entity::Element) -> AppResult<i32> {
+        let element_id = insert().
+            bind(self.executor,
+                 &element.name,
+                 &element.value,
+                 &element.element_type,
+                 &element.description,
+                 &element.created_by,
+            )
+            .one()
+            .await?;
+        Ok(element_id)
     }
 
     pub async fn get_element(&self, e_id: i32, option_id: i32) -> AppResult<ElementInfo> {
@@ -45,8 +53,8 @@ where
         }
     }
 
-    #[allow(dead_code)]
-    pub async fn insert_elements(&self) -> AppResult<()> {
+    pub async fn update(&self, element: entity::Element) -> AppResult<()> {
+        update().bind(self.executor, &element.value, &element.element_type, &element.description, &element.updated_by, &element.updated_at).await?;
         Ok(())
     }
 }
