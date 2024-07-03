@@ -13,25 +13,26 @@ pub async fn create(
     uid: Uuid,
     request: CreateElementRequest,
 ) -> AppResult<ElementResponse> {
-    // let mut client = state.pool.get().await?;
-    // let element_dao = ElementDao::new(&mut client);
-    // let element = Element::new(
-    //     &request.name,
-    //     &request.value,
-    //     &request.element_type,
-    //     request.description.as_deref(),
-    //     uid,
-    // );
-    // let _element_id = element_dao.create(element).await?;
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let element_dao = ElementDao::new(&transaction);
+    let element = Element::new(
+        &request.name,
+        &request.value,
+        &request.element_type,
+        request.description.as_deref(),
+        uid,
+    );
+    let _element_id = element_dao.create(element).await?;
     Ok(ElementResponse {})
 }
 
 /* Element exec main logic */
 #[allow(dead_code)]
 pub async fn exec(state: &AppState, script_id: i32) -> AppResult {
-    // info!("execute script: {script_id:?}");
-    // let mut client = state.pool.get().await?;
-    // let _element_dao = ElementDao::new(&mut client);
+    info!("execute script: {script_id:?}");
+    let mut client = state.pool.get().await?;
+    let _element_dao = ElementDao::new(&mut client);
     /* get script by id and scan for environment requirement */
     // let script = element_dao.get_script_by_id();
     /* traverse steps field for executing */

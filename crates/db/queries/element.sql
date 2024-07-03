@@ -1,7 +1,7 @@
 --! insert
 INSERT INTO elements
-(name, value, type, description)
-VALUES(:name, :value, :type, :description);
+(name, value, type, description, created_by)
+VALUES(:name, :value, :type, :description, :created_by);
 
 --! get_element : (value?)
 SELECT

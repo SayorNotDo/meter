@@ -1,16 +1,20 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
+pub use cornucopia_async::GenericClient;
 pub use cornucopia_async::Params;
+// use deadpool::managed::Object;
+// use deadpool_postgres::Manager;
 pub use deadpool_postgres::{Client, Pool, PoolError, Transaction};
-use tokio_postgres::{Client as TokioPostgresClient, Transaction as TokioPostgresTransaction, GenericClient};
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls_pki_types::{CertificateDer, ServerName, UnixTime};
 pub use tokio_postgres::Error as TokioPostgresError;
+// use tokio_postgres::{Client as TokioPostgresClient, Transaction as TokioPostgresTransaction};
 
-pub trait DbExecutor: GenericClient {}
-impl DbExecutor for TokioPostgresClient{}
-impl DbExecutor for TokioPostgresTransaction<'_>{}
+// pub trait DbExecutor: GenericClient {}
+// impl DbExecutor for TokioPostgresClient {}
+// impl DbExecutor for TokioPostgresTransaction<'_> {}
+// impl DbExecutor for Object<Manager> {}
 
 pub mod redis;
 

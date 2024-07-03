@@ -7,20 +7,22 @@ use db::queries::element::*;
 #[derive(Debug)]
 pub struct ElementDao<'a, T>
 where
-  T: db::DbExecutor,
+    T: db::GenericClient,
 {
-    pub executor: &'a mut T,
+    pub executor: &'a T,
 }
 
 impl<'a, T> ElementDao<'a, T>
 where
-    T: db::DbExecutor,
+    T: db::GenericClient,
 {
-    pub fn new(executor: &'a mut T) -> Self {
+    pub fn new(executor: &'a T) -> Self {
         ElementDao { executor }
     }
 
     pub async fn create(&self, _element: entity::Element) -> AppResult<i32> {
+        let id = insert().
+            bind(self.executor, )
         Ok(0)
     }
 
@@ -44,7 +46,7 @@ where
     }
 
     #[allow(dead_code)]
-    pub async fn insert_elements(&mut self) -> AppResult<()> {
+    pub async fn insert_elements(&self) -> AppResult<()> {
         Ok(())
     }
 }

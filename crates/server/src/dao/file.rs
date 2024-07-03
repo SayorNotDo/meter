@@ -27,13 +27,19 @@ macro_rules! impl_to_file_module {
 
 impl_to_file_module!(GetFileModules);
 
-pub struct FileDao<'a> {
-    client: &'a mut db::Client,
+pub struct FileDao<'a, T>
+where
+    T: db::GenericClient,
+{
+    executor: &'a T,
 }
 
-impl<'a> FileDao<'a> {
-    pub fn new(client: &'a mut db::Client) -> Self {
-        FileDao { client }
+impl<'a, T> FileDao<'a, T>
+where
+    T: db::GenericClient,
+{
+    pub fn new(executor: &'a T) -> Self {
+        FileDao { executor }
     }
 
     pub async fn get_file_modules(
@@ -42,7 +48,7 @@ impl<'a> FileDao<'a> {
         module_type: &str,
     ) -> AppResult<Vec<FileModule>> {
         let file_modules = get_file_modules()
-            .bind(self.client, project_id, &module_type)
+            .bind(self.executor, project_id, &module_type)
             .all()
             .await?
             .into_iter()
@@ -57,7 +63,7 @@ impl<'a> FileDao<'a> {
         module_type: &str,
     ) -> AppResult<Vec<i32>> {
         let module_id_list = get_root_module()
-            .bind(self.client, project_id, &module_type)
+            .bind(self.executor, project_id, &module_type)
             .all()
             .await?;
         Ok(module_id_list)

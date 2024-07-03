@@ -12,8 +12,11 @@ use tracing::info;
 use super::entity::{self, CaseDetail, CaseInfo, Step};
 
 #[derive(Debug)]
-pub struct CaseDao<'a> {
-    client: &'a mut db::Client,
+pub struct CaseDao<'a, T>
+where
+    T: db::GenericClient,
+{
+    executor: &'a T,
 }
 
 trait ToTemplate {
@@ -52,9 +55,12 @@ macro_rules! impl_to_template {
 
 impl_to_template!(GetTemplateByProjectId);
 
-impl<'a> CaseDao<'a> {
-    pub fn new(client: &'a mut db::Client) -> Self {
-        CaseDao { client }
+impl<'a, T> CaseDao<'a, T>
+where
+    T: db::GenericClient,
+{
+    pub fn new(executor: &'a T) -> Self {
+        CaseDao { executor }
     }
 
     pub async fn get_template(
@@ -63,7 +69,7 @@ impl<'a> CaseDao<'a> {
         internal: bool,
     ) -> AppResult<entity::Template> {
         let ret = get_template_by_project_id()
-            .bind(self.client, project_id, &internal)
+            .bind(self.executor, project_id, &internal)
             .opt()
             .await?;
         match ret {
@@ -84,7 +90,7 @@ impl<'a> CaseDao<'a> {
         internal: bool,
     ) -> AppResult<Vec<entity::CustomField>> {
         let fields = get_fields()
-            .bind(self.client, project_id, &internal)
+            .bind(self.executor, project_id, &internal)
             .all()
             .await?
             .into_iter()
@@ -112,7 +118,7 @@ impl<'a> CaseDao<'a> {
         offset: &i64,
     ) -> AppResult<Vec<CaseInfo>> {
         let case_list = get_case_list()
-            .bind(self.client, project_id, module_id, page_size, offset)
+            .bind(self.executor, project_id, module_id, page_size, offset)
             .all()
             .await?
             .into_iter()
@@ -120,9 +126,7 @@ impl<'a> CaseDao<'a> {
                 let created_at = utils::time::to_utc(item.created_at);
                 let updated_at = utils::time::to_utc_or_default(item.updated_at);
                 let custom_fields: Vec<entity::CustomField> =
-                    from_value(item.custom_fields.clone()).unwrap_or_else(|_| {
-                        vec![]
-                    });
+                    from_value(item.custom_fields.clone()).unwrap_or_else(|_| vec![]);
                 CaseInfo {
                     id: item.id,
                     name: item.name,
@@ -148,7 +152,7 @@ impl<'a> CaseDao<'a> {
     ) -> AppResult<HashMap<String, i64>> {
         let mut module_case_count: HashMap<String, i64> = HashMap::new();
         let _ = count()
-            .bind(self.client, project_id, is_deleted)
+            .bind(self.executor, project_id, is_deleted)
             .all()
             .await?
             .into_iter()
@@ -167,7 +171,7 @@ impl<'a> CaseDao<'a> {
         is_deleted: &bool,
     ) -> AppResult<i64> {
         let count = count_by_module_id()
-            .bind(self.client, project_id, module_id, is_deleted)
+            .bind(self.executor, project_id, module_id, is_deleted)
             .opt()
             .await?;
         match count {
@@ -177,7 +181,7 @@ impl<'a> CaseDao<'a> {
     }
 
     pub async fn detail(&self, case_id: &i32) -> AppResult<entity::CaseDetail> {
-        let detail = detail().bind(self.client, case_id).opt().await?;
+        let detail = detail().bind(self.executor, case_id).opt().await?;
         match detail {
             Some(u) => {
                 let created_at = utils::time::to_utc(u.created_at);
@@ -205,7 +209,7 @@ impl<'a> CaseDao<'a> {
     pub async fn insert_script(&self, script: Script) -> AppResult<i32> {
         let ret = insert_script()
             .bind(
-                self.client,
+                self.executor,
                 &script.case_id,
                 &script.environment,
                 &script.path,
@@ -217,17 +221,16 @@ impl<'a> CaseDao<'a> {
     }
 
     pub async fn insert_script_element_relation(
-        &mut self,
+        &self,
         script_id: &i32,
         field_type: String,
         steps: &Vec<Step>,
     ) -> AppResult<()> {
-        let mut transaction = self.client.transaction().await?;
         for item in steps.iter() {
             let serialized = serde_json::to_string(&item.attach_info)?;
             let _ = insert_script_element_relation()
                 .bind(
-                    &mut transaction,
+                    self.executor,
                     script_id,
                     &field_type,
                     &item.option_id,
@@ -238,7 +241,6 @@ impl<'a> CaseDao<'a> {
                 .one()
                 .await?;
         }
-        transaction.commit().await?;
         Ok(())
     }
 }

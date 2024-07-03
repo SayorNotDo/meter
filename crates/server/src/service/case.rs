@@ -1,5 +1,5 @@
-use std::{collections::HashMap, sync::Arc};
-use tokio::{sync::Mutex, try_join};
+use std::collections::HashMap;
+use tokio::try_join;
 use tracing::info;
 use uuid::Uuid;
 
@@ -71,9 +71,8 @@ pub async fn list(
     param: &ListQueryParam,
 ) -> AppResult<ListCaseResponse> {
     info!("service layer for list with path_param: {project_id:?}, query_param: {param:?}");
-    let client = Arc::new(Mutex::new(state.pool.get().await?));
-    let mut client_guard = client.lock().await;
-    /* processing page_token if exist else  */
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
     let (page_size, page_num) = match &param.page_token {
         Some(token) => {
             let page_claims = PageClaims::decode(token.as_str(), &PAGE_DECODE_KEY)?.claims;
@@ -88,17 +87,18 @@ pub async fn list(
         vec![id]
     } else {
         /* get root module_id while related query param is null */
-        let file_dao = FileDao::new(&mut client_guard);
+        let file_dao = FileDao::new(&transaction);
         file_dao
             .get_root_module_id(project_id, "CASE".into())
             .await?
     };
     let offset = page_num * page_size;
     let next_page_token = generate_page_token(page_size, page_num + 1)?;
-    let case_dao = CaseDao::new(&mut client_guard);
+    let case_dao = CaseDao::new(&transaction);
     let list = case_dao
         .get_case_list(project_id, &module_id, &page_size, &offset)
         .await?;
+    transaction.commit().await?;
     Ok(ListCaseResponse {
         next_page_token,
         list,
@@ -150,19 +150,14 @@ pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<CaseDetailResp
     })
 }
 
-async fn get_step_list(
-    client: Arc<Mutex<db::Client>>,
-    req: &Vec<Step>,
-) -> AppResult<Vec<StepInfo>> {
+async fn get_step_list<T>(dao: &ElementDao<'_, T>, req: &Vec<Step>) -> AppResult<Vec<StepInfo>>
+where
+    T: db::GenericClient,
+{
     info!("get step list with params: {req:?}");
-    let mut client = client.lock().await;
-    let element_dao = ElementDao::new(&mut *client);
     let mut info_list = Vec::new();
     for item in req.iter() {
-        match element_dao
-            .get_element(item.element_id, item.option_id)
-            .await
-        {
+        match dao.get_element(item.element_id, item.option_id).await {
             Ok(e) => info_list.push(StepInfo {
                 position: item.position,
                 action: e.action,
@@ -182,12 +177,13 @@ pub async fn gen_script(
 ) -> AppResult<CreateScriptResponse> {
     info!("service layer generate script with request: {request:?}");
     /* construct DriveData with request parameters */
-    let client = Arc::new(Mutex::new(state.pool.get().await?));
-
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let element_dao = ElementDao::new(&transaction);
     let (pre_processors, steps, after_processors) = try_join!(
-        get_step_list(client.clone(), &request.pre_processors),
-        get_step_list(client.clone(), &request.steps),
-        get_step_list(client.clone(), &request.after_processors)
+        get_step_list(&element_dao, &request.pre_processors),
+        get_step_list(&element_dao, &request.steps),
+        get_step_list(&element_dao, &request.after_processors)
     )?;
 
     /* generate script with engine service */
@@ -202,8 +198,7 @@ pub async fn gen_script(
     let mut script = engine::generator(data).await?;
 
     /* insert script record into database */
-    let mut client_guard = client.lock().await;
-    let mut case_dao = CaseDao::new(&mut *client_guard);
+    let case_dao = CaseDao::new(&transaction);
     let related_case = case_dao.detail(&request.case_id).await?;
     let path = script.path.clone();
     script.case_id = related_case.id;
@@ -212,23 +207,20 @@ pub async fn gen_script(
     let script_id: i32 = case_dao.insert_script(script).await?;
 
     /* binding relationship for element used in script */
-    case_dao
-        .insert_script_element_relation(
+    try_join!(
+        case_dao.insert_script_element_relation(
             &script_id,
             "PRE_PROCESSOR".to_string(),
             &request.pre_processors,
-        )
-        .await?;
-    case_dao
-        .insert_script_element_relation(&script_id, "STEP".to_string(), &request.steps)
-        .await?;
-    case_dao
-        .insert_script_element_relation(
+        ),
+        case_dao.insert_script_element_relation(&script_id, "STEP".to_string(), &request.steps,),
+        case_dao.insert_script_element_relation(
             &script_id,
             "AFTER_PROCESSOR".to_string(),
             &request.after_processors,
         )
-        .await?;
+    )?;
+    transaction.commit().await?;
     Ok(CreateScriptResponse {
         id: script_id,
         path,

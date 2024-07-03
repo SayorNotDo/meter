@@ -36,3 +36,4 @@ uuid = { version = "1.8.0", features = ["serde", "v4"] }
 futures = "0.3.30"
 tracing = { version = "0.1.40", features = ["max_level_debug", "release_max_level_info", "log"] }
 
+deadpool = "0.12.1"
