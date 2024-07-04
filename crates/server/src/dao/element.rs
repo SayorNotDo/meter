@@ -21,13 +21,14 @@ where
     }
 
     pub async fn create(&self, element: entity::Element) -> AppResult<i32> {
-        let element_id = insert().
-            bind(self.executor,
-                 &element.name,
-                 &element.value,
-                 &element.element_type,
-                 &element.description,
-                 &element.created_by,
+        let element_id = insert()
+            .bind(
+                self.executor,
+                &element.name,
+                &element.value,
+                &element.element_type,
+                &element.description,
+                &element.created_by,
             )
             .one()
             .await?;
@@ -53,8 +54,19 @@ where
         }
     }
 
+    #[allow(dead_code)]
     pub async fn update(&self, element: entity::Element) -> AppResult<()> {
-        update().bind(self.executor, &element.value, &element.element_type, &element.description, &element.updated_by, &element.updated_at).await?;
+        update()
+            .bind(
+                self.executor,
+                &element.name,
+                &element.value,
+                &element.element_type,
+                &element.description,
+                &element.updated_by,
+                &element.id,
+            )
+            .await?;
         Ok(())
     }
 }

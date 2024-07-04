@@ -173,7 +173,7 @@ pub struct Element {
     pub created_at: DateTime<Utc>,
     pub created_by: Uuid,
     pub updated_at: Option<DateTime<Utc>>,
-    pub updated_by: Option<String>,
+    pub updated_by: Option<Uuid>,
     pub operation_options: Vec<OperationOption>,
 }
 

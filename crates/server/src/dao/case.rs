@@ -206,6 +206,8 @@ where
         }
     }
 
+    pub async fn insert_case(&self, case: CaseInfo) -> AppResult<i32> {}
+
     pub async fn insert_script(&self, script: Script) -> AppResult<i32> {
         let ret = insert_script()
             .bind(

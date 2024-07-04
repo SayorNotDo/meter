@@ -4,15 +4,14 @@ INSERT INTO elements
 VALUES(:name, :value, :type, :description, :created_by)
 RETURNING id;
 
---! update (description?)
+--! update (description?, updated_by?) :
 UPDATE elements
 SET
     name = :name,
     value = :value,
     type = :type,
     description = :description,
-    updated_by = :updated_by,
-    updated_at = :updated_at
+    updated_by = :updated_by
 WHERE
     id = :id;
 

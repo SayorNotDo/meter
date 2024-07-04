@@ -1,3 +1,22 @@
+--! insert_case
+INSERT INTO functional_cases
+(
+name,
+module_id,
+project_id,
+template_id,
+tags,
+created_by
+)
+VALUES(
+  :name,
+  :module_id,
+  :project_id,
+  :template_id,
+  :tags,
+  :created_by
+)
+
 --! get_case_list : (updated_at?, updated_by?, tags?)
 SELECT fc.id,
        fc.name,
