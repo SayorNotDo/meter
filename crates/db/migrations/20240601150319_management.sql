@@ -83,7 +83,6 @@ CREATE TABLE functional_cases
     id         SERIAL PRIMARY KEY,
     name       VARCHAR   NOT NULL,
     module_id  INT       NOT NULL,
-    project_id INT       NOT NULL,
     template_id INT NOT NULL,
     tags       VARCHAR,
     status     VARCHAR       NOT NULL DEFAULT 'UN_REVIEWED',

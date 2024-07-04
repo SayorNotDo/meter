@@ -9,7 +9,7 @@ use db::queries::{case::*, template::*};
 use serde_json::from_value;
 use tracing::info;
 
-use super::entity::{self, CaseDetail, CaseInfo, Step};
+use crate::dao::entity::{self, CaseDetail, FunctionalCase, Step};
 
 #[derive(Debug)]
 pub struct CaseDao<'a, T>
@@ -116,7 +116,7 @@ where
         module_id: &Vec<i32>,
         page_size: &i64,
         offset: &i64,
-    ) -> AppResult<Vec<CaseInfo>> {
+    ) -> AppResult<Vec<CaseDetail>> {
         let case_list = get_case_list()
             .bind(self.executor, project_id, module_id, page_size, offset)
             .all()
@@ -127,10 +127,10 @@ where
                 let updated_at = utils::time::to_utc_or_default(item.updated_at);
                 let custom_fields: Vec<entity::CustomField> =
                     from_value(item.custom_fields.clone()).unwrap_or_else(|_| vec![]);
-                CaseInfo {
+                CaseDetail {
                     id: item.id,
                     name: item.name,
-                    module_id: item.module_id,
+                    module_name: item.module_name,
                     template_id: item.template_id,
                     tags: item.tags,
                     status: item.status,
@@ -139,6 +139,7 @@ where
                     updated_at,
                     updated_by: item.updated_by,
                     custom_fields,
+                    attach_info: None
                 }
             })
             .collect::<Vec<_>>();
@@ -195,7 +196,10 @@ where
                     attach_info: u.attach_info,
                     created_at,
                     created_by: u.created_by,
+                    updated_at,
+                    updated_by: u.updated_by,
                     custom_fields: from_value::<Vec<entity::CustomField>>(u.custom_fields)?,
+                    attach_info: u.attach_info
                 };
                 Ok(case)
             }
@@ -206,7 +210,19 @@ where
         }
     }
 
-    pub async fn insert_case(&self, case: CaseInfo) -> AppResult<i32> {}
+    pub async fn insert_functional_case(&self, case: FunctionalCase) -> AppResult<i32> {
+        let case_id = insert_functional_case().
+            bind(
+                self.executor,
+                &case.name,
+                &case.module_id,
+                &case.template_id,
+                &case.tags,
+                &case.created_by
+            ).one().await?;
+
+        Ok(case_id)
+    }
 
     pub async fn insert_script(&self, script: Script) -> AppResult<i32> {
         let ret = insert_script()

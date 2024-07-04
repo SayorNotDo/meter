@@ -1,9 +1,8 @@
---! insert_case
+--! insert_functional_case
 INSERT INTO functional_cases
 (
 name,
 module_id,
-project_id,
 template_id,
 tags,
 created_by
@@ -11,16 +10,15 @@ created_by
 VALUES(
   :name,
   :module_id,
-  :project_id,
   :template_id,
   :tags,
   :created_by
-)
+);
 
 --! get_case_list : (updated_at?, updated_by?, tags?)
 SELECT fc.id,
        fc.name,
-       fc.module_id,
+       (SELECT name FROM file_module WHERE file_module.id = fc.module_id) AS module_name,
        fc.template_id,
        fc.tags,
        fc.status,
@@ -121,7 +119,9 @@ SELECT
     ) AS custom_fields,
     fc.status,
     fc.created_at,
-    u.username AS created_by
+    u.username AS created_by,
+    fc.updated_at,
+    (SELECT name FROM users WHERE users.id = fc.updated_by)
 FROM functional_cases fc
 INNER JOIN file_module fm
     ON fm.id = fc.module_id
