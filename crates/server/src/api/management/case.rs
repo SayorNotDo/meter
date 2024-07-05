@@ -5,7 +5,7 @@ use axum::{Extension, Json};
 use axum_extra::extract::WithRejection;
 
 use crate::dao::entity::CustomField;
-use crate::dto::request::CaseQueryParam;
+use crate::dto::request::{CaseQueryParam, CreateFunctionalCaseRequest};
 use crate::dto::response::{
     CaseDetailResponse, CreateScriptResponse, ListCaseResponse, TemplateResponse,
 };
@@ -40,8 +40,8 @@ pub async fn tree(
         Err(e) => {
             info!("Failed to get case module tree");
             Err(e)
-    }
         }
+    }
 }
 
 #[utoipa::path(
@@ -58,6 +58,25 @@ pub async fn template(
 ) -> AppResult<Json<TemplateResponse>> {
     info!("case template query param: {param:?}, project_id: {project_id:?}");
     match case::template(&state, &project_id, &param).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    post,
+    path = "case/functional_case",
+    request_body = CreteFunctionalCaseRequest,
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn create_functional_case(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(request): Json<CreateFunctionalCaseRequest>,
+) -> AppResult<Json<()>> {
+    info!("create functional case with request: {request:?}");
+    match case::create_functional_case(&state, user.uid, request).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

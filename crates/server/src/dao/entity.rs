@@ -140,6 +140,28 @@ pub struct FunctionalCase {
     pub custom_fields: Vec<CustomField>,
 }
 
+impl FunctionalCase {
+    pub fn new(
+        name: &str,
+        module_id: i32,
+        template_id: i32,
+        tags: Option<String>,
+        created_by: Uuid,
+    ) -> Self {
+        FunctionalCase {
+            id: 0,
+            name: name.to_string(),
+            module_id,
+            template_id,
+            tags,
+            status: "UN_REVIEWED".into(),
+            created_at: Utc::now(),
+            created_by,
+            custom_fields: Vec::new(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CaseDetail {
     pub id: i32,

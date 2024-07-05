@@ -1,25 +1,35 @@
---! insert_functional_case
+--! insert_functional_case (tags?)
 INSERT INTO functional_cases
 (
-name,
-module_id,
-template_id,
-tags,
-created_by
-)
-VALUES(
+    name,
+    module_id,
+    template_id,
+    tags,
+    created_by
+) VALUES (
   :name,
   :module_id,
   :template_id,
   :tags,
   :created_by
+) RETURNING id;
+
+--! insert_case_field_relation (value?) :
+INSERT INTO functional_case_custom_field (
+    case_id,
+    field_id,
+    value
+) VALUES (
+    :case_id,
+    :field_id,
+    :value
 );
 
 --! get_case_list : (updated_at?, updated_by?, tags?)
 SELECT fc.id,
        fc.name,
-       (SELECT name FROM file_module WHERE file_module.id = fc.module_id) AS module_name,
        fc.template_id,
+       (SELECT name FROM file_module WHERE file_module.id = fc.module_id) AS module_name,
        fc.tags,
        fc.status,
        fc.created_at,
@@ -82,7 +92,7 @@ WHERE
     AND fc.deleted = :is_deleted;
 
 
---! detail : (attach_info?, tags?)
+--! detail : (attach_info?, tags?, updated_at?, updated_by?)
 SELECT
     fc.id,
     fc.name,
@@ -121,7 +131,7 @@ SELECT
     fc.created_at,
     u.username AS created_by,
     fc.updated_at,
-    (SELECT name FROM users WHERE users.id = fc.updated_by)
+    (SELECT username FROM users WHERE users.uuid = fc.updated_by) AS updated_by
 FROM functional_cases fc
 INNER JOIN file_module fm
     ON fm.id = fc.module_id

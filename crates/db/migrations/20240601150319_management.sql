@@ -122,8 +122,8 @@ DROP TABLE IF EXISTS functional_case_custom_field;
 
 CREATE TABLE functional_case_custom_field (
     id SERIAL PRIMARY KEY,
-    case_id VARCHAR NOT NULL,
-    field_id VARCHAR NOT NULL,
+    case_id INT NOT NULL,
+    field_id INT NOT NULL,
     value   VARCHAR NOT NULL
 );
 

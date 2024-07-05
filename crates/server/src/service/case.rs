@@ -6,13 +6,16 @@ use uuid::Uuid;
 use crate::dao::{
     case::CaseDao,
     element::ElementDao,
-    entity::{CustomField, Step},
+    entity::{CustomField, FunctionalCase, Step},
     file::FileDao,
 };
 use crate::{
     constant::PAGE_DECODE_KEY,
     dto::{
-        request::{CaseQueryParam, CreateScriptRequest, ListQueryParam, QueryTemplateParam},
+        request::{
+            CaseQueryParam, CreateFunctionalCaseRequest, CreateScriptRequest, ListQueryParam,
+            QueryTemplateParam,
+        },
         response::{
             CaseDetailResponse, CreateScriptResponse, ListCaseResponse, RequirementInfoResponse,
             TemplateResponse,
@@ -59,6 +62,32 @@ pub async fn field(
     /* Fields with options */
     let fields = case_dao.get_fields(project_id, param.is_default).await?;
     Ok(fields)
+}
+
+#[allow(dead_code)]
+pub async fn create_functional_case(
+    state: &AppState,
+    uid: Uuid,
+    request: CreateFunctionalCaseRequest,
+) -> AppResult<()> {
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let case_dao = CaseDao::new(&transaction);
+    /* insert into functional_cases */
+    let case = FunctionalCase::new(
+        request.name.as_str(),
+        request.module_id,
+        request.template_id,
+        request.tags,
+        uid,
+    );
+    let case_id = case_dao.insert_functional_case(case).await?;
+    /* bind relationship between case with custom_field through table: [functional_case_custom_field]*/
+    case_dao
+        .insert_case_field_relation(case_id, request.custom_fields)
+        .await?;
+    transaction.commit().await?;
+    Ok(())
 }
 
 pub async fn info(_state: &AppState, _project_id: &i32) -> AppResult<RequirementInfoResponse> {

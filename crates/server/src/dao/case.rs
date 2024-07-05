@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    dao::entity::{FieldOption, Script},
+    dao::entity::{CustomField, FieldOption, Script},
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
 };
@@ -139,7 +139,7 @@ where
                     updated_at,
                     updated_by: item.updated_by,
                     custom_fields,
-                    attach_info: None
+                    attach_info: None,
                 }
             })
             .collect::<Vec<_>>();
@@ -186,6 +186,7 @@ where
         match detail {
             Some(u) => {
                 let created_at = utils::time::to_utc(u.created_at);
+                let updated_at = utils::time::to_utc_or_default(u.updated_at);
                 let case = CaseDetail {
                     id: u.id,
                     name: u.name,
@@ -199,7 +200,6 @@ where
                     updated_at,
                     updated_by: u.updated_by,
                     custom_fields: from_value::<Vec<entity::CustomField>>(u.custom_fields)?,
-                    attach_info: u.attach_info
                 };
                 Ok(case)
             }
@@ -211,17 +211,32 @@ where
     }
 
     pub async fn insert_functional_case(&self, case: FunctionalCase) -> AppResult<i32> {
-        let case_id = insert_functional_case().
-            bind(
+        let case_id = insert_functional_case()
+            .bind(
                 self.executor,
                 &case.name,
                 &case.module_id,
                 &case.template_id,
                 &case.tags,
-                &case.created_by
-            ).one().await?;
+                &case.created_by,
+            )
+            .one()
+            .await?;
 
         Ok(case_id)
+    }
+
+    pub async fn insert_case_field_relation(
+        &self,
+        case_id: i32,
+        fields: Vec<CustomField>,
+    ) -> AppResult<()> {
+        for item in fields.iter() {
+            insert_case_field_relation()
+                .bind(self.executor, &case_id, &item.id, &item.default_value)
+                .await?;
+        }
+        Ok(())
     }
 
     pub async fn insert_script(&self, script: Script) -> AppResult<i32> {

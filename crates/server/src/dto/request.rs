@@ -1,4 +1,4 @@
-use crate::dao::entity::Step;
+use crate::dao::entity::{CustomField, Step};
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -61,6 +61,16 @@ pub struct CreateElementRequest {
     pub value: String,
     pub element_type: String,
     pub description: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateFunctionalCaseRequest {
+    pub name: String,
+    pub module_id: i32,
+    pub template_id: i32,
+    pub tags: Option<String>,
+    pub custom_fields: Vec<CustomField>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
