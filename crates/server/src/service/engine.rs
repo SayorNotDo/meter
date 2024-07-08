@@ -15,6 +15,17 @@ pub struct DriveData {
     pub after_processors: Vec<StepInfo>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Environment {
+    pub framework: Framework,
+    pub attach_info: String
+}
+
+#[derive(Debug)]
+pub enum Framework {
+
+}
+
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StepInfo {
     pub position: i32,
@@ -66,4 +77,11 @@ pub async fn generator(script: DriveData) -> AppResult<Script> {
         created_at: Utc::now(),
         created_by: Uuid::nil(),
     })
+}
+
+pub async fn doctor(env: Environment) -> AppResult<()> {
+    /* ensure environment available */
+    match env.framework {
+    }
+    Ok(())
 }
