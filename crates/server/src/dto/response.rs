@@ -132,7 +132,6 @@ pub struct CaseDetailResponse {
     pub name: String,
     pub tags: Vec<String>,
     pub template_id: i32,
-    pub project_id: i32,
     pub module_name: String,
     pub status: String,
     pub created_at: DateTime<Utc>,

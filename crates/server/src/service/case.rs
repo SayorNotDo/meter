@@ -3,12 +3,6 @@ use tokio::try_join;
 use tracing::info;
 use uuid::Uuid;
 
-use crate::dao::{
-    case::CaseDao,
-    element::ElementDao,
-    entity::{CustomField, FunctionalCase, Step},
-    file::FileDao,
-};
 use crate::{
     constant::PAGE_DECODE_KEY,
     dto::{
@@ -28,6 +22,15 @@ use crate::{
     },
     state::AppState,
     utils::claim::PageClaims,
+};
+use crate::{
+    dao::{
+        case::CaseDao,
+        element::ElementDao,
+        entity::{CustomField, FunctionalCase, Step},
+        file::FileDao,
+    },
+    dto::request::IssueRelationRequest,
 };
 
 pub async fn template(
@@ -64,7 +67,6 @@ pub async fn field(
     Ok(fields)
 }
 
-#[allow(dead_code)]
 pub async fn create_functional_case(
     state: &AppState,
     uid: Uuid,
@@ -87,6 +89,42 @@ pub async fn create_functional_case(
         .insert_case_field_relation(case_id, request.custom_fields)
         .await?;
     transaction.commit().await?;
+    Ok(())
+}
+
+pub async fn get_functional_case(state: &AppState, case_id: i32) -> AppResult<CaseDetailResponse> {
+    info!("service layer get functional case with case_id {case_id:?}");
+    let client = state.pool.get().await?;
+    let case_dao = CaseDao::new(&client);
+    let functional_case = case_dao.detail(&case_id).await?;
+    let tags: Vec<String> = if let Some(d) = functional_case.tags {
+        d.split(",")
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>()
+    } else {
+        Vec::new()
+    };
+    Ok(CaseDetailResponse {
+        id: functional_case.id,
+        name: functional_case.name,
+        tags,
+        template_id: functional_case.template_id,
+        module_name: functional_case.module_name,
+        status: functional_case.status,
+        created_at: functional_case.created_at,
+        created_by: functional_case.created_by,
+        attach_info: functional_case.attach_info,
+        custom_fields: functional_case.custom_fields,
+    })
+}
+
+pub async fn create_issue_relation(
+    state: &AppState,
+    uid: Uuid,
+    request: IssueRelationRequest,
+) -> AppResult<()> {
+    info!("service layer create issue relation with request: {request:?}");
     Ok(())
 }
 
@@ -167,7 +205,6 @@ pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<CaseDetailResp
     Ok(CaseDetailResponse {
         id: detail.id,
         name: detail.name,
-        project_id: detail.id,
         template_id: detail.template_id,
         status: detail.status,
         tags,

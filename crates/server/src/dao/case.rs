@@ -2,12 +2,14 @@ use std::collections::HashMap;
 
 use crate::{
     dao::entity::{CustomField, FieldOption, Script},
+    dto::request::Issue,
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
 };
 use db::queries::{case::*, template::*};
 use serde_json::from_value;
 use tracing::info;
+use uuid::Uuid;
 
 use crate::dao::entity::{self, CaseDetail, FunctionalCase, Step};
 
@@ -236,6 +238,24 @@ where
                 .bind(self.executor, &case_id, &item.id, &item.default_value)
                 .await?;
         }
+        Ok(())
+    }
+
+    pub async fn insert_case_issue_relation(
+        &self,
+        case_id: &i32,
+        issue: Issue,
+        created_by: &Uuid,
+    ) -> AppResult<()> {
+        let _ = insert_case_issue_relation()
+            .bind(
+                self.executor,
+                case_id,
+                &issue.issue_id,
+                &issue.uri,
+                created_by,
+            )
+            .await?;
         Ok(())
     }
 

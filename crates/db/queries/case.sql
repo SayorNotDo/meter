@@ -25,6 +25,21 @@ INSERT INTO functional_case_custom_field (
     :value
 );
 
+--! insert_case_issue_relation
+INSERT INTO case_issue_relation (
+    case_id,
+    issue_id,
+    source,
+    uri,
+    created_by
+) VALUES (
+    :case_id,
+    :field_id,
+    :source,
+    :uri,
+    :created_by
+);
+
 --! get_case_list : (updated_at?, updated_by?, tags?)
 SELECT fc.id,
        fc.name,

@@ -106,7 +106,6 @@ EXECUTE PROCEDURE trigger_set_timestamp();
 COMMENT ON COLUMN functional_cases.id IS '功能测试用例ID';
 COMMENT ON COLUMN functional_cases.name IS '功能测试用例名称';
 COMMENT ON COLUMN functional_cases.module_id IS '功能测试用例所属模块ID';
-COMMENT ON COLUMN functional_cases.project_id IS '功能测试用例所属项目ID';
 COMMENT ON COLUMN functional_cases.template_id IS '功能测试用例所属模版ID';
 COMMENT ON COLUMN functional_cases.tags IS '功能测试用例标签';
 COMMENT ON COLUMN functional_cases.status IS '功能测试用例状态';
@@ -134,7 +133,7 @@ CREATE TABLE case_issue_relation (
     case_id INT NOT NULL,
     issue_id VARCHAR NOT NULL,
     source  VARCHAR NOT NULL,
-    url VARCHAR NOT NULL,
+    uri VARCHAR NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by UUID NOT NULL,
     updated_at TIMESTAMP,

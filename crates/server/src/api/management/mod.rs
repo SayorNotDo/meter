@@ -18,7 +18,15 @@ pub fn app() -> Router {
         .route("/case/count/:project_id", get(case::count))
         .route("/case/template/:project_id", get(case::template))
         .route("/case/field/:project_id", get(case::field))
-        .route("/case/functional_case", post(case::create_functional_case))
+        .route("/case/functional-case", post(case::create_functional_case))
+        .route(
+            "/case/functional-case/:case_id",
+            get(case::get_functional_case),
+        )
+        .route(
+            "/case/functional-case/issue-relation",
+            post(case::create_issue_relation),
+        )
         .route("/case/list/:project_id", get(case::list))
         .route("/case/detail/:case_id", get(case::detail))
         .route("/case/script/generate", post(case::create_script))

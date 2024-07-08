@@ -5,7 +5,7 @@ use axum::{Extension, Json};
 use axum_extra::extract::WithRejection;
 
 use crate::dao::entity::CustomField;
-use crate::dto::request::{CaseQueryParam, CreateFunctionalCaseRequest};
+use crate::dto::request::{CaseQueryParam, CreateFunctionalCaseRequest, IssueRelationRequest};
 use crate::dto::response::{
     CaseDetailResponse, CreateScriptResponse, ListCaseResponse, TemplateResponse,
 };
@@ -78,6 +78,43 @@ pub async fn create_functional_case(
     info!("create functional case with request: {request:?}");
     match case::create_functional_case(&state, user.uid, request).await {
         Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    get,
+    path = "case/functional_case/id",
+    request_body = GetFunctionalCaseRequest,
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn get_functional_case(
+    Extension(state): Extension<AppState>,
+    _user: UserClaims,
+    Path(case_id): Path<i32>,
+) -> AppResult<Json<CaseDetailResponse>> {
+    info!("query functional case with path param: {case_id:?}");
+    match case::get_functional_case(&state, case_id).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    post,
+    path = "case/functional_case/related-issue",
+    request_body = IssueRelationRequest,
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn create_issue_relation(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(request): Json<IssueRelationRequest>,
+) -> AppResult<()> {
+    match case::create_issue_relation(&state, user.uid, request).await {
+        Ok(_) => Ok(()),
         Err(e) => Err(e),
     }
 }

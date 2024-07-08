@@ -75,6 +75,21 @@ pub struct CreateFunctionalCaseRequest {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub struct IssueRelationRequest {
+    pub case_id: i32,
+    pub issues: Vec<Issue>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Issue {
+    pub issue_id: String,
+    pub source: String,
+    pub uri: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateScriptRequest {
     pub case_id: i32,
     pub name: String,
