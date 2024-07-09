@@ -18,13 +18,11 @@ pub struct DriveData {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Environment {
     pub framework: Framework,
-    pub attach_info: String
+    pub attach_info: String,
 }
 
-#[derive(Debug)]
-pub enum Framework {
-
-}
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Framework {}
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StepInfo {
@@ -79,9 +77,9 @@ pub async fn generator(script: DriveData) -> AppResult<Script> {
     })
 }
 
-pub async fn doctor(env: Environment) -> AppResult<()> {
+#[allow(dead_code)]
+pub async fn doctor(_env: Environment) -> AppResult<()> {
     /* ensure environment available */
-    match env.framework {
-    }
+    // match env.framework {}
     Ok(())
 }

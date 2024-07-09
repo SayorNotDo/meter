@@ -244,7 +244,7 @@ where
     pub async fn insert_case_issue_relation(
         &self,
         case_id: &i32,
-        issue: Issue,
+        issue: &Issue,
         created_by: &Uuid,
     ) -> AppResult<()> {
         let _ = insert_case_issue_relation()
@@ -252,6 +252,7 @@ where
                 self.executor,
                 case_id,
                 &issue.issue_id,
+                &issue.source,
                 &issue.uri,
                 created_by,
             )

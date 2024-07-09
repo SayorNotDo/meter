@@ -125,6 +125,15 @@ pub async fn create_issue_relation(
     request: IssueRelationRequest,
 ) -> AppResult<()> {
     info!("service layer create issue relation with request: {request:?}");
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let case_dao = CaseDao::new(&transaction);
+    for item in request.issues.iter() {
+        case_dao
+            .insert_case_issue_relation(&request.case_id, item, &uid)
+            .await?;
+    }
+    transaction.commit().await?;
     Ok(())
 }
 
