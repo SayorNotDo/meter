@@ -96,6 +96,7 @@ pub async fn doctor(env: Environment) -> AppResult<()> {
             println!("cypress running environment.");
             let machine: Machine = Machine {
                 addr: "192.168.50.234:22".into(),
+                authentication: "".into(),
                 user: "root".into(),
                 password: "123456".into(),
             };
@@ -118,7 +119,14 @@ pub async fn doctor_script(machine: Machine, script: &Path) -> AppResult<String>
     session.handshake()?;
 
     /* authentication */
-    session.userauth_password(&machine.user, &machine.password)?;
+    let v: Value = serde_json::from_str(&machine.authentication)?;
+    let user = v["user"]
+        .as_str()
+        .expect("Failed to get target machine user");
+    let password = v["password"]
+        .as_str()
+        .expect("Failed to get machine password");
+    session.userauth_password(user, password)?;
 
     /* creat SFTP channel */
     let sftp = session.sftp()?;

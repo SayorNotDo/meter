@@ -304,6 +304,7 @@ where
         match get_machine().bind(self.executor, machine_id).opt().await? {
             Some(m) => Ok(Machine {
                 addr: m.addr,
+                authentication: m.authentication,
                 user: "".into(),
                 password: "".into(),
             }),

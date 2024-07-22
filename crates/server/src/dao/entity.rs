@@ -259,6 +259,7 @@ pub struct Step {
 #[derive(Debug)]
 pub struct Machine {
     pub addr: String,
+    pub authentication: String,
     pub user: String,
     pub password: String,
 }
