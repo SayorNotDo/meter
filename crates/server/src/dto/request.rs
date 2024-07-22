@@ -99,6 +99,13 @@ pub struct CreateScriptRequest {
     pub after_processors: Vec<Step>,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DiagnoseRequest {
+    pub machine_id: i32,
+    pub script_name: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

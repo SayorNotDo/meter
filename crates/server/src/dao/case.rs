@@ -13,6 +13,8 @@ use uuid::Uuid;
 
 use crate::dao::entity::{self, CaseDetail, FunctionalCase, Step};
 
+use super::entity::Machine;
+
 #[derive(Debug)]
 pub struct CaseDao<'a, T>
 where
@@ -296,5 +298,19 @@ where
                 .await?;
         }
         Ok(())
+    }
+
+    pub async fn get_machine(&self, machine_id: &i32) -> AppResult<entity::Machine> {
+        match get_machine().bind(self.executor, machine_id).opt().await? {
+            Some(m) => Ok(Machine {
+                addr: m.addr,
+                user: "".into(),
+                password: "".into(),
+            }),
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::File,
+            })),
+        }
     }
 }

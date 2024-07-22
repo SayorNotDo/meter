@@ -14,6 +14,8 @@ pub const WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/register"];
 pub static CONFIG: Lazy<crate::config::Config> =
     Lazy::new(|| crate::config::Config::parse("./config.toml").unwrap());
 
+pub static DOCTOR_SCRIPT_PATH: &str = "./static/scripts/doctor";
+
 pub static ACCESS_TOKEN_ENCODE_KEY: Lazy<EncodingKey> = Lazy::new(|| {
     let key = CONFIG.jwt.read_private_access_key().unwrap();
     EncodingKey::from_rsa_pem(key.as_bytes()).unwrap()

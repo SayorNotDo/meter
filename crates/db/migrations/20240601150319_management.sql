@@ -159,6 +159,30 @@ CREATE TABLE script_element_relation (
 );
 
 
+DROP TABLE IF EXISTS machine;
+
+CREATE TABLE machine
+(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR,
+    type VARCHAR,
+    addr VARCHAR,
+    authentication VARCHAR,
+    internal BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL,
+    updated_at TIMESTAMP,
+    updated_by UUID
+)
+
+--create trigger: set updated_at field
+CREATE TRIGGER set_timestamp_machine
+    BEFORE UPDATE
+    ON machine
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+
 DROP TABLE IF EXISTS file_module;
 
 CREATE TABLE file_module

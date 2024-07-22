@@ -5,9 +5,11 @@ use axum::{Extension, Json};
 use axum_extra::extract::WithRejection;
 
 use crate::dao::entity::CustomField;
-use crate::dto::request::{CaseQueryParam, CreateFunctionalCaseRequest, IssueRelationRequest};
+use crate::dto::request::{
+    CaseQueryParam, CreateFunctionalCaseRequest, DiagnoseRequest, IssueRelationRequest,
+};
 use crate::dto::response::{
-    CaseDetailResponse, CreateScriptResponse, ListCaseResponse, TemplateResponse,
+    CaseDetailResponse, CreateScriptResponse, DiagnoseResponse, ListCaseResponse, TemplateResponse,
 };
 use crate::dto::{
     request::{CreateScriptRequest, ListQueryParam, QueryTemplateParam},
@@ -208,7 +210,16 @@ pub async fn count(
     }
 }
 
-#[utoipa::path(get, path = "/management/case/detail/:case_id", params(), responses())]
+#[utoipa::path(
+    get,
+    path = "/management/case/detail/:case_id",
+    params(),
+    responses(
+        (status = 200, description = "Get case details", body = [()]),
+        (status = 404, description = "Case not found", body = [AppResponseError]),
+    ),
+    security(("jwt" = []))
+)]
 pub async fn detail(
     Extension(state): Extension<AppState>,
     Path(case_id): Path<i32>,
@@ -233,6 +244,23 @@ pub async fn create_script(
 ) -> AppResult<Json<CreateScriptResponse>> {
     info!("controller layer create script with request: {request:?}");
     match service::case::gen_script(&state, user.uid, request).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    post,
+    path = "/management/case/environment/diagnose",
+    request_body=DiagnoseRequest,
+    responses()
+)]
+pub async fn env_diagnose(
+    Extension(state): Extension<AppState>,
+    WithRejection(Json(request), _): WithRejection<Json<DiagnoseRequest>, AppError>,
+) -> AppResult<Json<DiagnoseResponse>> {
+    info!("controller layer diagnose environment with request");
+    match service::case::env_diagnose(&state, request).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

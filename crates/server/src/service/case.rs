@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use crate::constant::DOCTOR_SCRIPT_PATH;
+use std::{collections::HashMap, path::Path};
 use tokio::try_join;
 use tracing::info;
 use uuid::Uuid;
@@ -7,12 +8,12 @@ use crate::{
     constant::PAGE_DECODE_KEY,
     dto::{
         request::{
-            CaseQueryParam, CreateFunctionalCaseRequest, CreateScriptRequest, ListQueryParam,
-            QueryTemplateParam,
+            CaseQueryParam, CreateFunctionalCaseRequest, CreateScriptRequest, DiagnoseRequest,
+            ListQueryParam, QueryTemplateParam,
         },
         response::{
-            CaseDetailResponse, CreateScriptResponse, ListCaseResponse, RequirementInfoResponse,
-            TemplateResponse,
+            CaseDetailResponse, CreateScriptResponse, DiagnoseResponse, ListCaseResponse,
+            RequirementInfoResponse, TemplateResponse,
         },
     },
     errors::AppResult,
@@ -232,14 +233,13 @@ where
     info!("get step list with params: {req:?}");
     let mut info_list = Vec::new();
     for item in req.iter() {
-        match dao.get_element(item.element_id, item.option_id).await {
-            Ok(e) => info_list.push(StepInfo {
+        if let Ok(info) = dao.get_element(item.element_id, item.option_id).await {
+            info_list.push(StepInfo {
                 position: item.position,
-                action: e.action,
-                selector: e.selector,
+                action: info.action,
+                selector: info.selector,
                 attach_info: item.attach_info.clone(),
-            }),
-            Err(_) => {}
+            })
         }
     }
     Ok(info_list)
@@ -300,4 +300,20 @@ pub async fn gen_script(
         id: script_id,
         path,
     })
+}
+
+pub async fn env_diagnose(
+    state: &AppState,
+    request: DiagnoseRequest,
+) -> AppResult<DiagnoseResponse> {
+    /* script path */
+    let script_path_str = format!("{}/{}", DOCTOR_SCRIPT_PATH, &request.script_name);
+
+    /* get specific machine from db */
+    let client = state.pool.get().await?;
+    let case_dao = CaseDao::new(&client);
+    let machine = case_dao.get_machine(&request.machine_id).await?;
+
+    let resp = engine::doctor_script(machine, Path::new(&script_path_str)).await?;
+    Ok(DiagnoseResponse { msg: resp })
 }

@@ -255,3 +255,10 @@ pub struct Step {
     pub option_id: i32,
     pub attach_info: Option<HashMap<String, String>>,
 }
+
+#[derive(Debug)]
+pub struct Machine {
+    pub addr: String,
+    pub user: String,
+    pub password: String,
+}

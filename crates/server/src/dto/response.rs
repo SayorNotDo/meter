@@ -148,3 +148,8 @@ pub struct CreateScriptResponse {
     pub id: i32,
     pub path: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct DiagnoseResponse {
+    pub msg: String,
+}

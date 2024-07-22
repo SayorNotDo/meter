@@ -183,3 +183,17 @@ INSERT INTO script_element_relation(
     :position,
     :attach_info
 ) RETURNING id;
+
+--! get_machine : (updated_by?, updated_at?)
+SELECT
+    name,
+    addr,
+    type,
+    authentication,
+    internal,
+    created_by,
+    created_at,
+    updated_by,
+    updated_at
+FROM machine
+WHERE id = :id;

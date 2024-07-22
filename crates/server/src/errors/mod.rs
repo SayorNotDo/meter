@@ -6,6 +6,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
+use ssh2::Error as SshError;
 use strum::EnumString;
 use tera::Error as TeraError;
 use tokio_postgres::Error as TokioPostgresError;
@@ -90,6 +91,8 @@ pub enum AppError {
     Infallible(#[from] std::convert::Infallible),
     #[error(transparent)]
     TeraError(#[from] TeraError),
+    #[error(transparent)]
+    SshError(#[from] SshError),
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
@@ -263,6 +266,12 @@ impl AppError {
             ),
             TeraError(_err) => (
                 "TERA_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            SshError(_err) => (
+                "SSH_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,
