@@ -13,9 +13,9 @@ pub async fn create(
     uid: Uuid,
     request: CreateElementRequest,
 ) -> AppResult<ElementResponse> {
-    let mut client = state.pool.get().await?;
-    let transaction = client.transaction().await?;
-    let element_dao = ElementDao::new(&transaction);
+    let client = state.pool.get().await?;
+    // let transaction = client.transaction().await?;
+    let element_dao = ElementDao::new(&client);
     let element = Element::new(
         &request.name,
         &request.value,
@@ -24,6 +24,7 @@ pub async fn create(
         uid,
     );
     let _element_id = element_dao.create(element).await?;
+    info!("_element_id: {}", _element_id);
     Ok(ElementResponse {})
 }
 
@@ -36,5 +37,9 @@ pub async fn exec(state: &AppState, script_id: i32) -> AppResult {
     /* get script by id and scan for environment requirement */
     // let script = element_dao.get_script_by_id();
     /* traverse steps field for executing */
+    Ok(())
+}
+
+pub async fn list(state: &AppState, project_id: i32) -> AppResult {
     Ok(())
 }

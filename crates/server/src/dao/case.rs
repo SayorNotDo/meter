@@ -116,13 +116,12 @@ where
 
     pub async fn get_case_list(
         &self,
-        project_id: &i32,
         module_id: &Vec<i32>,
         page_size: &i64,
         offset: &i64,
     ) -> AppResult<Vec<CaseDetail>> {
         let case_list = get_case_list()
-            .bind(self.executor, project_id, module_id, page_size, offset)
+            .bind(self.executor, module_id, page_size, offset)
             .all()
             .await?
             .into_iter()
@@ -157,7 +156,7 @@ where
     ) -> AppResult<HashMap<String, i64>> {
         let mut module_case_count: HashMap<String, i64> = HashMap::new();
         let _ = count()
-            .bind(self.executor, project_id, is_deleted)
+            .bind(self.executor, is_deleted, project_id)
             .all()
             .await?
             .into_iter()
@@ -169,14 +168,9 @@ where
         Ok(module_case_count)
     }
 
-    pub async fn count_by_module_id(
-        &self,
-        project_id: &i32,
-        module_id: &i32,
-        is_deleted: &bool,
-    ) -> AppResult<i64> {
+    pub async fn count_by_module_id(&self, module_id: &i32, is_deleted: &bool) -> AppResult<i64> {
         let count = count_by_module_id()
-            .bind(self.executor, project_id, module_id, is_deleted)
+            .bind(self.executor, module_id, is_deleted)
             .opt()
             .await?;
         match count {

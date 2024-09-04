@@ -212,7 +212,7 @@ COMMENT ON COLUMN file_module.id IS '文件管理模块ID';
 COMMENT ON COLUMN file_module.project_id IS '关联项目ID';
 COMMENT ON COLUMN file_module.name IS '文件管理模块名称';
 COMMENT ON COLUMN file_module.position IS '文件管理模块排序标识';
-COMMENT ON COLUMN file_module.module_type IS '文件管理模块类型：CASE/BUG/PLAN';
+COMMENT ON COLUMN file_module.module_type IS '文件管理模块类型：CASE/BUG/PLAN/ELEMENT';
 COMMENT ON COLUMN file_module.parent_id IS '文件管理模块父级ID';
 COMMENT ON COLUMN file_module.created_at IS '创建时间';
 COMMENT ON COLUMN file_module.updated_at IS '更新时间';

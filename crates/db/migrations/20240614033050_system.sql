@@ -97,7 +97,7 @@ EXECUTE PROCEDURE trigger_set_timestamp();
 COMMENT ON COLUMN template_custom_field.id IS '模版自定义字段ID';
 COMMENT ON COLUMN template_custom_field.template_id IS '关联模版ID';
 COMMENT ON COLUMN template_custom_field.name IS '模版名称';
-COMMENT ON COLUMN template_custom_field.required IS '是否为必'
+COMMENT ON COLUMN template_custom_field.required IS '是否为必要字段';
 
 
 DROP TABLE IF EXISTS custom_field_option;

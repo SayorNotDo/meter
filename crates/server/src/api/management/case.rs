@@ -27,7 +27,7 @@ use tracing::info;
     responses(
         (status = 200, description = "Get case tree", body = [()]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
-        (status = 404, description = "case tree not found", body = [AppResponseError]),
+        (status = 404, description = "Not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
     ),
     security(("jwt" = []))
@@ -37,7 +37,7 @@ pub async fn tree(
     Path(project_id): Path<i32>,
 ) -> AppResult<Json<Vec<FileModuleResponse>>> {
     info!("case module tree query param: {project_id:?}");
-    match file::file_module_tree(&state, &project_id).await {
+    match file::file_module_tree(&state, &project_id, "CASE".into()).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             info!("Failed to get case module tree");
@@ -68,7 +68,7 @@ pub async fn template(
 #[utoipa::path(
     post,
     path = "case/functional_case",
-    request_body = CreteFunctionalCaseRequest,
+    request_body = CreateFunctionalCaseRequest,
     responses(),
     security(("jwt" = []))
 )]
@@ -86,8 +86,7 @@ pub async fn create_functional_case(
 
 #[utoipa::path(
     get,
-    path = "case/functional_case/id",
-    request_body = GetFunctionalCaseRequest,
+    path = "case/functional-case/:case_id",
     responses(),
     security(("jwt" = []))
 )]
@@ -105,7 +104,7 @@ pub async fn get_functional_case(
 
 #[utoipa::path(
     post,
-    path = "case/functional_case/related-issue",
+    path = "case/functional-case/related-issue",
     request_body = IssueRelationRequest,
     responses(),
     security(("jwt" = []))
@@ -123,7 +122,7 @@ pub async fn create_issue_relation(
 
 #[utoipa::path(
     get,
-    path = "/case/field/:priject_id",
+    path = "/case/field/:project_id",
     params(QueryTemplateParam),
     responses(),
     security(("jwt" = []))

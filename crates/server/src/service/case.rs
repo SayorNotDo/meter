@@ -173,7 +173,7 @@ pub async fn list(
     let next_page_token = generate_page_token(page_size, page_num + 1)?;
     let case_dao = CaseDao::new(&transaction);
     let list = case_dao
-        .get_case_list(project_id, &module_id, &page_size, &offset)
+        .get_case_list(&module_id, &page_size, &offset)
         .await?;
     transaction.commit().await?;
     Ok(ListCaseResponse {
@@ -316,4 +316,8 @@ pub async fn env_diagnose(
 
     let resp = engine::doctor_script(machine, Path::new(&script_path_str)).await?;
     Ok(DiagnoseResponse { msg: resp })
+}
+
+pub async fn exec_case(state: &AppState) -> AppResult<()> {
+    Ok(())
 }

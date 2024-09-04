@@ -78,8 +78,7 @@ SELECT fc.id,
                 WHERE tcf.template_id = fc.template_id), '[]'
        ) AS custom_fields
 FROM functional_cases fc
-WHERE fc.project_id = :project_id
-  AND fc.module_id = ANY(SELECT fm.id FROM file_module fm WHERE fm.id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
+WHERE fc.module_id = ANY(SELECT fm.id FROM file_module fm WHERE fm.id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
   AND fc.deleted = FALSE
 LIMIT :page_size
 OFFSET :offset;
@@ -91,7 +90,6 @@ SELECT
 FROM file_module fm
 LEFT JOIN functional_cases fc
     ON fc.module_id = fm.id
-    AND fc.project_id = :project_id
     AND fc.deleted = :is_deleted
 WHERE
     fm.project_id = :project_id
@@ -103,7 +101,6 @@ SELECT
 FROM functional_cases fc
 WHERE
     fc.module_id = :module_id
-    AND fc.project_id = :project_id
     AND fc.deleted = :is_deleted;
 
 
@@ -113,7 +110,6 @@ SELECT
     fc.name,
     fc.tags,
     fc.template_id,
-    fc.project_id,
     fm.name AS module_name,
     fm.attach_info,
     COALESCE(

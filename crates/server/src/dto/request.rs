@@ -91,8 +91,8 @@ pub struct Issue {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateScriptRequest {
-    pub case_id: i32,
     pub name: String,
+    pub case_id: i32,
     pub environment: String,
     pub pre_processors: Vec<Step>,
     pub steps: Vec<Step>,

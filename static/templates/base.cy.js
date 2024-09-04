@@ -5,7 +5,7 @@ cy.get('{{ raw.selector }}').click()
 {% elif raw.action == 'TYPE' %}
     cy.get('{{ raw.selector }}').type('{{ raw.value }}')
 {% elif raw.action == 'VISIT' %}
-    {% for key, value in raw.value%}
+    {% for key, value in raw.value %}
     {% if key == 'default' %}
     cy.visit('{{ value }}')
     {% endif %}
