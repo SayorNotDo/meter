@@ -4,7 +4,11 @@ use crate::errors::{AppError, AppResult, Resource, ResourceType};
 
 use crate::dao::entity;
 use crate::dao::entity::ElementInfo;
+use crate::utils;
 use db::queries::element::*;
+use time::util;
+
+use super::entity::Element;
 
 #[derive(Debug)]
 pub struct ElementDao<'a, T>
@@ -54,6 +58,38 @@ where
                 resource_type: ResourceType::File,
             })),
         }
+    }
+
+    pub async fn get_element_list(
+        &self,
+        module_id: &Vec<i32>,
+        page_size: i64,
+        offset: i64,
+    ) -> AppResult<Vec<Element>> {
+        let element_list = get_element_list()
+            .bind(self.executor, module_id, page_size, offset)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| {
+                let created_at = utils::time::to_utc(item.created_at);
+                let updated_at = utils::time::to_utc_or_default(item.updated_at);
+                Element {
+                    id: item.id,
+                    name: item.name,
+                    module: item.module_id,
+                    value: item.value,
+                    description: item.description,
+                    element_type: item.element_type,
+                    created_at,
+                    updated_at,
+                    created_by: item.created_by,
+                    updated_by: item.updated_by,
+                    operation_options: vec![],
+                }
+            })
+            .collect::<Vec<_>>();
+        Ok(element_list)
     }
 
     pub async fn count(

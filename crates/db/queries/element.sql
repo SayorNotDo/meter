@@ -39,3 +39,17 @@ LEFT JOIN elements e
 WHERE
     fm.project_id = :project_id
 GROUP BY fm.name;
+
+--! get_element_list : (updated_at?, updated_by?)
+SELECT  e.id,
+        e.name,
+        (SELECT name FROM file_module WHERE file_module.id = e.module_id) AS module_name
+        e.value,
+        e.description,
+        e.element_type,
+        e.created_at,
+        (SELECT name FROM users WHERE users.uuid = e.created_by) AS created_by,
+        e.updated_at,
+        (SELECT name FROM users WHERE users.uuid = e.updated_by) AS updated_by
+FROM elements e
+WHERE e.module_id = ANY(SELECT fm.id FROM file_module)

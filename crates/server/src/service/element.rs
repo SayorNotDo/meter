@@ -5,13 +5,16 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::{
-    dao::{element::ElementDao, entity::Element},
+    constant::PAGE_DECODE_KEY,
+    dao::{element::ElementDao, entity::Element, file::FileDao},
     dto::{
-        request::{CreateElementRequest, ElementQueryParam},
-        response::ElementResponse,
+        request::{CreateElementRequest, ElementQueryParam, ListQueryParam},
+        response::{ElementResponse, ListElementResoponse},
     },
     errors::AppResult,
+    service::token::generate_page_token,
     state::AppState,
+    utils::claim::PageClaims,
 };
 
 pub async fn create(state: &AppState, uid: Uuid, request: CreateElementRequest) -> AppResult {
@@ -41,17 +44,42 @@ pub async fn exec(state: &AppState, script_id: i32) -> AppResult {
     Ok(())
 }
 
-pub async fn list(_state: &AppState, _project_id: i32) -> AppResult<ElementResponse> {
-    Ok(ElementResponse {
-        id: 0,
-        name: "".into(),
-        description: Option::None,
-        element_type: "TEXT".into(),
-        value: "".into(),
-        created_at: Utc::now(),
-        created_by: "".into(),
-        updated_at: Option::None,
-        updated_by: Option::None,
+pub async fn list(
+    state: &AppState,
+    project_id: &i32,
+    param: &ListQueryParam,
+) -> AppResult<ListElementResoponse> {
+    info!("service layer for list with project_id: {project_id:?}, param: {param:?}");
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let (page_size, page_num) = match &param.page_token {
+        Some(token) => {
+            let page_claims = PageClaims::decode(token.as_str(), &PAGE_DECODE_KEY)?.claims;
+            (page_claims.page_size, page_claims.page_num)
+        }
+        None => {
+            let page_size = param.page_size.unwrap_or(10);
+            (page_size, 0)
+        }
+    };
+    let module_id = if let Some(id) = param.module_id {
+        vec![id]
+    } else {
+        let file_dao = FileDao::new(&transaction);
+        file_dao
+            .get_root_module_id(project_id, "ELEMENT".into())
+            .await?
+    };
+    let offset = page_num * page_size;
+    let next_page_token = generate_page_token(page_size, page_num + 1)?;
+    let element_dao = ElementDao::new(&transaction);
+    let list = element_dao
+        .get_element_list(&module_id, &page_size, &offset)
+        .await?;
+    transaction.commit().await?;
+    Ok(ListElementResoponse {
+        next_page_token,
+        list,
     })
 }
 

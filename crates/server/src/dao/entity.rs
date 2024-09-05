@@ -189,6 +189,7 @@ pub struct CaseModuleInfo {
 pub struct Element {
     pub id: i32,
     pub name: String,
+    pub module: String,
     pub value: String,
     pub element_type: String,
     pub description: Option<String>,
@@ -212,6 +213,7 @@ impl Element {
             id: 0,
             name: name.into(),
             value: value.into(),
+            module_id: 0,
             element_type: element_type.into(),
             description,
             created_at: Utc::now(),

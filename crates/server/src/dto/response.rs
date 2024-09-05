@@ -4,7 +4,7 @@ use utoipa::ToSchema;
 
 use crate::constant::BEARER;
 use crate::dao::entity::{
-    CaseDetail, CustomField, User, UserRole, UserRolePermission, UserRoleRelation,
+    CaseDetail, CustomField, Element, User, UserRole, UserRolePermission, UserRoleRelation,
 };
 use crate::dao::project::ProjectInfo;
 
@@ -109,6 +109,12 @@ pub struct FileModuleResponse {
 pub struct ListCaseResponse {
     pub next_page_token: String,
     pub list: Vec<CaseDetail>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct ListElementResoponse {
+    pub next_page_token: String,
+    pub list: Vec<Element>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
