@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::errors::{AppError, AppResult, Resource, ResourceType};
 
 use crate::dao::entity;
@@ -52,6 +54,22 @@ where
                 resource_type: ResourceType::File,
             })),
         }
+    }
+
+    pub async fn count(
+        &self,
+        project_id: &i32,
+        is_deleted: &bool,
+    ) -> AppResult<HashMap<String, i64>> {
+        let mut module_element_count: HashMap<String, i64> = HashMap::new();
+        let _ = count()
+            .bind(self.executor, is_deleted, project_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| module_element_count.insert(item.module_name.clone(), item.element_count))
+            .collect::<Vec<_>>();
+        Ok(module_element_count)
     }
 
     #[allow(dead_code)]

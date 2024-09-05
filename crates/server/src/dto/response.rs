@@ -141,7 +141,17 @@ pub struct CaseDetailResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct ElementResponse {}
+pub struct ElementResponse {
+    pub id: i32,
+    pub name: String,
+    pub description: Option<String>,
+    pub element_type: String,
+    pub value: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+}
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CreateScriptResponse {

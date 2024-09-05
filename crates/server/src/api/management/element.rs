@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use crate::{
     dto::{
-        request::CreateElementRequest,
+        request::{CreateElementRequest, ElementQueryParam},
         response::{ElementResponse, FileModuleResponse},
     },
     errors::AppResult,
@@ -9,8 +11,8 @@ use crate::{
     utils::claim::UserClaims,
 };
 use axum::{
-    extract::{Extension, Path},
-    Json,
+    extract::{Path, Query},
+    Extension, Json,
 };
 use tracing::{info, warn};
 
@@ -27,17 +29,17 @@ pub async fn create(
     Extension(state): Extension<AppState>,
     user: UserClaims,
     Json(request): Json<CreateElementRequest>,
-) -> AppResult<Json<ElementResponse>> {
+) -> AppResult {
     info!("controller layer create element with request: {request:?}");
     match element::create(&state, user.uid, request).await {
-        Ok(resp) => Ok(Json(resp)),
+        Ok(_resp) => Ok(()),
         Err(e) => Err(e),
     }
 }
 
-pub async fn info(Extension(_state): Extension<AppState>) -> AppResult<Json<ElementResponse>> {
+pub async fn info(Extension(_state): Extension<AppState>) -> AppResult<Json<()>> {
     info!("controller layer query element information with params");
-    Ok(Json(ElementResponse {}))
+    Ok(Json(()))
 }
 
 #[utoipa::path(
@@ -72,16 +74,35 @@ pub async fn tree(
 pub async fn list(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
-) -> AppResult<Json<()>> {
+) -> AppResult<Json<Vec<ElementResponse>>> {
     info!(
         "controller layer query element list with params: {}",
         project_id
     );
     match element::list(&state, project_id).await {
-        Ok(resp) => Ok(Json(())),
+        Ok(resp) => Ok(Json(vec![resp])),
         Err(e) => {
             warn!("Failed to get element list");
             Err(e)
         }
+    }
+}
+
+#[utoipa::path(
+    get,
+    path = "/management/element/count/:project_id",
+    params(ElementQueryParam),
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn count(
+    Extension(state): Extension<AppState>,
+    Path(project_id): Path<i32>,
+    Query(param): Query<ElementQueryParam>,
+) -> AppResult<Json<HashMap<String, i64>>> {
+    info!("controller layer element count group by module in project: {project_id:?}");
+    match element::count(&state, &project_id, &param).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
     }
 }

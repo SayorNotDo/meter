@@ -5,6 +5,7 @@ CREATE TABLE elements
 (
     id                  SERIAL PRIMARY KEY,
     name                VARCHAR   NOT NULL,
+    module_id  INT      NOT NULL,
     description         VARCHAR,
     type                VARCHAR,
     value               VARCHAR,

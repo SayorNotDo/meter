@@ -27,3 +27,15 @@ SELECT
 FROM elements e
 INNER JOIN operation_option oo ON oo.id = :operation_option_id
 WHERE e.id = :id;
+
+--! count
+SELECT
+    fm.name AS module_name,
+    COUNT(e.id) AS element_count
+FROM file_module fm
+LEFT JOIN elements e
+    ON e.module_id  = fm.id
+    AND e.deleted = :is_deleted
+WHERE
+    fm.project_id = :project_id
+GROUP BY fm.name;

@@ -54,6 +54,12 @@ pub struct CaseQueryParam {
     pub is_deleted: Option<bool>,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct ElementQueryParam {
+    pub is_deleted: Option<bool>,
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateElementRequest {

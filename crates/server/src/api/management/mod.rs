@@ -36,4 +36,5 @@ pub fn app() -> Router {
         .route("/element/:element_id", get(element::info))
         .route("/element/tree/:project", get(element::tree))
         .route("/element/list/:project_id", get(element::list))
+        .route("/element/count/:project_id", get(element::count))
 }
