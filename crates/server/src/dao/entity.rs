@@ -195,8 +195,6 @@ pub struct Element {
     pub description: Option<String>,
     pub created_at: DateTime<Utc>,
     pub created_by: Uuid,
-    pub updated_at: Option<DateTime<Utc>>,
-    pub updated_by: Option<Uuid>,
     pub operation_options: Vec<OperationOption>,
 }
 
@@ -213,16 +211,29 @@ impl Element {
             id: 0,
             name: name.into(),
             value: value.into(),
-            module_id: 0,
+            module: "".into(),
             element_type: element_type.into(),
             description,
             created_at: Utc::now(),
             created_by,
-            updated_at: None,
-            updated_by: None,
             operation_options: Vec::new(),
         }
     }
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ElementDetail {
+    pub id: i32,
+    pub name: String,
+    pub module: String,
+    pub value: String,
+    pub element_type: String,
+    pub description: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+    pub operation_options: Vec<OperationOption>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

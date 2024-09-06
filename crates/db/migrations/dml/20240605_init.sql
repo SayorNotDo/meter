@@ -74,12 +74,12 @@ VALUES ('默认模板',
 -- 文件树调试数据导入
 INSERT INTO file_module
     (project_id, name, module_type, created_by)
-VALUES (1, 'root', 'MODULE', '24578899-b163-48fe-8594-1fa60134ed2d');
+VALUES (1, 'root', 'ELEMENT', '24578899-b163-48fe-8594-1fa60134ed2d');
 
 INSERT INTO file_module
     (project_id, name, module_type, created_by)
-VALUES (1, 'another', 'MODULE', '24578899-b163-48fe-8594-1fa60134ed2d');
+VALUES (1, 'another', 'ELEMENT', '24578899-b163-48fe-8594-1fa60134ed2d');
 
 INSERT INTO file_module
     (project_id, name, module_type, parent_id, created_by)
-VALUES (1, 'sub', 'MODULE', 1, '24578899-b163-48fe-8594-1fa60134ed2d');
+VALUES (1, 'sub', 'ELEMENT', 1, '24578899-b163-48fe-8594-1fa60134ed2d');

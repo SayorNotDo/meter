@@ -4,7 +4,7 @@ INSERT INTO elements
 VALUES(:name, :value, :type, :description, :created_by)
 RETURNING id;
 
---! update (description?, updated_by?) :
+--! update (description?) :
 UPDATE elements
 SET
     name = :name,
@@ -40,16 +40,19 @@ WHERE
     fm.project_id = :project_id
 GROUP BY fm.name;
 
---! get_element_list : (updated_at?, updated_by?)
+--! get_element_list : (updated_at?, updated_by?, description?)
 SELECT  e.id,
         e.name,
-        (SELECT name FROM file_module WHERE file_module.id = e.module_id) AS module_name
+        (SELECT name FROM file_module WHERE file_module.id = e.module_id) AS module_name,
         e.value,
         e.description,
-        e.element_type,
+        e.type AS element_type,
         e.created_at,
         (SELECT name FROM users WHERE users.uuid = e.created_by) AS created_by,
         e.updated_at,
         (SELECT name FROM users WHERE users.uuid = e.updated_by) AS updated_by
 FROM elements e
-WHERE e.module_id = ANY(SELECT fm.id FROM file_module)
+WHERE e.module_id = ANY(SELECT fm.id FROM file_module fm WHERE fm.id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
+AND e.deleted = FALSE
+LIMIT :page_size
+OFFSET :offset;

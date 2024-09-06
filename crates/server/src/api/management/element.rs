@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     dto::{
-        request::{CreateElementRequest, ElementQueryParam},
+        request::{CreateElementRequest, ElementQueryParam, ListQueryParam},
         response::{ElementResponse, FileModuleResponse, ListElementResoponse},
     },
     errors::AppResult,
@@ -14,6 +14,7 @@ use axum::{
     extract::{Path, Query},
     Extension, Json,
 };
+use db::Params;
 use tracing::{info, warn};
 
 #[utoipa::path(
@@ -74,12 +75,13 @@ pub async fn tree(
 pub async fn list(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
+    Query(param): Query<ListQueryParam>,
 ) -> AppResult<Json<ListElementResoponse>> {
     info!(
         "controller layer query element list with params: {}",
         project_id
     );
-    match element::list(&state, project_id).await {
+    match element::list(&state, &project_id, &param).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             warn!("Failed to get element list");

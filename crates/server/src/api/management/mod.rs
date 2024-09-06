@@ -34,7 +34,7 @@ pub fn app() -> Router {
         .route("/case/info/requirement/:project_id", get(case::info))
         .route("/element", post(element::create))
         .route("/element/:element_id", get(element::info))
-        .route("/element/tree/:project", get(element::tree))
+        .route("/element/module/tree/:project", get(element::tree))
         .route("/element/list/:project_id", get(element::list))
         .route("/element/count/:project_id", get(element::count))
 }

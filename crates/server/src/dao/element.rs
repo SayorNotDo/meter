@@ -7,8 +7,10 @@ use crate::dao::entity::ElementInfo;
 use crate::utils;
 use db::queries::element::*;
 use time::util;
+use uuid::Uuid;
+use tracing::info;
 
-use super::entity::Element;
+use super::entity::ElementDetail;
 
 #[derive(Debug)]
 pub struct ElementDao<'a, T>
@@ -63,9 +65,9 @@ where
     pub async fn get_element_list(
         &self,
         module_id: &Vec<i32>,
-        page_size: i64,
-        offset: i64,
-    ) -> AppResult<Vec<Element>> {
+        page_size: &i64,
+        offset: &i64,
+    ) -> AppResult<Vec<ElementDetail>> {
         let element_list = get_element_list()
             .bind(self.executor, module_id, page_size, offset)
             .all()
@@ -74,10 +76,10 @@ where
             .map(|item| {
                 let created_at = utils::time::to_utc(item.created_at);
                 let updated_at = utils::time::to_utc_or_default(item.updated_at);
-                Element {
+                ElementDetail {
                     id: item.id,
                     name: item.name,
-                    module: item.module_id,
+                    module: item.module_name,
                     value: item.value,
                     description: item.description,
                     element_type: item.element_type,
@@ -89,6 +91,7 @@ where
                 }
             })
             .collect::<Vec<_>>();
+        info!("query result: {element_list:?}");
         Ok(element_list)
     }
 
@@ -108,8 +111,7 @@ where
         Ok(module_element_count)
     }
 
-    #[allow(dead_code)]
-    pub async fn update(&self, element: entity::Element) -> AppResult<()> {
+    pub async fn update(&self, element: entity::Element, updated_by: Uuid) -> AppResult<()> {
         update()
             .bind(
                 self.executor,
@@ -117,7 +119,7 @@ where
                 &element.value,
                 &element.element_type,
                 &element.description,
-                &element.updated_by,
+                &updated_by,
                 &element.id,
             )
             .await?;
