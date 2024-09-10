@@ -37,6 +37,10 @@ pub struct ProjectQueryParam {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
+pub struct PlanQueryParam {}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryTemplateParam {
     pub is_default: bool,
 }

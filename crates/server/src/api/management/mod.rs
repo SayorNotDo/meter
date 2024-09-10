@@ -39,4 +39,6 @@ pub fn app() -> Router {
         .route("/element/list/:project_id", get(element::list))
         .route("/element/count/:project_id", get(element::count))
         .route("/test-plan", post(plan::create))
+        .route("/test-plan/module/tree/:project_id", get(plan::tree))
+        .route("/test-plan/module/count/:project_id", get(plan::count))
 }

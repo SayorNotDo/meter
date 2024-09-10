@@ -1,9 +1,11 @@
+use std::collections::HashMap;
+
 use tracing::info;
 use uuid::Uuid;
 
 use crate::{
     dao::{entity::Plan, plan::PlanDao},
-    dto::request::CreatePlanRequest,
+    dto::request::{CreatePlanRequest, PlanQueryParam},
     errors::AppResult,
     state::AppState,
 };
@@ -23,4 +25,12 @@ pub async fn create(state: &AppState, uid: Uuid, request: CreatePlanRequest) -> 
     );
     let _plan_id = plan_dao.create(plan).await?;
     Ok(())
+}
+
+pub async fn count(
+    _state: &AppState,
+    _project_id: &i32,
+    _param: &PlanQueryParam,
+) -> AppResult<HashMap<String, i64>> {
+    Ok(HashMap::new())
 }
