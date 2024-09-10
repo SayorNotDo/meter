@@ -8,7 +8,7 @@ use crate::{
     dao::{element::ElementDao, entity::Element, file::FileDao},
     dto::{
         request::{CreateElementRequest, ElementQueryParam, ListQueryParam},
-        response::{ElementResponse, ListElementResoponse},
+        response::ListElementResoponse,
     },
     errors::AppResult,
     service::token::generate_page_token,

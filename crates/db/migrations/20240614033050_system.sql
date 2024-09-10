@@ -105,7 +105,6 @@ DROP TABLE IF EXISTS custom_field_option;
 CREATE TABLE custom_field_option
 (
     id       SERIAL PRIMARY KEY,
-    name     VARCHAR NOT NULL,
     field_id INT     NOT NULL,
     value    VARCHAR NOT NULL,
     position INT     NOT NULL
@@ -113,6 +112,9 @@ CREATE TABLE custom_field_option
 
 -- comments
 COMMENT ON COLUMN custom_field_option.id IS '选项值ID';
+COMMENT ON COLUMN custom_field_option.field_id IS '所属字段ID';
+COMMENT ON COLUMN custom_field_option.value IS '选项值';
+COMMENT ON COLUMN custom_field_option.position IS '选项值序列';
 
 
 -- migrate:down

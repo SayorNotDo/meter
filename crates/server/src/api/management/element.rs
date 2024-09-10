@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     dto::{
         request::{CreateElementRequest, ElementQueryParam, ListQueryParam},
-        response::{ElementResponse, FileModuleResponse, ListElementResoponse},
+        response::{FileModuleResponse, ListElementResoponse},
     },
     errors::AppResult,
     service::{element, file},
@@ -14,7 +14,6 @@ use axum::{
     extract::{Path, Query},
     Extension, Json,
 };
-use db::Params;
 use tracing::{info, warn};
 
 #[utoipa::path(
@@ -33,7 +32,7 @@ pub async fn create(
 ) -> AppResult {
     info!("controller layer create element with request: {request:?}");
     match element::create(&state, user.uid, request).await {
-        Ok(_resp) => Ok(()),
+        Ok(resp) => Ok(resp),
         Err(e) => Err(e),
     }
 }

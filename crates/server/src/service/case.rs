@@ -318,6 +318,7 @@ pub async fn env_diagnose(
     Ok(DiagnoseResponse { msg: resp })
 }
 
-pub async fn exec_case(state: &AppState) -> AppResult<()> {
+#[allow(dead_code)]
+pub async fn exec_case(_state: &AppState) -> AppResult<()> {
     Ok(())
 }

@@ -6,9 +6,8 @@ use crate::dao::entity;
 use crate::dao::entity::ElementInfo;
 use crate::utils;
 use db::queries::element::*;
-use time::util;
-use uuid::Uuid;
 use tracing::info;
+use uuid::Uuid;
 
 use super::entity::ElementDetail;
 

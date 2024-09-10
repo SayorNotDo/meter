@@ -1,3 +1,4 @@
+use crate::utils::time;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -125,6 +126,45 @@ pub struct FieldOption {
     pub name: String,
     pub value: String,
     pub position: i32,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct Plan {
+    pub id: i32,
+    pub name: String,
+    pub project_id: i32,
+    pub module_id: i32,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: Uuid,
+    pub description: Option<String>,
+    pub start_date: Option<DateTime<Utc>>,
+    pub end_date: Option<DateTime<Utc>>,
+}
+
+impl Plan {
+    pub fn new(
+        name: &str,
+        project_id: i32,
+        module_id: i32,
+        created_by: Uuid,
+        description: Option<String>,
+        start_date: Option<DateTime<Utc>>,
+        end_date: Option<DateTime<Utc>>,
+    ) -> Self {
+        Plan {
+            id: 0,
+            name: name.to_string(),
+            project_id,
+            module_id,
+            created_at: Utc::now(),
+            created_by,
+            status: "NEW".into(),
+            description,
+            start_date,
+            end_date,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -269,7 +309,7 @@ pub struct Step {
     pub attach_info: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Machine {
     pub addr: String,
     pub authentication: String,

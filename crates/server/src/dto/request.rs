@@ -1,4 +1,5 @@
 use crate::dao::entity::{CustomField, Step};
+use chrono::{DateTime, Utc};
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -52,6 +53,17 @@ pub struct ListQueryParam {
 #[serde(rename_all = "camelCase")]
 pub struct CaseQueryParam {
     pub is_deleted: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct CreatePlanRequest {
+    pub name: String,
+    pub description: Option<String>,
+    pub project_id: i32,
+    pub module_id: i32,
+    pub start_date: Option<DateTime<Utc>>,
+    pub end_date: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]

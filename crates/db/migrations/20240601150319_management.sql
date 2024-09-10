@@ -40,6 +40,67 @@ CREATE TRIGGER set_timestamp_project
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
+DROP TABLE IF EXISTS plans;
+
+CREATE TABLE plans
+(
+    id  SERIAL PRIMARY KEY,
+    name    VARCHAR NOT NULL,
+    project_id INT NOT NULL,
+    description VARCHAR,
+    module_id   INT NOT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by  UUID NOT NULL,
+    updated_at  TIMESTAMP,
+    updated_by  UUID,
+    status  VARCHAR NOT NULL DEFAULT 'NEW',
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at  TIMESTAMP,
+    deleted_by UUID,
+    start_date  DATE,
+    end_date    DATE
+);
+
+-- create trigger: set update_at field
+CREATE TRIGGER set_timestamp_plan
+    BEFORE UPDATE
+    ON plans
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+-- comments
+COMMENT ON COLUMN plans.id IS '测试计划ID';
+COMMENT ON COLUMN plans.name IS '测试计划名称';
+COMMENT ON COLUMN plans.description IS '测试计划描述';
+COMMENT ON COLUMN plans.module_id IS '所属模块ID';
+COMMENT ON COLUMN plans.created_at IS '创建时间';
+COMMENT ON COLUMN plans.created_by IS '创建人';
+COMMENT ON COLUMN plans.updated_at IS '更新时间';
+COMMENT ON COLUMN plans.updated_by IS '更新人';
+COMMENT ON COLUMN plans.deleted IS '是否删除';
+COMMENT ON COLUMN plans.deleted_at IS '删除时间';
+COMMENT ON COLUMN plans.deleted_by IS '删除人';
+COMMENT ON COLUMN plans.start_date IS '起始日期';
+COMMENT ON COLUMN plans.end_date IS '结束日期';
+
+DROP TABLE IF EXISTS plan_case_relation;
+
+CREATE TABLE plan_case_relation
+(
+    id  SERIAL PRIMARY KEY,
+    plan_id INT NOT NULL,
+    case_id INT NOT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by  UUID NOT NULL
+);
+
+-- comments
+COMMENT ON COLUMN plan_case_relation.id IS '计划-用例关联关系ID';
+COMMENT ON COLUMN plan_case_relation.plan_id IS '测试计划ID';
+COMMENT ON COLUMN plan_case_relation.case_id IS '测试用例ID';
+COMMENT ON COLUMN plan_case_relation.created_at IS '创建时间';
+COMMENT ON COLUMN plan_case_relation.created_by IS '创建人';
+
 DROP TABLE IF EXISTS organizations;
 
 CREATE TABLE organizations

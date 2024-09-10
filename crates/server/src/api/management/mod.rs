@@ -3,6 +3,7 @@ use axum::Router;
 
 mod case;
 mod element;
+mod plan;
 mod project;
 
 pub fn app() -> Router {
@@ -37,4 +38,5 @@ pub fn app() -> Router {
         .route("/element/module/tree/:project", get(element::tree))
         .route("/element/list/:project_id", get(element::list))
         .route("/element/count/:project_id", get(element::count))
+        .route("/test-plan", post(plan::create))
 }

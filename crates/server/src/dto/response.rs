@@ -4,7 +4,7 @@ use utoipa::ToSchema;
 
 use crate::constant::BEARER;
 use crate::dao::entity::{
-    CaseDetail, CustomField, Element, ElementDetail, User, UserRole, UserRolePermission,
+    CaseDetail, CustomField, ElementDetail, User, UserRole, UserRolePermission,
     UserRoleRelation,
 };
 use crate::dao::project::ProjectInfo;
