@@ -1,4 +1,3 @@
-use crate::utils::time;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -126,6 +125,22 @@ pub struct FieldOption {
     pub name: String,
     pub value: String,
     pub position: i32,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct PlanDetail {
+    pub id: i32,
+    pub name: String,
+    pub description: Option<String>,
+    pub belong_project: String,
+    pub belong_module: String,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: DateTime<Utc>,
+    pub updated_by: String,
+    pub start_date: Option<DateTime<Utc>>,
+    pub end_date: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

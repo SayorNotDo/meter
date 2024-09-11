@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use crate::utils::time;
-use db::queries::plan::insert;
+use db::queries::plan::*;
+use tracing::info;
 
 use crate::{dao::entity::Plan, errors::AppResult};
 
@@ -33,5 +36,36 @@ where
             .one()
             .await?;
         Ok(plan_id)
+    }
+
+    pub async fn count_by_module_id(&self, module_id: &i32, is_deleted: bool) -> AppResult<i32> {
+        let count = count_by_module_id()
+            .bind(self.executor, module_id, &is_deleted)
+            .opt()
+            .await?;
+        match count {
+            Some(c) => Ok(c as i32),
+            None => Ok(0),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub async fn count(
+        &self,
+        project_id: &i32,
+        is_deleted: bool,
+    ) -> AppResult<HashMap<String, i64>> {
+        let mut plan_module_count: HashMap<String, i64> = HashMap::new();
+        let _ = count()
+            .bind(self.executor, &is_deleted, project_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| {
+                info!("{item:?}");
+                plan_module_count.insert(item.module_name.clone(), item.plan_count)
+            })
+            .collect::<Vec<_>>();
+        Ok(plan_module_count)
     }
 }

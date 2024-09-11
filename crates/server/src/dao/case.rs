@@ -168,13 +168,13 @@ where
         Ok(module_case_count)
     }
 
-    pub async fn count_by_module_id(&self, module_id: &i32, is_deleted: &bool) -> AppResult<i64> {
+    pub async fn count_by_module_id(&self, module_id: &i32, is_deleted: bool) -> AppResult<i32> {
         let count = count_by_module_id()
-            .bind(self.executor, module_id, is_deleted)
+            .bind(self.executor, module_id, &is_deleted)
             .opt()
             .await?;
         match count {
-            Some(c) => Ok(c),
+            Some(c) => Ok(c as i32),
             None => Ok(0),
         }
     }

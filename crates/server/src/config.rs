@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use crate::utils;
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
     pub http: ConfigHTTP,
@@ -11,6 +12,7 @@ pub struct Config {
     pub storage: ConfigStorage,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConfigHTTP {

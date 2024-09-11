@@ -27,3 +27,10 @@ WHERE
     parent_id IS NULL
     AND project_id = :project_id
     AND module_type = :module_type;
+
+
+--! insert_file_module (parent_id?)
+INSERT INTO
+    file_module (project_id, name, position, module_type, parent_id, created_by)
+    VALUES (:project_id, :name, :position, :module_type, :parent_id, :created_by)
+RETURNING id;

@@ -28,9 +28,17 @@ pub async fn create(state: &AppState, uid: Uuid, request: CreatePlanRequest) -> 
 }
 
 pub async fn count(
-    _state: &AppState,
-    _project_id: &i32,
-    _param: &PlanQueryParam,
+    state: &AppState,
+    project_id: &i32,
+    param: &PlanQueryParam,
 ) -> AppResult<HashMap<String, i64>> {
+    info!("service layer for plan count with project_id: {project_id}, param: {param:?}");
+    let mut client = state.pool.get().await?;
+    let plan_dao = PlanDao::new(&mut client);
+    let is_deleted = if let Some(is_deleted) = param.is_deleted {
+        is_deleted
+    } else {
+        false
+    };
     Ok(HashMap::new())
 }

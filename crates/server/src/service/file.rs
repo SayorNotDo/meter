@@ -1,14 +1,15 @@
-use tracing::info;
-
-use crate::dao;
+use crate::dao::{self, entity::FileModule};
 use crate::dto::response::FileModuleResponse;
 use crate::errors::AppResult;
 use crate::state::AppState;
 use std::collections::HashMap;
+use tracing::info;
+use uuid::Uuid;
 
 #[derive(Debug)]
 enum ModuleType {
     Case,
+    Plan,
     Unknown,
 }
 
@@ -16,9 +17,33 @@ impl ModuleType {
     fn from_str(module_type: &str) -> Self {
         match module_type {
             "CASE" => ModuleType::Case,
+            "PLAN" => ModuleType::Plan,
             _ => ModuleType::Unknown,
         }
     }
+}
+
+pub async fn create_file_module(
+    state: &AppState,
+    uid: Uuid,
+    project_id: &i32,
+    module_type: &str,
+    parent_id: Option<i32>,
+    module_name: &str,
+) -> AppResult {
+    let mut client = state.pool.get().await?;
+    let file_dao = dao::file::FileDao::new(&mut client);
+    let file_module = FileModule {
+        id: 0,
+        name: module_name.into(),
+        position: 0,
+        module_type: module_type.into(),
+        parent_id,
+    };
+    let _module_id = file_dao
+        .insert_file_module(&uid, project_id, &file_module)
+        .await?;
+    Ok(())
 }
 
 pub async fn file_module_tree(
@@ -39,7 +64,13 @@ pub async fn file_module_tree(
             ModuleType::Case => {
                 info!("get case count by module_id: {:?}", &item.id);
                 let case_dao = dao::case::CaseDao::new(&mut client);
-                let ret = case_dao.count_by_module_id(&item.id, &false).await?;
+                let ret = case_dao.count_by_module_id(&item.id, false).await?;
+                ret
+            }
+            ModuleType::Plan => {
+                info!("get plan count by module_id: {:?}", &item.id);
+                let plan_dao = dao::plan::PlanDao::new(&mut client);
+                let ret = plan_dao.count_by_module_id(&item.id, false).await?;
                 ret
             }
             ModuleType::Unknown => {

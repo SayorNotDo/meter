@@ -1,7 +1,7 @@
 use crate::{
     dto::{
-        request::{CreatePlanRequest, PlanQueryParam},
-        response::FileModuleResponse,
+        request::{CreateModuleRequest, CreatePlanRequest, PlanQueryParam},
+        response::{FileModuleResponse, ListPlanResponse},
     },
     service::{file, plan},
 };
@@ -32,7 +32,11 @@ pub async fn create(
     }
 }
 
-#[utoipa::path(get, path = "/management/plan/module/tree/:project_id", responses())]
+#[utoipa::path(
+    get,
+    path = "/management/test-plan/module/tree/:project_id",
+    responses()
+)]
 pub async fn tree(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
@@ -49,7 +53,7 @@ pub async fn tree(
 
 #[utoipa::path(
     get,
-    path = "/management/case/count/:project_id",
+    path = "/management/test-plan/module/count/:project_id",
     params(PlanQueryParam),
     responses(
         (status = 200, description = "Get case module info", body = [()]),
@@ -67,6 +71,47 @@ pub async fn count(
     info!("controller layer case count group by module in project: {project_id:?}");
     match plan::count(&state, &project_id, &param).await {
         Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    get,
+    path = "/management/test-plan/list/:project",
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn list() -> AppResult<Json<ListPlanResponse>> {
+    Ok(Json(ListPlanResponse {
+        next_page_token: "".into(),
+        list: vec![],
+    }))
+}
+
+#[utoipa::path(
+    post,
+    path = "/management/test-plan/module",
+    request_body = CreateModuleRequest,
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn create_module(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(request): Json<CreateModuleRequest>,
+) -> AppResult {
+    info!("controller layer create module with body: {request:?}");
+    match file::create_file_module(
+        &state,
+        user.uid,
+        &request.project_id,
+        "PLAN".into(),
+        request.parent_id,
+        &request.name,
+    )
+    .await
+    {
+        Ok(resp) => Ok(resp),
         Err(e) => Err(e),
     }
 }

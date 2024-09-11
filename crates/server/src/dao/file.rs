@@ -2,6 +2,7 @@ use crate::dao::entity;
 use crate::dao::entity::FileModule;
 use crate::errors::AppResult;
 use db::queries::file::*;
+use uuid::Uuid;
 
 trait ToFileModule {
     fn to_file_module(&self) -> entity::FileModule;
@@ -67,5 +68,26 @@ where
             .all()
             .await?;
         Ok(module_id_list)
+    }
+
+    pub async fn insert_file_module(
+        &self,
+        uid: &Uuid,
+        project_id: &i32,
+        file_module: &FileModule,
+    ) -> AppResult<i32> {
+        let module_id = insert_file_module()
+            .bind(
+                self.executor,
+                project_id,
+                &file_module.name,
+                &file_module.position,
+                &file_module.module_type,
+                &file_module.parent_id,
+                uid,
+            )
+            .one()
+            .await?;
+        Ok(module_id)
     }
 }

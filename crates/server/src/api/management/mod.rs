@@ -41,4 +41,6 @@ pub fn app() -> Router {
         .route("/test-plan", post(plan::create))
         .route("/test-plan/module/tree/:project_id", get(plan::tree))
         .route("/test-plan/module/count/:project_id", get(plan::count))
+        .route("/test-plan/module", post(plan::create_module))
+        .route("/test-plan/list/:project_id", get(plan::list))
 }

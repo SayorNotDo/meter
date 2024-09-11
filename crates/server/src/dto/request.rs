@@ -37,7 +37,9 @@ pub struct ProjectQueryParam {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct PlanQueryParam {}
+pub struct PlanQueryParam {
+    pub is_deleted: Option<bool>,
+}
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
@@ -74,6 +76,14 @@ pub struct CreatePlanRequest {
 #[serde(rename_all = "camelCase")]
 pub struct ElementQueryParam {
     pub is_deleted: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateModuleRequest {
+    pub name: String,
+    pub project_id: i32,
+    pub parent_id: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
