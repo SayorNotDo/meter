@@ -193,3 +193,8 @@ SELECT
     updated_at
 FROM machine
 WHERE id = :id;
+
+--! delete_by_module_id
+UPDATE functional_cases
+SET deleted = true, deleted_at = NOW(), deleted_by = :deleted_by
+WHERE module_id = :module_id;

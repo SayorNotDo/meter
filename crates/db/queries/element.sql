@@ -40,6 +40,14 @@ WHERE
     fm.project_id = :project_id
 GROUP BY fm.name;
 
+--! count_by_module_id
+SELECT
+    COUNT(e.id) AS count
+FROM elements e
+WHERE
+    e.module_id = :module_id
+AND deleted = :is_deleted;
+
 --! get_element_list : (updated_at?, updated_by?, description?)
 SELECT  e.id,
         e.name,

@@ -1,6 +1,6 @@
 use crate::{
     dto::{
-        request::{CreateModuleRequest, CreatePlanRequest, PlanQueryParam},
+        request::{CreateModuleRequest, CreatePlanRequest, ListQueryParam, PlanQueryParam},
         response::{FileModuleResponse, ListPlanResponse},
     },
     service::{file, plan},
@@ -81,11 +81,17 @@ pub async fn count(
     responses(),
     security(("jwt" = []))
 )]
-pub async fn list() -> AppResult<Json<ListPlanResponse>> {
-    Ok(Json(ListPlanResponse {
-        next_page_token: "".into(),
-        list: vec![],
-    }))
+pub async fn list(
+    Extension(state): Extension<AppState>,
+    _user: UserClaims,
+    Path(project_id): Path<i32>,
+    Query(param): Query<ListQueryParam>,
+) -> AppResult<Json<ListPlanResponse>> {
+    info!("controller layer plan list query with project_id: {project_id:?}");
+    match plan::list(&state, &project_id, &param).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
 }
 
 #[utoipa::path(

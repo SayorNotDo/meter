@@ -67,6 +67,13 @@ where
         CaseDao { executor }
     }
 
+    pub async fn delete_by_module_id(&self, deleted_by: &Uuid, module_id: &i32) -> AppResult {
+        let _ = delete_by_module_id()
+            .bind(self.executor, deleted_by, module_id)
+            .await?;
+        Ok(())
+    }
+
     pub async fn get_template(
         &self,
         project_id: &i32,

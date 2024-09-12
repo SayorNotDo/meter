@@ -6,7 +6,8 @@ use axum_extra::extract::WithRejection;
 
 use crate::dao::entity::CustomField;
 use crate::dto::request::{
-    CaseQueryParam, CreateFunctionalCaseRequest, DiagnoseRequest, IssueRelationRequest,
+    CaseQueryParam, CreateFunctionalCaseRequest, CreateModuleRequest, DiagnoseRequest,
+    IssueRelationRequest,
 };
 use crate::dto::response::{
     CaseDetailResponse, CreateScriptResponse, DiagnoseResponse, ListCaseResponse, TemplateResponse,
@@ -47,6 +48,48 @@ pub async fn tree(
 }
 
 #[utoipa::path(
+    post,
+    path = "/management/case/module",
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn create_module(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(request): Json<CreateModuleRequest>,
+) -> AppResult {
+    info!("case module create with request: {request:?}");
+    match file::create_file_module(
+        &state,
+        user.uid,
+        &request.project_id,
+        "CASE".into(),
+        request.parent_id,
+        &request.name,
+    )
+    .await
+    {
+        Ok(resp) => Ok(resp),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    delete,
+    path = "/management/case/module/:module_id",
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn delete_module(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Path(module_id): Path<i32>,
+) -> AppResult {
+    info!("delete case module with module_id: {module_id}");
+    Ok(())
+}
+
+#[utoipa::path(
     get,
     path = "/case/template/:project_id",
     params(QueryTemplateParam),
@@ -67,7 +110,7 @@ pub async fn template(
 
 #[utoipa::path(
     post,
-    path = "case/functional_case",
+    path = "/management/case/functional_case",
     request_body = CreateFunctionalCaseRequest,
     responses(),
     security(("jwt" = []))

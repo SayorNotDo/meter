@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use utoipa::ToSchema;
@@ -137,10 +137,10 @@ pub struct PlanDetail {
     pub status: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
-    pub updated_at: DateTime<Utc>,
-    pub updated_by: String,
-    pub start_date: Option<DateTime<Utc>>,
-    pub end_date: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+    pub start_date: Option<NaiveDate>,
+    pub end_date: Option<NaiveDate>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

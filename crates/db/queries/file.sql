@@ -24,7 +24,7 @@ SELECT
 FROM
     file_module
 WHERE
-    parent_id IS NULL
+    parent_id IS NULL OR parent_id = 0
     AND project_id = :project_id
     AND module_type = :module_type;
 
@@ -34,3 +34,7 @@ INSERT INTO
     file_module (project_id, name, position, module_type, parent_id, created_by)
     VALUES (:project_id, :name, :position, :module_type, :parent_id, :created_by)
 RETURNING id;
+
+--! delete_file_module
+DELETE FROM file_module
+WHERE id = :module_id;

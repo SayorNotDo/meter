@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use time::{Date, OffsetDateTime, PrimitiveDateTime};
 
 pub fn to_utc(original_time: PrimitiveDateTime) -> DateTime<Utc> {
@@ -18,4 +18,11 @@ pub fn to_date(datetime: DateTime<Utc>) -> Date {
 
 pub fn to_date_or_default(opt_datetime: Option<DateTime<Utc>>) -> Option<Date> {
     opt_datetime.map(to_date)
+}
+
+pub fn to_naive_date(opt_date: Option<Date>) -> Option<NaiveDate> {
+    match opt_date {
+        Some(date) => NaiveDate::from_ymd_opt(date.year(), date.month() as u32, date.day() as u32),
+        None => NaiveDate::from_ymd_opt(0, 0, 0),
+    }
 }

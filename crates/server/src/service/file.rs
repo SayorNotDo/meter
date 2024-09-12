@@ -10,6 +10,7 @@ use uuid::Uuid;
 enum ModuleType {
     Case,
     Plan,
+    Element,
     Unknown,
 }
 
@@ -18,6 +19,7 @@ impl ModuleType {
         match module_type {
             "CASE" => ModuleType::Case,
             "PLAN" => ModuleType::Plan,
+            "ELEMENT" => ModuleType::Element,
             _ => ModuleType::Unknown,
         }
     }
@@ -64,14 +66,17 @@ pub async fn file_module_tree(
             ModuleType::Case => {
                 info!("get case count by module_id: {:?}", &item.id);
                 let case_dao = dao::case::CaseDao::new(&mut client);
-                let ret = case_dao.count_by_module_id(&item.id, false).await?;
-                ret
+                case_dao.count_by_module_id(&item.id, false).await?
             }
             ModuleType::Plan => {
                 info!("get plan count by module_id: {:?}", &item.id);
                 let plan_dao = dao::plan::PlanDao::new(&mut client);
-                let ret = plan_dao.count_by_module_id(&item.id, false).await?;
-                ret
+                plan_dao.count_by_module_id(&item.id, false).await?
+            }
+            ModuleType::Element => {
+                info!("get element count by module_id: {:?}", &item.id);
+                let element_dao = dao::element::ElementDao::new(&mut client);
+                element_dao.count_by_module_id(&item.id, false).await?
             }
             ModuleType::Unknown => {
                 info!("unknown type");
@@ -91,9 +96,10 @@ pub async fn file_module_tree(
             },
         );
     }
+    info!("original data for module_map: {module_map:?}");
     /* 构建树结构 */
     for item in file_modules.iter() {
-        if item.parent_id.is_none() {
+        if item.parent_id.is_none() || Some(0) == item.parent_id {
             if let Some(mut root) = module_map.remove(&item.id) {
                 build_tree(&mut root, &mut module_map);
                 file_module_tree.push(root);
@@ -104,7 +110,7 @@ pub async fn file_module_tree(
     for root in file_module_tree.iter_mut() {
         update_path(root, "".to_string())
     }
-
+    info!("finish construct module tree: {file_module_tree:?}");
     Ok(file_module_tree)
 }
 

@@ -93,6 +93,16 @@ pub async fn create_functional_case(
     Ok(())
 }
 
+pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) -> AppResult {
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let case_dao = CaseDao::new(&transaction);
+
+    let _ = case_dao.delete_by_module_id(&uid, &module_id).await?;
+
+    Ok(())
+}
+
 pub async fn get_functional_case(state: &AppState, case_id: i32) -> AppResult<CaseDetailResponse> {
     info!("service layer get functional case with case_id {case_id:?}");
     let client = state.pool.get().await?;
