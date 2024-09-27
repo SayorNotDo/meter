@@ -3,6 +3,7 @@ use axum::Router;
 
 mod case;
 mod element;
+mod member;
 mod plan;
 mod project;
 
@@ -45,4 +46,5 @@ pub fn app() -> Router {
         .route("/test-plan/module/count/:project_id", get(plan::count))
         .route("/test-plan/module", post(plan::create_module))
         .route("/test-plan/list/:project_id", get(plan::list))
+        .route("/member/add", post(member::add))
 }

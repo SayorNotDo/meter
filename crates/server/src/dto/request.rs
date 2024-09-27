@@ -138,6 +138,13 @@ pub struct DiagnoseRequest {
     pub script_name: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AddMemberRequest {
+    pub uid: i32,
+    pub role: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
