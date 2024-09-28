@@ -234,7 +234,7 @@ CREATE TABLE machine
     created_by UUID NOT NULL,
     updated_at TIMESTAMP,
     updated_by UUID
-)
+);
 
 --create trigger: set updated_at field
 CREATE TRIGGER set_timestamp_machine

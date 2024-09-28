@@ -71,7 +71,7 @@ COMMENT ON COLUMN element_operation_option.element_id IS '元素ID';
 COMMENT ON COLUMN element_operation_option.option_id IS '可选操作ID';
 
 
-DROP TABLE IF EXISTS script
+DROP TABLE IF EXISTS script;
 
 CREATE TABLE script (
     id  SERIAL PRIMARY KEY,
@@ -84,7 +84,7 @@ CREATE TABLE script (
     updated_by UUID
 );
 
-DROP TABLE IF EXISTS environment
+DROP TABLE IF EXISTS environment;
 
 CREATE TABLE environment (
     id              SERIAL PRIMARY KEY,

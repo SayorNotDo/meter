@@ -20,7 +20,6 @@ SELECT t.id,
                                                     (SELECT JSON_AGG(
                                                     JSON_BUILD_OBJECT(
                                                             'id', cfo.id,
-                                                            'name', cfo.name,
                                                             'value', cfo.value,
                                                             'position', cfo.position
                                                             )
@@ -47,7 +46,6 @@ SELECT cf.id,
                (SELECT JSON_AGG(
                                JSON_BUILD_OBJECT(
                                        'id', cfo.id,
-                                       'name', cfo.name,
                                        'value', cfo.value,
                                        'position', cfo.position
                                )
@@ -62,7 +60,6 @@ AND cf.internal = :internal;
 
 --! get_field_option_by_id
 SELECT id,
-       name,
        value,
        position
 FROM custom_field_option

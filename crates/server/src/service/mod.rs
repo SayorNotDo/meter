@@ -2,7 +2,6 @@ pub mod case;
 pub mod element;
 pub mod engine;
 pub mod file;
-pub mod member;
 pub mod plan;
 pub mod project;
 mod redis;

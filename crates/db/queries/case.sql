@@ -64,7 +64,6 @@ SELECT fc.id,
                                                (SELECT JSON_AGG(
                                                                JSON_BUILD_OBJECT(
                                                                        'id', cfo.id,
-                                                                       'name', cfo.name,
                                                                        'value', cfo.value,
                                                                        'position', cfo.position
                                                                )
@@ -125,7 +124,6 @@ SELECT
                                             (SELECT JSON_AGG(
                                                             JSON_BUILD_OBJECT(
                                                                     'id', cfo.id,
-                                                                    'name', cfo.name,
                                                                     'value', cfo.value,
                                                                     'position', cfo.position
                                                             )
