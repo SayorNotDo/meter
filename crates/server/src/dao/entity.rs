@@ -65,6 +65,12 @@ pub struct UserRoleRelation {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct UserRoleOption {
+    pub id: i32,
+    pub name: String
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct UserRolePermission {
     pub user_role: UserRole,
     pub user_role_permissions: Vec<Permission>,

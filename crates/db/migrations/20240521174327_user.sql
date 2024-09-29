@@ -86,7 +86,7 @@ CREATE TABLE user_role_relation
     id              SERIAL PRIMARY KEY,
     user_id         UUID,
     role_id         INT,
-    organization_id INT,
+    project_id      INT NOT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by      UUID,
     updated_at      TIMESTAMP,

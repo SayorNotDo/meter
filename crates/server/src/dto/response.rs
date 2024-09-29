@@ -83,6 +83,12 @@ impl TokenResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct UserRoleOption {
+    pub id: i32,
+    pub name: String
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UserInfoResponse {
     pub username: String,
     pub email: String,

@@ -1,10 +1,9 @@
 --! find_project_by_id : (updated_at?, updated_by?, deleted_at?, deleted_by?, description?, module_setting?)
 SELECT p.id,
        p.name,
-       o.name                                                                                                  AS organization,
        CAST((SELECT COUNT(*)
              FROM users
-                      LEFT JOIN user_role_relation urr ON urr.organization_id = p.organization_id) AS INTEGER) AS member_count,
+                      LEFT JOIN user_role_relation urr ON urr.project_id = p.id) AS INTEGER) AS member_count,
        p.created_at,
        uc.username                                                                                             AS created_by,
        p.updated_at,
@@ -16,7 +15,6 @@ SELECT p.id,
        p.description,
        p.module_setting
 FROM projects p
-         LEFT JOIN organizations o ON p.organization_id = o.id
          LEFT JOIN users uc ON p.created_by = uc.uuid
          LEFT JOIN users uu ON p.updated_by = uu.uuid
          LEFT JOIN users ud ON p.deleted_by = ud.uuid

@@ -64,6 +64,13 @@ FROM users u
          JOIN users creator ON creator.uuid = r.created_by
 WHERE u.uuid = :uuid;
 
+--! get_user_role_list_by_project_id
+SELECT urr.role_id as id,
+       ur.name
+FROM user_role_relation urr
+LEFT JOIN user_role ur ON urr.role_id = ur.id
+WHERE urr.project_id = :project_id;
+
 --! get_user_role_relations_by_uuid
 SELECT urr.id,
        urr.created_at,

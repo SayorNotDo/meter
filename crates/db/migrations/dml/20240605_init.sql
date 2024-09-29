@@ -51,11 +51,11 @@ VALUES ('admin',
 INSERT INTO user_role_relation
 (user_id,
  role_id,
- organization_id,
+ project_id,
  created_by)
 VALUES ((SELECT uuid FROM users WHERE username = 'admin'),
         (SELECT id FROM user_role WHERE name = 'admin'),
-        (SELECT id FROM organizations WHERE name = '默认组织'),
+        (SELECT id FROM projects WHERE name = '默认项目'),
         (SELECT uuid FROM users WHERE username = 'admin'));
 
 -- 初始化功能用例模版

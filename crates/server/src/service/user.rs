@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::dao;
 use crate::dao::{entity::UserRolePermission, user::UserDao};
 use crate::dto::request::*;
-use crate::dto::response::MessageResponse;
+use crate::dto::response::{MessageResponse, UserRoleOption};
 use crate::dto::response::{LoginResponse, UserInfoResponse};
 use crate::errors::AppResult;
 use crate::service::redis::SessionKey;
@@ -94,6 +94,10 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
         user_role_permissions: permissions_list,
         user_role_relations,
     })
+}
+
+pub async fn role_list(state: &AppState, project_id: i32) -> AppResult<Vec<UserRoleOption>> {
+    Ok(vec![])
 }
 
 pub async fn check_unique_username_or_email(
