@@ -59,7 +59,7 @@ pub struct UserRoleRelation {
     pub id: i32,
     pub user_id: Uuid,
     pub role_id: i32,
-    pub organization_id: i32,
+    pub project_id: i32,
     pub created_by: String,
     pub created_at: DateTime<Utc>,
 }
@@ -67,7 +67,7 @@ pub struct UserRoleRelation {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct UserRoleOption {
     pub id: i32,
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

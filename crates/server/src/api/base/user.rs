@@ -1,9 +1,10 @@
-use crate::dto::response::{UserInfoResponse, UserRoleOption};
+use crate::dao::entity::UserRoleOption;
+use crate::dto::response::UserInfoResponse;
 use crate::errors::AppResult;
 use crate::service;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
-use axum::{Extension, Json, extract::Path};
+use axum::{extract::Path, Extension, Json};
 use tracing::{info, warn};
 
 #[utoipa::path(
@@ -48,11 +49,11 @@ pub async fn list(Extension(state): Extension<AppState>) -> AppResult<()> {
 pub async fn role_list(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
-    user: UserClaims
+    user: UserClaims,
 ) -> AppResult<Json<Vec<UserRoleOption>>> {
     info!("controller layer get user role list with project_id: {project_id}");
     match service::user::role_list(&state, project_id).await {
         Ok(resp) => Ok(Json(resp)),
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }

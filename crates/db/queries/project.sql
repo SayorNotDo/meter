@@ -33,7 +33,7 @@ SELECT p.id,
              FROM users
                       LEFT JOIN
                   user_role_relation urr ON
-                      urr.organization_id = p.organization_id) AS INTEGER) AS member_count,
+                      urr.project_id = p.id) AS INTEGER) AS member_count,
        p.deleted,
        p.deleted_at,
        p.enable,
@@ -58,7 +58,7 @@ SELECT
     u.last_organization_id
 FROM users u
     INNER JOIN user_role_relation urr ON urr.user_id = u.uuid
-    INNER JOIN projects p ON urr.organization_id = p.organization_id
+    INNER JOIN projects p ON urr.project_id = p.id
 WHERE p.id = :project_id;
 
 

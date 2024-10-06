@@ -23,7 +23,6 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
         id: project.id,
         name: project.name,
         member_count: project.member_count,
-        organization: project.organization,
         description: project.description,
         created_by: project.created_by,
         created_at: project.created_at,

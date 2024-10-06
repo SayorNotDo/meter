@@ -162,7 +162,10 @@ impl<'a> UserDao<'a> {
         Ok(ret)
     }
 
-    pub async fn get_user_role_list_by_project_id() -> AppResult<Vec<entity::UserRoleOption>> {
+    pub async fn get_user_role_list_by_project_id(
+        &self,
+        project_id: &i32,
+    ) -> AppResult<Vec<entity::UserRoleOption>> {
         let mut ret = vec![];
         let user_roles = get_user_role_list_by_project_id()
             .bind(self.client, project_id)
@@ -171,10 +174,11 @@ impl<'a> UserDao<'a> {
         for item in user_roles {
             let user_role = entity::UserRoleOption {
                 id: item.id,
-                name: item.name
-            }
+                name: item.name,
+            };
+            ret.push(user_role);
         }
-        Ok(vec![])
+        Ok(ret)
     }
 
     pub async fn get_user_role_relations_by_uuid(
@@ -192,7 +196,7 @@ impl<'a> UserDao<'a> {
                 id: item.id,
                 user_id: item.user_id,
                 role_id: item.role_id,
-                organization_id: item.organization_id,
+                project_id: item.project_id,
                 created_by: item.created_by,
                 created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
             };

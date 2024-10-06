@@ -77,7 +77,7 @@ SELECT urr.id,
        urr.user_id,
        urr.role_id,
        creator.username as created_by,
-       urr.organization_id
+       urr.project_id
 FROM users u
          JOIN user_role_relation urr ON u.uuid = urr.user_id
          JOIN users creator ON creator.uuid = urr.created_by
@@ -102,6 +102,6 @@ SELECT u.id,
        u.last_project_id
 FROM users u
 JOIN user_role_relation urr ON u.uuid = urr.user_id
-JOIN projects p ON urr.organization_id = p.organization_id
+JOIN projects p ON urr.project_id = p.id
 JOIN user_role ur ON urr.role_id = ur.id
 WHERE p.id = :project_id AND ur.name = :role_name;

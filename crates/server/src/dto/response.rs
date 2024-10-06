@@ -26,7 +26,6 @@ impl MessageResponse {
 pub struct ProjectInfoResponse {
     pub id: i32,
     pub name: String,
-    pub organization: String,
     pub description: Option<String>,
     pub module_list: Vec<String>,
     pub creator_is_admin: bool,
@@ -85,7 +84,7 @@ impl TokenResponse {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UserRoleOption {
     pub id: i32,
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

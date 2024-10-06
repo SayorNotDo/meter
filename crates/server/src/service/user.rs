@@ -2,9 +2,12 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::dao;
-use crate::dao::{entity::UserRolePermission, user::UserDao};
+use crate::dao::{
+    entity::{UserRoleOption, UserRolePermission},
+    user::UserDao,
+};
 use crate::dto::request::*;
-use crate::dto::response::{MessageResponse, UserRoleOption};
+use crate::dto::response::MessageResponse;
 use crate::dto::response::{LoginResponse, UserInfoResponse};
 use crate::errors::AppResult;
 use crate::service::redis::SessionKey;
@@ -97,7 +100,13 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
 }
 
 pub async fn role_list(state: &AppState, project_id: i32) -> AppResult<Vec<UserRoleOption>> {
-    Ok(vec![])
+    let client = state.pool.get().await?;
+    let user_dao = UserDao::new(&client);
+
+    let role_list = user_dao
+        .get_user_role_list_by_project_id(&project_id)
+        .await?;
+    Ok(role_list)
 }
 
 pub async fn check_unique_username_or_email(

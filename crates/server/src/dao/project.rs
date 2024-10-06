@@ -28,7 +28,6 @@ pub struct Project {
 pub struct ProjectInfo {
     pub id: i32,
     pub name: String,
-    pub organization: String,
     pub member_count: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
@@ -82,7 +81,6 @@ macro_rules! impl_to_project {
                 ProjectInfo {
                     id: self.id,
                     name: self.name.clone(),
-                    organization: self.organization.clone(),
                     member_count: self.member_count,
                     created_at,
                     created_by: self.created_by.clone(),
