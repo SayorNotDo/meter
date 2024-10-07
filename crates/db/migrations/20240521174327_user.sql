@@ -96,7 +96,7 @@ CREATE TABLE user_role_relation
 -- comments
 COMMENT ON COLUMN user_role_relation.user_id IS '用户ID';
 COMMENT ON COLUMN user_role_relation.role_id IS '角色ID';
-COMMENT ON COLUMN user_role_relation.organization_id IS '组织ID';
+COMMENT ON COLUMN user_role_relation.project_id IS '关联项目ID';
 COMMENT ON COLUMN user_role_relation.created_at IS '创建时间';
 COMMENT ON COLUMN user_role_relation.created_by IS '创建人';
 COMMENT ON COLUMN user_role_relation.updated_at IS '更新时间';

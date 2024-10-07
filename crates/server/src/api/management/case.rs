@@ -81,8 +81,8 @@ pub async fn create_module(
     security(("jwt" = []))
 )]
 pub async fn delete_module(
-    Extension(state): Extension<AppState>,
-    user: UserClaims,
+    Extension(_state): Extension<AppState>,
+    _user: UserClaims,
     Path(module_id): Path<i32>,
 ) -> AppResult {
     info!("delete case module with module_id: {module_id}");
