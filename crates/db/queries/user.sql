@@ -1,4 +1,4 @@
---! get_users : (updated_at?, last_organization_id?, last_project_id?)
+--! get_users : (updated_at?, last_project_id?)
 SELECT id,
        uuid,
        username,
@@ -6,7 +6,6 @@ SELECT id,
        email,
        created_at,
        updated_at,
-       last_organization_id,
        last_project_id
 FROM users;
 
@@ -15,7 +14,7 @@ INSERT INTO users (username, hashed_password, email, uuid)
 VALUES (:username, :hashed_password, :email, :uuid)
 RETURNING id;
 
---! get_user_by_username (username?) : (updated_at?, last_organization_id?, last_project_id?)
+--! get_user_by_username (username?) : (updated_at?, last_project_id?)
 SELECT id,
        uuid,
        username,
@@ -23,7 +22,6 @@ SELECT id,
        email,
        created_at,
        updated_at,
-       last_organization_id,
        last_project_id
 FROM users
 WHERE username = :username;
@@ -36,7 +34,7 @@ SELECT id,
 FROM users
 WHERE email = :email;
 
---! get_user_by_uuid : (updated_at?, last_organization_id?, last_project_id?)
+--! get_user_by_uuid : (updated_at?, last_project_id?)
 SELECT id,
        uuid,
        username,
@@ -44,7 +42,6 @@ SELECT id,
        email,
        created_at,
        updated_at,
-       last_organization_id,
        last_project_id
 FROM users
 WHERE uuid = :uuid;
@@ -90,7 +87,7 @@ SELECT id,
 FROM user_role_permission
 WHERE role_id = :role_id;
 
---! get_users_by_role_and_project_id : (updated_at?, last_organization_id?, last_project_id?)
+--! get_users_by_role_and_project_id : (updated_at?, last_project_id?)
 SELECT u.id,
        u.uuid,
        u.username,
@@ -98,7 +95,6 @@ SELECT u.id,
        u.email,
        u.created_at,
        u.updated_at,
-       u.last_organization_id,
        u.last_project_id
 FROM users u
 JOIN user_role_relation urr ON u.uuid = urr.user_id

@@ -32,8 +32,7 @@ macro_rules! impl_to_user {
                     email: self.email.clone(),
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
-                    last_project_id: self.last_project_id,
-                    last_organization_id: self.last_organization_id
+                    last_project_id: self.last_project_id
                 }
             }
         }
@@ -239,7 +238,6 @@ impl<'a> UserDao<'a> {
         Ok(user_id)
     }
 
-    #[allow(dead_code)]
     pub async fn all(&self) -> AppResult<Vec<entity::User>> {
         let users = get_users()
             .bind(self.client)

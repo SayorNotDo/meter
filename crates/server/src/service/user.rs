@@ -1,20 +1,21 @@
 use tracing::info;
 use uuid::Uuid;
 
-use crate::dao;
-use crate::dao::{
-    entity::{UserRoleOption, UserRolePermission},
-    user::UserDao,
+use crate::{
+    dao::{
+        self,
+        entity::{User, UserRoleOption, UserRolePermission},
+        user::UserDao,
+    },
+    dto::{
+        request::*,
+        response::{LoginResponse, MessageResponse, UserInfoResponse},
+    },
+    errors::AppResult,
+    service::{redis::SessionKey, session, token},
+    state::AppState,
+    utils,
 };
-use crate::dto::request::*;
-use crate::dto::response::MessageResponse;
-use crate::dto::response::{LoginResponse, UserInfoResponse};
-use crate::errors::AppResult;
-use crate::service::redis::SessionKey;
-use crate::service::session;
-use crate::service::token;
-use crate::state::AppState;
-use crate::utils;
 
 /* 用户注册 */
 pub async fn register(state: &AppState, request: RegisterRequest) -> AppResult<i32> {
@@ -91,12 +92,18 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
         email: user.email,
         created_at: user.created_at,
         updated_at: user.updated_at,
-        last_organization_id: user.last_organization_id,
         last_project_id: user.last_project_id,
         user_roles,
         user_role_permissions: permissions_list,
         user_role_relations,
     })
+}
+
+pub async fn list(state: &AppState, _uid: Uuid) -> AppResult<Vec<User>> {
+    let client = state.pool.get().await?;
+    let user_dao = UserDao::new(&client);
+    let users = user_dao.all().await?;
+    Ok(users)
 }
 
 pub async fn role_list(state: &AppState, project_id: i32) -> AppResult<Vec<UserRoleOption>> {

@@ -37,16 +37,10 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
     })
 }
 
-pub async fn list(
-    state: &AppState,
-    uid: Uuid,
-    organization_id: i32,
-) -> AppResult<Vec<ProjectInfo>> {
+pub async fn list(state: &AppState, uid: Uuid) -> AppResult<Vec<ProjectInfo>> {
     let client = state.pool.get().await?;
     let project_dao = ProjectDao::new(&client);
-    let projects = project_dao
-        .find_projects_by_uid(uid, organization_id)
-        .await?;
+    let projects = project_dao.find_projects_by_uid(uid).await?;
     Ok(projects)
 }
 

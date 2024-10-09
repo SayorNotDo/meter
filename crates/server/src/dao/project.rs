@@ -115,13 +115,9 @@ impl<'a> ProjectDao<'a> {
         Ok(())
     }
 
-    pub async fn find_projects_by_uid(
-        &self,
-        uid: Uuid,
-        organization_id: i32,
-    ) -> AppResult<Vec<ProjectInfo>> {
+    pub async fn find_projects_by_uid(&self, uid: Uuid) -> AppResult<Vec<ProjectInfo>> {
         let ret = find_projects_by_uid()
-            .bind(self.client, &uid, &organization_id)
+            .bind(self.client, &uid)
             .all()
             .await?
             .into_iter()
@@ -144,7 +140,6 @@ impl<'a> ProjectDao<'a> {
             .bind(
                 self.client,
                 &object.name.as_str(),
-                &object.organization_id,
                 &object.created_by,
                 &description,
                 &module_setting,
@@ -180,7 +175,6 @@ impl<'a> ProjectDao<'a> {
                     email: item.email,
                     created_at,
                     last_project_id: item.last_project_id,
-                    last_organization_id: item.last_organization_id,
                 }
             })
             .collect::<Vec<_>>();

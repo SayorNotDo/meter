@@ -13,6 +13,6 @@ pub fn app() -> Router {
         .route("/auth/is-login", get(auth::is_login))
         .route("/auth/token/refresh", post(auth::token_refresh))
         .route("/user/info", get(user::info))
-        .route("/user/list", get(user::list))
+        .route("/user/list/:project_id", get(user::list))
         .route("/user/role/list/:project_id", get(user::role_list))
 }

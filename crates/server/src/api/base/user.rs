@@ -35,8 +35,18 @@ pub async fn info(
     }
 }
 
-#[utoipa::path(get, path = "/user/list", responses())]
-pub async fn list(Extension(_state): Extension<AppState>) -> AppResult<()> {
+#[utoipa::path(
+    get,
+    path = "/user/list/:project_id",
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn list(
+    Extension(_state): Extension<AppState>,
+    Path(_project_id): Path<i32>,
+    _user: UserClaims,
+) -> AppResult<()> {
+    info!("controller layer get user list");
     Ok(())
 }
 

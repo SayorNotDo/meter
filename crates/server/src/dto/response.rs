@@ -92,7 +92,6 @@ pub struct UserInfoResponse {
     pub username: String,
     pub email: String,
     pub created_at: DateTime<Utc>,
-    pub last_organization_id: Option<i32>,
     pub last_project_id: Option<i32>,
     pub updated_at: Option<DateTime<Utc>>,
     pub user_role_permissions: Vec<UserRolePermission>,
@@ -109,6 +108,11 @@ pub struct FileModuleResponse {
     pub module_type: String,
     pub count: i32,
     pub children: Vec<FileModuleResponse>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct ListUserResponse {
+    pub list: Vec<User>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

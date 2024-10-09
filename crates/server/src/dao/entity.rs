@@ -13,7 +13,6 @@ pub struct User {
     pub email: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
-    pub last_organization_id: Option<i32>,
     pub last_project_id: Option<i32>,
 }
 
@@ -37,7 +36,6 @@ impl User {
             created_at: Utc::now(),
             updated_at: None,
             last_project_id: None,
-            last_organization_id: None,
         }
     }
 }
@@ -83,7 +81,6 @@ pub struct ProjectMember {
     pub email: String,
     pub created_at: DateTime<Utc>,
     pub last_project_id: Option<i32>,
-    pub last_organization_id: Option<i32>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
