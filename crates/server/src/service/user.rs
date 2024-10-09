@@ -22,13 +22,16 @@ pub async fn register(state: &AppState, request: RegisterRequest) -> AppResult<i
     info!("Register a new user request: {request:?}.");
     /* 验证注册用户的用户名与邮箱唯一性 */
     check_unique_username_or_email(&state.pool, &request.username, &request.email).await?;
+    /* 生成随机密码 */
+    let password = utils::password::generate().await?;
     /* 创建用户 */
-    let hashed_password = utils::password::hash(request.password).await?;
+    let hashed_password = utils::password::hash(password.into()).await?;
     let new_user =
         dao::entity::User::new(&request.username, &hashed_password, &request.email, true);
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
     let user_id = user_dao.insert(new_user).await?;
+    /* 增加邮件发送逻辑 */
     Ok(user_id)
 }
 

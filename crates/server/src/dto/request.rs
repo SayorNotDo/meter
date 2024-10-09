@@ -10,8 +10,8 @@ pub struct RegisterRequest {
     pub username: String,
     #[garde(email)]
     pub email: String,
-    #[garde(length(min = 8))]
-    pub password: String,
+    // #[garde(length(min = 8))]
+    // pub password: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate, ToSchema)]
@@ -20,6 +20,11 @@ pub struct LoginRequest {
     pub username: String,
     #[garde(length(min = 8))]
     pub password: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub struct UserStatusRequest {
+    pub enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
@@ -154,7 +159,7 @@ mod tests {
         let req = RegisterRequest {
             username: "username".into(),
             email: "email".into(),
-            password: "password".into(),
+            // password: "password".into(),
         };
         assert!(req.validate(&()).is_err());
     }

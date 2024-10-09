@@ -21,6 +21,10 @@ pub async fn verify(password: String, hash: String) -> AppResult {
     }
 }
 
+pub async fn generate() -> AppResult<String> {
+    Ok("".into())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

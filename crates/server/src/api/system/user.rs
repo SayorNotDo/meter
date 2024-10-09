@@ -1,5 +1,5 @@
 use crate::{
-    dao::entity::User, dto::response::ListUserResponse, errors::AppResult, service,
+    dao::entity::User, dto::{response::ListUserResponse, request::UserStatusRequest}, errors::AppResult, service,
     state::AppState, utils::claim::UserClaims,
 };
 use axum::{Extension, Json};
@@ -20,4 +20,19 @@ pub async fn list(
         Ok(resp) => Ok(Json(ListUserResponse { list: resp })),
         Err(e) => Err(e),
     }
+}
+
+#[utoipa::path(
+    put,
+    path = "/user/status",
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn update_status(
+    Extension(_state): Extension<AppState>,
+    _user: UserClaims,
+    Json(request): Json<UserStatusRequest>
+) -> AppResult<()> {
+    info!("controller layer update user status with request: {request:?}");
+    Ok(())
 }
