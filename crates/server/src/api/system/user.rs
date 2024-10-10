@@ -1,6 +1,9 @@
 use crate::{
-    dao::entity::User, dto::{response::ListUserResponse, request::UserStatusRequest}, errors::AppResult, service,
-    state::AppState, utils::claim::UserClaims,
+    dto::{request::UserStatusRequest, response::ListUserResponse},
+    errors::AppResult,
+    service,
+    state::AppState,
+    utils::claim::UserClaims,
 };
 use axum::{Extension, Json};
 use tracing::info;
@@ -31,7 +34,7 @@ pub async fn list(
 pub async fn update_status(
     Extension(_state): Extension<AppState>,
     _user: UserClaims,
-    Json(request): Json<UserStatusRequest>
+    Json(request): Json<UserStatusRequest>,
 ) -> AppResult<()> {
     info!("controller layer update user status with request: {request:?}");
     Ok(())

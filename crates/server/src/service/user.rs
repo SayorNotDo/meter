@@ -18,10 +18,14 @@ use crate::{
 };
 
 /* 用户注册 */
-pub async fn register(state: &AppState, request: RegisterRequest) -> AppResult<i32> {
+pub async fn batch_register(state: &AppState, request: RegisterRequest) -> AppResult<i32> {
     info!("Register a new user request: {request:?}.");
-    /* 验证注册用户的用户名与邮箱唯一性 */
-    check_unique_username_or_email(&state.pool, &request.username, &request.email).await?;
+    /* TODO: 新增逻辑批量创建用户 */
+    request.user_info_list.iter().for_each(|&item| {
+        /* 验证注册用户的用户名与邮箱唯一性 */
+        check_unique_username_or_email(&state, item.username, item.email).await?;
+    });
+
     /* 生成随机密码 */
     let password = utils::password::generate().await?;
     /* 创建用户 */
@@ -33,6 +37,17 @@ pub async fn register(state: &AppState, request: RegisterRequest) -> AppResult<i
     let user_id = user_dao.insert(new_user).await?;
     /* 增加邮件发送逻辑 */
     Ok(user_id)
+}
+
+/* 单个用户注册 */
+pub async fn register(state: &AppState, username: String, email: String) -> AppResult<()> {
+    info!("Register new user with username: {username}, email: {email}");
+    check_unique_username_or_email(state, username, email).await?;
+    /* 生成随机密码 */
+    let password = utils::password::generate().await?;
+    let hashed_password = utils::password::hash(password.into()).await?;
+
+    Ok(())
 }
 
 /* 用户登录 */
@@ -120,11 +135,11 @@ pub async fn role_list(state: &AppState, project_id: i32) -> AppResult<Vec<UserR
 }
 
 pub async fn check_unique_username_or_email(
-    pool: &db::Pool,
-    username: &str,
-    email: &str,
+    state: &AppState,
+    username: String,
+    email: String,
 ) -> AppResult {
-    let client = pool.get().await?;
+    let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
     user_dao.check_unique_by_username(username).await?;
     user_dao.check_unique_by_email(email).await

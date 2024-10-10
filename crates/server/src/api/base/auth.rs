@@ -3,10 +3,10 @@ use axum::Json;
 use garde::Validate;
 use tracing::{info, warn};
 
-use crate::{dto::request::*, dto::response::*, service};
 use crate::errors::AppResult;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
+use crate::{dto::request::*, dto::response::*, service};
 
 /// User Register
 #[utoipa::path(
@@ -22,14 +22,13 @@ use crate::utils::claim::UserClaims;
 pub async fn register(
     Extension(state): Extension<AppState>,
     Json(request): Json<RegisterRequest>,
-) -> AppResult<Json<RegisterResponse>> {
+) -> AppResult<()> {
     info!("Register new user with request: {request:?}");
-    request.validate(&())?;
+    request.user_info_list.validate(&())?;
     match service::user::register(&state, request).await {
         Ok(user_id) => {
             info!("Successfully register user: {user_id}");
-            let resp = RegisterResponse { id: user_id };
-            Ok(Json(resp))
+            Ok(())
         }
         Err(e) => {
             warn!("Failed to register user: {e:?}");
@@ -87,9 +86,7 @@ pub async fn logout(
     match service::user::logout(&state, user.uid).await {
         Ok(_) => {
             info!("Logout successfully");
-            Ok(Json(MessageResponse::new(
-                "This user has logged out.",
-            )))
+            Ok(Json(MessageResponse::new("This user has logged out.")))
         }
         Err(e) => {
             warn!("Failed to logout: {e:?}");
@@ -113,7 +110,7 @@ pub async fn is_login(
     Extension(state): Extension<AppState>,
     user: UserClaims,
 ) -> AppResult<Json<LoginResponse>> {
-    info!("Check if user is already login: {}",user.uid);
+    info!("Check if user is already login: {}", user.uid);
     /* 获取用户的access token
      * 检验成功后返回刷新的access token
      */
