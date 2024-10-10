@@ -25,9 +25,9 @@ pub async fn register(
 ) -> AppResult<()> {
     info!("Register new user with request: {request:?}");
     request.user_info_list.validate(&())?;
-    match service::user::register(&state, request).await {
-        Ok(user_id) => {
-            info!("Successfully register user: {user_id}");
+    match service::user::batch_register(&state, request).await {
+        Ok(_) => {
+            info!("Successfully register user");
             Ok(())
         }
         Err(e) => {
