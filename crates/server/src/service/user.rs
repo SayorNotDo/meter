@@ -21,10 +21,9 @@ use crate::{
 pub async fn batch_register(state: &AppState, request: RegisterRequest) -> AppResult<()> {
     info!("Register a new user request: {request:?}.");
     /* TODO: 新增逻辑批量创建用户 */
-    request.user_info_list.iter().for_each(|item| {
-        /* 验证注册用户的用户名与邮箱唯一性 */
-        // register(state, item.username, item.email).await?;
-    });
+    for item in request.user_info_list {
+        register(state, item.username, item.email).await?;
+    }
     Ok(())
 }
 
@@ -35,11 +34,10 @@ pub async fn register(state: &AppState, username: String, email: String) -> AppR
     /* 生成随机密码 */
     let password = utils::password::generate().await?;
     let hashed_password = utils::password::hash(password.into()).await?;
-    let new_user =
-        dao::entity::User::new(&username, &hashed_password, &email, true);
+    let new_user = dao::entity::User::new(&username, &hashed_password, &email, true);
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
-    let user_id = user_dao.insert(new_user).await?;
+    user_dao.insert(new_user).await?;
     /* 增加邮件发送逻辑 */
 
     Ok(())

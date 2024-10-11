@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct RegisterRequest {
     pub user_info_list: Vec<UserInfo>,
 }
