@@ -30,6 +30,7 @@ macro_rules! impl_to_user {
                     uuid: self.uuid,
                     hashed_password,
                     email: self.email.clone(),
+                    enable: self.enable,
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
                     last_project_id: self.last_project_id
@@ -67,6 +68,13 @@ impl<'a> UserDao<'a> {
                 resource_type: ResourceType::User,
             })),
         }
+    }
+
+    pub async fn batch_update_user_status(&self, enable: bool, uid_list: Vec<i32>) -> AppResult {
+        update_status()
+            .bind(self.client, &enable, &uid_list)
+            .await?;
+        Ok(())
     }
 
     pub async fn find_by_role_and_project_id(

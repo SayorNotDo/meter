@@ -1,4 +1,4 @@
-use axum::routing::{get, put};
+use axum::routing::{delete, get, put};
 use axum::Router;
 
 mod parameter;
@@ -9,4 +9,5 @@ pub fn app() -> Router {
         .route("/parameter/save/base-url", get(parameter::save_baseurl))
         .route("/user/list", get(user::list))
         .route("/user/status", put(user::update_status))
+        .route("/user", delete(user::delete))
 }

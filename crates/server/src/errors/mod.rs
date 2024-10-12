@@ -5,6 +5,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use lettre::transport::smtp::Error as SmtpError;
 use serde::{Deserialize, Serialize};
 use ssh2::Error as SshError;
 use strum::EnumString;
@@ -93,6 +94,10 @@ pub enum AppError {
     TeraError(#[from] TeraError),
     #[error(transparent)]
     SshError(#[from] SshError),
+    #[error(transparent)]
+    SmtpError(#[from] SmtpError),
+    #[error(transparent)]
+    LettreError(#[from] lettre::error::Error),
 }
 
 pub fn invalid_input_error(field: &'static str, message: &'static str) -> AppError {
@@ -272,6 +277,18 @@ impl AppError {
             ),
             SshError(_err) => (
                 "SSH_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            SmtpError(_err) => (
+                "SMTP_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            LettreError(_err) => (
+                "LETTRE_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,

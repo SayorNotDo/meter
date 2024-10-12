@@ -1,5 +1,8 @@
 use crate::{
-    dto::{request::UserStatusRequest, response::ListUserResponse},
+    dto::{
+        request::{UserDeleteRequest, UserStatusRequest},
+        response::ListUserResponse,
+    },
     errors::AppResult,
     service,
     state::AppState,
@@ -32,10 +35,22 @@ pub async fn list(
     security(("jwt" = []))
 )]
 pub async fn update_status(
-    Extension(_state): Extension<AppState>,
+    Extension(state): Extension<AppState>,
     _user: UserClaims,
     Json(request): Json<UserStatusRequest>,
-) -> AppResult<()> {
+) -> AppResult {
     info!("controller layer update user status with request: {request:?}");
+    match service::user::update_status(&state, request).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(delete, path = "/user", responses(), security(("jwt" = [])))]
+pub async fn delete(
+    Extension(_state): Extension<AppState>,
+    Json(request): Json<UserDeleteRequest>,
+) -> AppResult {
+    info!("controller layer delete user with ids: {request:?}");
     Ok(())
 }

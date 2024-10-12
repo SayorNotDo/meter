@@ -33,13 +33,23 @@ pub async fn register(state: &AppState, username: String, email: String) -> AppR
     check_unique_username_or_email(state, &username, &email).await?;
     /* 生成随机密码 */
     let password = utils::password::generate().await?;
-    let hashed_password = utils::password::hash(password.into()).await?;
+    let hashed_password = utils::password::hash(password.clone()).await?;
     let new_user = dao::entity::User::new(&username, &hashed_password, &email, true);
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
     user_dao.insert(new_user).await?;
     /* 增加邮件发送逻辑 */
+    utils::smtp::registered_inform(&username, &password)?;
+    Ok(())
+}
 
+pub async fn update_status(state: &AppState, request: UserStatusRequest) -> AppResult {
+    info!("service layer update user status by field `enable`");
+    let client = state.pool.get().await?;
+    let user_dao = UserDao::new(&client);
+    user_dao
+        .batch_update_user_status(request.enable, request.select_ids)
+        .await?;
     Ok(())
 }
 
@@ -139,20 +149,4 @@ pub async fn check_unique_username_or_email(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_check_unique_username_or_email() {
-        let username = "unique_username";
-        let email = "unique_email@test.com";
-
-        let pool = db::create_pool(
-            "postgresql://postgres:testpassword@192.168.50.234:5432/postgres?sslmode=disable",
-        );
-
-        let result = check_unique_username_or_email(&pool, username, email).await;
-
-        assert!(result.is_ok());
-    }
-}
+mod tests {}

@@ -93,6 +93,7 @@ pub async fn create_functional_case(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) -> AppResult {
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;

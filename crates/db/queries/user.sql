@@ -4,6 +4,7 @@ SELECT id,
        username,
        hashed_password,
        email,
+       enable,
        created_at,
        updated_at,
        last_project_id
@@ -14,12 +15,22 @@ INSERT INTO users (username, hashed_password, email, uuid)
 VALUES (:username, :hashed_password, :email, :uuid)
 RETURNING id;
 
+--! update_status
+UPDATE users
+SET enable = :enable
+WHERE id = ANY(:uid);
+
+--! delete_user
+DELETE FROM users
+WHERE id = ANY(:uid);
+
 --! get_user_by_username (username?) : (updated_at?, last_project_id?)
 SELECT id,
        uuid,
        username,
        hashed_password,
        email,
+       enable,
        created_at,
        updated_at,
        last_project_id
@@ -40,6 +51,7 @@ SELECT id,
        username,
        hashed_password,
        email,
+       enable,
        created_at,
        updated_at,
        last_project_id
@@ -93,6 +105,7 @@ SELECT u.id,
        u.username,
        u.hashed_password,
        u.email,
+       u.enable,
        u.created_at,
        u.updated_at,
        u.last_project_id

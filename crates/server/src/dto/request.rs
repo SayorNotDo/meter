@@ -27,8 +27,15 @@ pub struct LoginRequest {
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct UserStatusRequest {
-    pub enabled: bool,
+    pub select_ids: Vec<i32>,
+    pub enable: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub struct UserDeleteRequest {
+    pub ids: Vec<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]

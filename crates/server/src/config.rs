@@ -10,6 +10,7 @@ pub struct Config {
     pub http: ConfigHTTP,
     pub jwt: ConfigJWT,
     pub storage: ConfigStorage,
+    pub smtp: ConfigSMTP,
 }
 
 #[allow(dead_code)]
@@ -57,6 +58,16 @@ pub struct ConfigStorage {
     pub redis_url: String,
     pub script_path: String,
     pub template_path: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConfigSMTP {
+    pub host: String,
+    pub port: u16,
+    pub tls_off: bool,
+    pub username: String,
+    pub password: String,
 }
 
 impl Config {
