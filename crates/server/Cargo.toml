@@ -8,14 +8,9 @@ edition = "2021"
 [dependencies]
 axum = "0.7.5"
 db = { path = "../db" }
-tokio = { version = "1.37.0", default-features = false, features = [
-    "macros",
-    "fs",
-    "rt-multi-thread",
-] }
-
+tokio = { version = "1.37.0", features = ["full"] }
 serde = { version = "1.0.198", features = ["derive"] }
-tower-http = { version = "0.5.2", features = ["cors", "trace"] }
+tower-http = { version = "0.6.1", features = ["cors", "trace", "timeout"] }
 
 # Errors
 anyhow = "1.0.86"
