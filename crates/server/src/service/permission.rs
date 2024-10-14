@@ -1,20 +1,27 @@
 use crate::{
-    dao::{entity::Permission, permission::PermissionDao},
+    dao::{entity::Permission, permission::PermissionDao, user::UserDao},
     errors::AppResult,
     state::AppState,
 };
+use uuid::Uuid;
 
 #[allow(dead_code)]
 pub async fn get_role_permission(state: &AppState, role_id: i32) -> AppResult<Vec<Permission>> {
     let client = state.pool.get().await?;
     let perm_dao = PermissionDao::new(&client);
 
-    let permisson_list = perm_dao.get_permission_by_role_id(role_id).await?;
+    let permission_list = perm_dao.get_permission_by_role_id(role_id).await?;
 
-    Ok(permisson_list)
+    Ok(permission_list)
 }
 
 #[allow(dead_code)]
-pub async fn check_user_permission() -> AppResult {
+pub async fn check_user_permission(state: &AppState, uid: Uuid, project_id: i32) -> AppResult {
+    let client = state.pool.get().await?;
+    let perm_dao = PermissionDao::new(&client);
+    /* TODO: 獲取當前用戶的角色及權限*/
+    let user_dao = UserDao::new(&client);
+    let role = user_dao.get_role_by_uuid_and_project_id(&uid, &project_id).await?;
+    let role_permission_list = perm_dao.get_permission_by_role_id(role.id).await?;
     Ok(())
 }

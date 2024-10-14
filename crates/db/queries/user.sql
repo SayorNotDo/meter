@@ -79,6 +79,21 @@ FROM users u
          JOIN users creator ON creator.uuid = r.created_by
 WHERE u.uuid = :uuid;
 
+--! get_user_role_by_uuid_and_project_id : (updated_at?, description?)
+SELECT r.id,
+       r.name,
+       r.created_at,
+       r.internal,
+       creator.username as created_by,
+       r.updated_at,
+       r.description,
+       r.type           as role_type
+FROM users u
+         JOIN user_role_relation urr ON u.uuid = urr.user_id
+         JOIN user_role r ON urr.role_id = r.id
+         JOIN users creator ON creator.uuid = r.created_by
+WHERE u.uuid = :uuid AND urr.project_id = :project_id;
+
 --! get_user_role_list_by_project_id
 SELECT urr.role_id as id,
        ur.name

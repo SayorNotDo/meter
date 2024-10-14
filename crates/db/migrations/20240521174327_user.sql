@@ -134,7 +134,7 @@ CREATE TABLE permission
     id  SERIAL  PRIMARY KEY,
     module  VARCHAR NOT NULL,
     scope   VARCHAR NOT NULL,
-    created_at  TIMESTAMP   NOT NULL DEFAULT NOW()
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- comments

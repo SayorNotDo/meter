@@ -1,6 +1,7 @@
 use std::vec;
 
 use crate::dao::entity;
+use crate::utils::time;
 use crate::errors::{AppError, AppResult, Resource, ResourceType};
 use chrono::DateTime;
 use db::queries::user::*;
@@ -175,6 +176,25 @@ impl<'a> UserDao<'a> {
             ret.push(user_role);
         }
         Ok(ret)
+    }
+
+    pub async fn get_role_by_uuid_and_project_id(&self, uuid: &Uuid, project_id: &i32) -> AppResult<entity::UserRole> {
+        let role = get_user_role_by_uuid_and_project_id()
+            .bind(self.client, uuid, project_id)
+            .one()
+            .await?;
+        let created_at = time::to_utc(role.created_at);
+        let updated_at = time::to_utc_or_default(role.updated_at);
+        Ok(entity::UserRole {
+            id: role.id,
+            name: role.name,
+            role_type: role.role_type,
+            internal: role.internal,
+            created_at,
+            created_by: role.created_by,
+            updated_at,
+            description: role.description
+        })
     }
 
     pub async fn get_user_role_list_by_project_id(
