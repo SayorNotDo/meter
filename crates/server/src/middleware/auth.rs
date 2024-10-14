@@ -1,12 +1,16 @@
 use std::task::{Context, Poll};
 
-use axum::{body::Body, http::{Request, StatusCode}, response::Response};
+use axum::{
+    body::Body,
+    http::{Request, StatusCode},
+    response::Response,
+};
 use tower::{Layer, Service};
 
-use crate::{constant, service};
 use crate::errors::AppResponseError;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
+use crate::{constant, service};
 
 #[derive(Clone)]
 pub struct AuthLayer;
@@ -25,9 +29,9 @@ pub struct AuthMiddleware<S> {
 }
 
 impl<S> Service<Request<Body>> for AuthMiddleware<S>
-    where
-        S: Service<Request<Body>, Response=Response> + Clone + Send + 'static,
-        S::Future: Send + 'static,
+where
+    S: Service<Request<Body>, Response = Response> + Clone + Send + 'static,
+    S::Future: Send + 'static,
 {
     type Response = S::Response;
     type Error = S::Error;
@@ -43,8 +47,11 @@ impl<S> Service<Request<Body>> for AuthMiddleware<S>
         let future = self.inner.call(req);
         let mut err_msg = String::new();
         Box::pin(async move {
-            // Bypass api which in WHITE_LIST
-            if constant::WHITE_LIST.iter().any(|route| uri.path().starts_with(route)) {
+            // Bypass api which is in WHITE_LIST
+            if constant::WHITE_LIST
+                .iter()
+                .any(|route| uri.path().starts_with(route))
+            {
                 return future.await;
             }
             if let Some(auth_header) = headers.get(constant::AUTHORIZATION) {
@@ -53,7 +60,10 @@ impl<S> Service<Request<Body>> for AuthMiddleware<S>
                         let token = auth_str[6..].trim();
                         match UserClaims::decode(token, &constant::ACCESS_TOKEN_DECODE_KEY) {
                             Ok(user_claims) => {
-                                if service::session::check(&state.redis, &user_claims.claims).await.is_ok() {
+                                if service::session::check(&state.redis, &user_claims.claims)
+                                    .await
+                                    .is_ok()
+                                {
                                     return future.await;
                                 }
                             }
@@ -73,8 +83,10 @@ impl<S> Service<Request<Body>> for AuthMiddleware<S>
                         err_msg,
                         None,
                         vec![],
-                    )).unwrap(),
-                )).unwrap();
+                    ))
+                    .unwrap(),
+                ))
+                .unwrap();
             Ok(resp)
         })
     }

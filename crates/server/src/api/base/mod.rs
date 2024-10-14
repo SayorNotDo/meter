@@ -2,7 +2,7 @@ mod auth;
 pub mod openapi;
 pub mod user;
 
-use axum::routing::{get, post};
+use axum::routing::{get, post, put};
 use axum::Router;
 
 pub fn app() -> Router {
@@ -13,6 +13,7 @@ pub fn app() -> Router {
         .route("/auth/is-login", get(auth::is_login))
         .route("/auth/token/refresh", post(auth::token_refresh))
         .route("/user/info", get(user::info))
+        .route("/user/info", put(user::update))
         .route("/user/list/:project_id", get(user::list))
         .route("/user/role/list/:project_id", get(user::role_list))
 }

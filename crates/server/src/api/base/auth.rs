@@ -14,7 +14,7 @@ use crate::{dto::request::*, dto::response::*, service};
     request_body = RegisterRequest,
     path = "/auth/register",
     responses(
-    (status = 200, description = "Success register user", body = [RegisterResponse]),
+    (status = 200, description = "Success register user", body = null),
     (status = 400, description = "Invalid data input", body = [AppResponseError]),
     (status = 500, description = "Internal server error", body = [AppResponseError])
     )

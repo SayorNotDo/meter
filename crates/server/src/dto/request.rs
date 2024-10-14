@@ -34,6 +34,13 @@ pub struct UserStatusRequest {
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
+pub struct UserInfoUpdateRequest {
+    pub id: i32,
+    pub username: String,
+    pub email: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct UserDeleteRequest {
     pub ids: Vec<i32>,
 }

@@ -88,8 +88,8 @@ pub struct ProjectMember {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Permission {
     pub id: i32,
-    pub role_id: i32,
-    pub permission: String,
+    pub module: String,
+    pub scope: String,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]

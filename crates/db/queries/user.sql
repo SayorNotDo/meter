@@ -15,6 +15,12 @@ INSERT INTO users (username, hashed_password, email, uuid)
 VALUES (:username, :hashed_password, :email, :uuid)
 RETURNING id;
 
+--! update_user
+UPDATE users
+SET username = :username,
+    email = :email
+WHERE id = :uid;
+
 --! update_status
 UPDATE users
 SET enable = :enable

@@ -109,19 +109,55 @@ CREATE TRIGGER set_timestamp_user_role
 EXECUTE PROCEDURE trigger_set_timestamp();
 
 
--- table user_role_permission
+-- table role_permission_relation
 
-DROP TABLE IF EXISTS user_role_permission;
+DROP TABLE IF EXISTS role_permission_relation;
 
-CREATE TABLE user_role_permission
+CREATE TABLE role_permission_relation
 (
     id         SERIAL PRIMARY KEY,
-    role_id    INT,
-    permission VARCHAR
+    role_id    INT NOT NULL,
+    permission_id INT NOT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- comments
-COMMENT ON COLUMN user_role_permission.role_id IS '角色ID';
-COMMENT ON COLUMN user_role_permission.permission IS '权限';
+COMMENT ON COLUMN role_permission_relation.id IS '关联关系ID';
+COMMENT ON COLUMN role_permission_relation.role_id IS '角色ID';
+COMMENT ON COLUMN role_permission_relation.permission_id IS '权限ID';
+
+-- table permission
+DROP TABLE IF EXISTS permission
+
+CREATE TABLE permission
+(
+    id  SERIAL  PRIMARY KEY,
+    module  VARCHAR NOT NULL,
+    scope   VARCHAR NOT NULL,
+    created_at  TIMESTAMP   NOT NULL DEFAULT NOW()
+);
+
+-- comments
+COMMENT ON COLUMN permission.id IS '权限标识ID';
+COMMENT ON COLUMN permission.module IS '所属模块';
+COMMENT ON COLUMN permission.scope IS '权限控制范围';
+COMMENT ON COLUMN permission.created_at IS '创建时间';
+
+-- table api_permission_relation
+DROP TABLE IF EXISTS api_permission_relation
+
+CREATE TABLE api_permission_relation
+(
+    id  SERIAL  PRIMARY KEY,
+    uri VARCHAR NOT NULL,
+    method  VARCHAR NOT NULL,
+    permission_id   INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- comments
+COMMENT ON COLUMN api_permission_relation.id IS '关联关系ID';
+COMMENT ON COLUMN api_permission_relation.uri IS '关联接口';
+COMMENT ON COLUMN api_permission_relation.permission_id IS '权限ID';
 
 -- migrate:down

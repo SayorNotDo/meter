@@ -70,6 +70,14 @@ impl<'a> UserDao<'a> {
         }
     }
 
+    pub async fn update_user(&self, username: &str, email: &str, uid: i32) -> AppResult {
+        update_user()
+            .bind(self.client, &username, &email, &uid)
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn batch_update_user_status(&self, enable: bool, uid_list: Vec<i32>) -> AppResult {
         update_status()
             .bind(self.client, &enable, &uid_list)
@@ -224,8 +232,8 @@ impl<'a> UserDao<'a> {
         for item in user_role_permissions {
             let permission = entity::Permission {
                 id: item.id,
-                role_id: item.role_id,
-                permission: item.permission,
+                module: "".to_string(),
+                scope: item.permission,
             };
             ret.push(permission);
         }

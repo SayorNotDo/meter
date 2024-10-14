@@ -1,9 +1,9 @@
-use crate::dao::entity::UserRoleOption;
 use crate::dto::response::UserInfoResponse;
 use crate::errors::AppResult;
 use crate::service;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
+use crate::{dao::entity::UserRoleOption, dto::request::UserInfoUpdateRequest};
 use axum::{extract::Path, Extension, Json};
 use tracing::{info, warn};
 
@@ -32,6 +32,25 @@ pub async fn info(
             warn!("Failed to get user info: {e:?}");
             Err(e)
         }
+    }
+}
+
+#[utoipa::path(
+    put,
+    path = "/user/info",
+    request_body = UserInfoUpdateRequest,
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn update(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(request): Json<UserInfoUpdateRequest>,
+) -> AppResult {
+    info!("controller layer update user info with request: {request:?}");
+    match service::user::update_info(&state, user.uid, request).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
     }
 }
 
