@@ -7,6 +7,7 @@ use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method, StatusCode,
 };
+use middleware::access::AccessLayer;
 use tokio::signal;
 use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
@@ -60,6 +61,7 @@ async fn main() {
 
     /* Authorization */
     let authorization = ServiceBuilder::new().layer(AuthLayer);
+    let access = ServiceBuilder::new().layer(AccessLayer);
 
     /* State */
     let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
@@ -69,6 +71,7 @@ async fn main() {
 
     /* Initialize App */
     let app = api::create_router()
+        .layer(access)
         .layer(authorization)
         .layer(Extension(state.clone()))
         .layer(TraceLayer::new_for_http())

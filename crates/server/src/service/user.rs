@@ -120,12 +120,14 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
     })
 }
 
-pub async fn update_info(state: &AppState, uid: Uuid, request: UserInfoUpdateRequest) -> AppResult {
+pub async fn update_info(
+    state: &AppState,
+    _uid: Uuid,
+    request: UserInfoUpdateRequest,
+) -> AppResult {
     info!("service layer update user information");
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
-    /* TODO: 判断当前用户是否拥有编辑用户信息的权限 */
-
     user_dao
         .update_user(&request.username, &request.email, request.id)
         .await?;

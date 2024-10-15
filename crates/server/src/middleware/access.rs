@@ -5,8 +5,9 @@ use axum::{
 };
 
 use tower::{Layer, Service};
+use uuid::Uuid;
 
-use crate::{constant, dao::permission::PermissionDao, errors::AppResponseError, state::AppState};
+use crate::{constant, errors::AppResponseError, service::permission, state::AppState};
 
 #[derive(Clone)]
 pub struct AccessLayer;
@@ -42,12 +43,18 @@ where
 
     fn call(&mut self, req: Request<Body>) -> Self::Future {
         let uri = req.uri().clone();
+        let method = req.method().clone();
         let headers = req.headers().clone();
         let state = req
             .extensions()
             .get::<AppState>()
             .cloned()
             .expect("Failed to get context...");
+        let uid = match req.extensions().get::<Uuid>() {
+            Some(i) => i.clone(),
+            None => Uuid::nil(),
+        };
+        let mut err_msg = String::new();
         let future = self.inner.call(req);
         Box::pin(async move {
             /* Bypass api which is in WHITE_LIST */
@@ -58,15 +65,27 @@ where
                 return future.await;
             }
             /* access check main logic */
-            if let Some(_project_id) = headers.get(constant::PROJECT_ID) {
-                let client = state
-                    .pool
-                    .get()
-                    .await
-                    .expect("failed to get db client with ctx...");
-                let _perm_dao = PermissionDao::new(&client);
-                /* 查询当前请求接口需要的权限 */
-                /* 查询请求用户是否拥有该权限 */
+            if let Some(param) = headers.get(constant::PROJECT_ID) {
+                if let Ok(parma_str) = param.to_str() {
+                    if let Ok(project_id) = parma_str.parse::<i32>() {
+                        /* 检查当前请求用户是否拥有对应接口所需要的权限 */
+                        match permission::check_user_permission(
+                            &state,
+                            &uid,
+                            &project_id,
+                            uri.path(),
+                            method.as_str(),
+                        )
+                        .await
+                        {
+                            Ok(access) if access => {
+                                return future.await;
+                            }
+                            Ok(_) => err_msg = "Access denied".to_string(),
+                            Err(e) => err_msg = e.to_string(),
+                        }
+                    }
+                }
             }
             /* Access denied */
             let resp = Response::builder()
@@ -74,13 +93,13 @@ where
                 .body(Body::from(
                     serde_json::to_string(&AppResponseError::new(
                         "FORBIDDEN".to_string(),
-                        "",
+                        err_msg,
                         None,
                         vec![],
                     ))
-                    .unwrap(),
+                    .expect("Parse failure..."),
                 ))
-                .unwrap();
+                .expect("Build response body failure...");
             Ok(resp)
         })
     }
