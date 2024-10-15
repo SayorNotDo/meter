@@ -46,11 +46,20 @@ pub async fn update_status(
     }
 }
 
-#[utoipa::path(delete, path = "/user", responses(), security(("jwt" = [])))]
+#[utoipa::path(
+    delete,
+    path = "/user",
+    request_body = UserDeleteRequest,
+    responses(),
+    security(("jwt" = []))
+)]
 pub async fn delete(
-    Extension(_state): Extension<AppState>,
+    Extension(state): Extension<AppState>,
     Json(request): Json<UserDeleteRequest>,
 ) -> AppResult {
     info!("controller layer delete user with ids: {request:?}");
-    Ok(())
+    match service::user::batch_delete(&state, request.ids).await {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
 }

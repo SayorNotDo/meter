@@ -18,7 +18,7 @@ use crate::{
 };
 
 /* 用户注册 */
-pub async fn batch_register(state: &AppState, request: RegisterRequest) -> AppResult<()> {
+pub async fn batch_register(state: &AppState, request: RegisterRequest) -> AppResult {
     info!("Register a new user request: {request:?}.");
     /* TODO: 新增逻辑批量创建用户 */
     for item in request.user_info_list {
@@ -28,7 +28,7 @@ pub async fn batch_register(state: &AppState, request: RegisterRequest) -> AppRe
 }
 
 /* 单个用户注册 */
-pub async fn register(state: &AppState, username: String, email: String) -> AppResult<()> {
+pub async fn register(state: &AppState, username: String, email: String) -> AppResult {
     info!("Register new user with username: {username}, email: {email}");
     check_unique_username_or_email(state, &username, &email).await?;
     /* 生成随机密码 */
@@ -40,6 +40,15 @@ pub async fn register(state: &AppState, username: String, email: String) -> AppR
     user_dao.insert(new_user).await?;
     /* 增加邮件发送逻辑 */
     utils::smtp::registered_inform(&username, &password)?;
+    Ok(())
+}
+
+/* 用户删除 */
+pub async fn batch_delete(state: &AppState, _uids: Vec<i32>) -> AppResult {
+    let client = state.pool.get().await?;
+    let _user_dao = UserDao::new(&client);
+    /* 用户相关资源处理 */
+    /* 用户信息删除 */
     Ok(())
 }
 

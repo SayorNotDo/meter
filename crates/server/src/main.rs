@@ -61,17 +61,18 @@ async fn main() {
 
     /* Authorization */
     let authorization = ServiceBuilder::new().layer(AuthLayer);
-    let access = ServiceBuilder::new().layer(AccessLayer);
+    let _access = ServiceBuilder::new().layer(AccessLayer);
 
     /* State */
     let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
-    let state = AppState::new(pool, redis)
+    let email = Arc::new(utils::smtp::email_client_builder(&config.smtp));
+    let state = AppState::new(pool, redis, email)
         .await
         .expect("Failed to create state.");
 
     /* Initialize App */
     let app = api::create_router()
-        .layer(access)
+        // .layer(access)
         .layer(authorization)
         .layer(Extension(state.clone()))
         .layer(TraceLayer::new_for_http())

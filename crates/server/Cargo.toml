@@ -63,6 +63,7 @@ ssh2 = "0.9.4"
 tera = "1.20.0"
 
 # email
-lettre = "0.11.9"
+lettre = { version = "0.11.9", features = ["tokio1-native-tls", "builder"] }
 
+# http
 reqwest = { version = "0.12.5", features = ["json", "multipart", "stream"] }
