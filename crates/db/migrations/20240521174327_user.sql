@@ -14,7 +14,9 @@ CREATE TABLE users
     enable               BOOLEAN DEFAULT FALSE,
     last_project_id      INT,
     created_at           TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at           TIMESTAMP
+    updated_at           TIMESTAMP,
+    deleted_at           TIMESTAMP,
+    deleted_by           INT
 );
 
 -- comments
@@ -26,6 +28,8 @@ COMMENT ON COLUMN users.email IS '用户邮箱';
 COMMENT ON COLUMN users.last_project_id IS '最后登录的项目ID';
 COMMENT ON COLUMN users.created_at IS '创建时间';
 COMMENT ON COLUMN users.updated_at IS '更新时间';
+COMMENT ON COLUMN users.deleted_at IS '删除时间';
+COMMENT ON COLUMN users.deleted_by IS '删除执行人';
 
 -- trigger function: update current_timestamp
 CREATE OR REPLACE FUNCTION trigger_set_timestamp()

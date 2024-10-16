@@ -1,8 +1,8 @@
 use std::vec;
 
 use crate::dao::entity;
-use crate::utils::time;
 use crate::errors::{AppError, AppResult, Resource, ResourceType};
+use crate::utils::time;
 use chrono::DateTime;
 use db::queries::user::*;
 use tracing::log::info;
@@ -43,21 +43,27 @@ macro_rules! impl_to_user {
 }
 
 // 使用宏为查询的结构体实现ToUser trait
-impl_to_user!(true, GetUserByUsername, GetUserByUuid);
+impl_to_user!(true, GetUserByUsername, GetUserByUuid, GetUserById);
 impl_to_user!(false, GetUsersByRoleAndProjectId, GetUsers);
 
 #[derive(Debug)]
-pub struct UserDao<'a> {
-    client: &'a db::Client,
+pub struct UserDao<'a, T>
+where
+    T: db::GenericClient,
+{
+    executor: &'a T,
 }
 
-impl<'a> UserDao<'a> {
-    pub fn new(client: &'a db::Client) -> Self {
-        UserDao { client }
+impl<'a, T> UserDao<'a, T>
+where
+    T: db::GenericClient,
+{
+    pub fn new(executor: &'a T) -> Self {
+        UserDao { executor }
     }
     pub async fn find_by_uid(&self, uid: &Uuid) -> AppResult<entity::User> {
         /* 通过uid查询用户 */
-        let ret = get_user_by_uuid().bind(self.client, uid).opt().await?;
+        let ret = get_user_by_uuid().bind(self.executor, uid).opt().await?;
         match ret {
             Some(user) => {
                 let user = user.to_user();
@@ -71,17 +77,40 @@ impl<'a> UserDao<'a> {
         }
     }
 
+    pub async fn find_by_id(&self, id: &i32) -> AppResult<entity::User> {
+        /* 通过主键查询用户 */
+        let ret = get_user_by_id().bind(self.executor, id).opt().await?;
+        match ret {
+            Some(user) => {
+                let user = user.to_user();
+                info!("Successfully find user id: {user:?}");
+                Ok(user)
+            }
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::User,
+            })),
+        }
+    }
+
     pub async fn update_user(&self, username: &str, email: &str, uid: i32) -> AppResult {
         update_user()
-            .bind(self.client, &username, &email, &uid)
+            .bind(self.executor, &username, &email, &uid)
             .await?;
 
         Ok(())
     }
 
+    pub async fn soft_deleted_user(&self, operator: Uuid, uid: &i32) -> AppResult {
+        soft_delete_user()
+            .bind(self.executor, &operator, uid)
+            .await?;
+        Ok(())
+    }
+
     pub async fn batch_update_user_status(&self, enable: bool, uid_list: Vec<i32>) -> AppResult {
         update_status()
-            .bind(self.client, &enable, &uid_list)
+            .bind(self.executor, &enable, &uid_list)
             .await?;
         Ok(())
     }
@@ -93,7 +122,7 @@ impl<'a> UserDao<'a> {
     ) -> AppResult<Vec<entity::User>> {
         /*  通过项目id和角色id查询用户 */
         let users = get_users_by_role_and_project_id()
-            .bind(self.client, &project_id, &role)
+            .bind(self.executor, &project_id, &role)
             .all()
             .await?
             .into_iter()
@@ -105,7 +134,7 @@ impl<'a> UserDao<'a> {
     pub async fn find_by_username(&self, username: &str) -> AppResult<entity::User> {
         /* 通过用户名查询用户并返回 */
         let ret = get_user_by_username()
-            .bind(self.client, &Some(username))
+            .bind(self.executor, &Some(username))
             .opt()
             .await?;
         match ret {
@@ -123,7 +152,7 @@ impl<'a> UserDao<'a> {
 
     pub async fn check_unique_by_username(&self, username: &str) -> AppResult {
         let user = get_user_by_username()
-            .bind(self.client, &Some(username))
+            .bind(self.executor, &Some(username))
             .opt()
             .await?;
         match user {
@@ -137,7 +166,7 @@ impl<'a> UserDao<'a> {
 
     pub async fn check_unique_by_email(&self, email: &str) -> AppResult {
         let user = get_user_by_email()
-            .bind(self.client, &Some(email))
+            .bind(self.executor, &Some(email))
             .opt()
             .await?;
         match user {
@@ -152,7 +181,7 @@ impl<'a> UserDao<'a> {
     pub async fn get_user_roles_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<entity::UserRole>> {
         let mut ret = vec![];
         let user_roles = get_user_roles_by_uuid()
-            .bind(self.client, uuid)
+            .bind(self.executor, uuid)
             .all()
             .await?;
         for item in user_roles {
@@ -178,9 +207,13 @@ impl<'a> UserDao<'a> {
         Ok(ret)
     }
 
-    pub async fn get_role_by_uuid_and_project_id(&self, uuid: &Uuid, project_id: &i32) -> AppResult<entity::UserRole> {
+    pub async fn get_role_by_uuid_and_project_id(
+        &self,
+        uuid: &Uuid,
+        project_id: &i32,
+    ) -> AppResult<entity::UserRole> {
         let role = get_user_role_by_uuid_and_project_id()
-            .bind(self.client, uuid, project_id)
+            .bind(self.executor, uuid, project_id)
             .one()
             .await?;
         let created_at = time::to_utc(role.created_at);
@@ -193,7 +226,7 @@ impl<'a> UserDao<'a> {
             created_at,
             created_by: role.created_by,
             updated_at,
-            description: role.description
+            description: role.description,
         })
     }
 
@@ -203,7 +236,7 @@ impl<'a> UserDao<'a> {
     ) -> AppResult<Vec<entity::UserRoleOption>> {
         let mut ret = vec![];
         let user_roles = get_user_role_list_by_project_id()
-            .bind(self.client, project_id)
+            .bind(self.executor, project_id)
             .all()
             .await?;
         for item in user_roles {
@@ -222,7 +255,7 @@ impl<'a> UserDao<'a> {
     ) -> AppResult<Vec<entity::UserRoleRelation>> {
         let mut ret = vec![];
         let user_role_relations = get_user_role_relations_by_uuid()
-            .bind(self.client, uuid)
+            .bind(self.executor, uuid)
             .all()
             .await?;
         for item in user_role_relations {
@@ -246,7 +279,7 @@ impl<'a> UserDao<'a> {
     ) -> AppResult<Vec<entity::Permission>> {
         let mut ret = vec![];
         let user_role_permissions = get_user_role_permissions_by_role_id()
-            .bind(self.client, role_id)
+            .bind(self.executor, role_id)
             .all()
             .await?;
         for item in user_role_permissions {
@@ -263,7 +296,7 @@ impl<'a> UserDao<'a> {
     pub async fn insert(&self, object: entity::User) -> AppResult<i32> {
         let user_id = insert_user()
             .bind(
-                self.client,
+                self.executor,
                 &object.username.as_str(),
                 &object.hashed_password.as_str(),
                 &object.email.as_str(),
@@ -276,7 +309,7 @@ impl<'a> UserDao<'a> {
 
     pub async fn all(&self) -> AppResult<Vec<entity::User>> {
         let users = get_users()
-            .bind(self.client)
+            .bind(self.executor)
             .all()
             .await?
             .into_iter()

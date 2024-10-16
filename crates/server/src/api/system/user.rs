@@ -55,10 +55,11 @@ pub async fn update_status(
 )]
 pub async fn delete(
     Extension(state): Extension<AppState>,
+    user: UserClaims,
     Json(request): Json<UserDeleteRequest>,
 ) -> AppResult {
     info!("controller layer delete user with ids: {request:?}");
-    match service::user::batch_delete(&state, request.ids).await {
+    match service::user::batch_delete(&state, user.uid, request.ids).await {
         Ok(_) => Ok(()),
         Err(e) => Err(e),
     }

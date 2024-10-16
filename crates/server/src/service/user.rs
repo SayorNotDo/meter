@@ -11,7 +11,7 @@ use crate::{
         request::*,
         response::{LoginResponse, MessageResponse, UserInfoResponse},
     },
-    errors::AppResult,
+    errors::{AppError, AppResult},
     service::{redis::SessionKey, session, token},
     state::AppState,
     utils,
@@ -44,11 +44,22 @@ pub async fn register(state: &AppState, username: String, email: String) -> AppR
 }
 
 /* 用户删除 */
-pub async fn batch_delete(state: &AppState, _uids: Vec<i32>) -> AppResult {
-    let client = state.pool.get().await?;
-    let _user_dao = UserDao::new(&client);
-    /* 用户相关资源处理 */
+pub async fn batch_delete(state: &AppState, operator: Uuid, uids: Vec<i32>) -> AppResult {
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let user_dao = UserDao::new(&transaction);
+    /* TODO: 用户相关资源处理 */
     /* 用户信息删除 */
+    for &id in uids.iter() {
+        info!("delete user with id: {id}");
+        /* 查询用户是否处于启用状态，此时不可进行删除操作 */
+        let user = user_dao.find_by_id(&id).await?;
+        if user.enable {
+            return Err(AppError::BadRequestError("enabled user exists".into()));
+        }
+        user_dao.soft_deleted_user(operator, &id).await?;
+    }
+    transaction.commit().await?;
     Ok(())
 }
 
