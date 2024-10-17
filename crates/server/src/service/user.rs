@@ -90,10 +90,15 @@ pub async fn login(state: &AppState, request: LoginRequest) -> AppResult<LoginRe
     let user = user_dao.find_by_username(&request.username).await?;
     /* 校验用户密码 */
     utils::password::verify(request.password.clone(), user.hashed_password.clone()).await?;
-    /* 生成token */
-    let session_id = session::set(&state.redis, user.uuid).await?;
-    let resp = token::generate_tokens(user.uuid, session_id)?;
-    Ok(LoginResponse::Token(resp))
+    /* 用户是否处于启用状态 */
+    if !user.enable {
+        Err(AppError::ForbiddenError("user is disabled".to_string()))
+    } else {
+        /* 生成token */
+        let session_id = session::set(&state.redis, user.uuid).await?;
+        let resp = token::generate_tokens(user.uuid, session_id)?;
+        Ok(LoginResponse::Token(resp))
+    }
 }
 
 /* 用户登出 */

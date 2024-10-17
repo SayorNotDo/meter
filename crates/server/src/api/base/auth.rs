@@ -45,6 +45,8 @@ pub async fn register(
     responses(
     (status = 200, description = "Login success", body = [LoginResponse]),
     (status = 400, description = "Invalid data input", body = [AppResponseError]),
+    (status = 401, description = "User already exists", body = [AppResponseError]),
+    (status = 403, description = "Disabled user forbidden", body = [AppResponseError]),
     (status = 404, description = "User not found", body = [AppResponseError]),
     (status = 500, description = "Internal server error", body = [AppResponseError])
     )

@@ -11,6 +11,22 @@ SELECT id,
 FROM users
 WHERE deleted_at is null AND deleted_by is null;
 
+--! get_idle_users_by_project_id
+SELECT id,
+       uuid,
+       username,
+       hashed_password,
+       email,
+       enable,
+       created_at,
+       updated_at
+FROM users u
+LEFT JOIN user_role_relation urr ON urr.user_id = u.uuid
+WHERE deleted_at is null
+AND deleted_by is null
+AND urr.project_id != :project_id
+AND u.enable = true;
+
 --! insert_user
 INSERT INTO users (username, hashed_password, email, uuid)
 VALUES (:username, :hashed_password, :email, :uuid)

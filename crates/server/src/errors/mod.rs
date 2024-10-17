@@ -49,6 +49,8 @@ pub enum AppError {
     NotFoundError(Resource),
     #[error("bad request: {0}")]
     BadRequestError(String),
+    #[error("forbidden: {0}")]
+    ForbiddenError(String),
     #[error(transparent)]
     ConfigError(#[from] config::ConfigError),
     #[error("{0}")]
@@ -125,6 +127,12 @@ impl AppError {
                 Some(resource.resource_type as i32),
                 resource.details.clone(),
                 StatusCode::NOT_FOUND,
+            ),
+            ForbiddenError(_err) => (
+                "FORBIDDEN_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::FORBIDDEN,
             ),
             InvalidSessionError(_err) => (
                 "INVALID_SESSION_ERROR".to_string(),
