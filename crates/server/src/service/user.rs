@@ -2,6 +2,7 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::{
+    constant::REGISTER_EMAIL_SUBJECT,
     dao::{
         self,
         entity::{User, UserRoleOption, UserRolePermission},
@@ -10,11 +11,12 @@ use crate::{
     dto::{
         request::*,
         response::{LoginResponse, MessageResponse, UserInfoResponse},
+        EmailTemplate,
     },
     errors::{AppError, AppResult},
     service::{redis::SessionKey, session, token},
     state::AppState,
-    utils,
+    utils::{self, smtp},
 };
 
 /* 用户注册 */
@@ -32,15 +34,22 @@ pub async fn register(state: &AppState, username: String, email: String) -> AppR
     info!("Register new user with username: {username}, email: {email}");
     check_unique_username_or_email(state, &username, &email).await?;
     /* 生成随机密码 */
-    let password = utils::password::generate().await?;
+    let password = utils::password::generate()?;
     let hashed_password = utils::password::hash(password.clone()).await?;
     let new_user = dao::entity::User::new(&username, &hashed_password, &email, true);
-    let client = state.pool.get().await?;
-    let user_dao = UserDao::new(&client);
-    user_dao.insert(new_user).await?;
-    /* 增加邮件发送逻辑 */
-    utils::smtp::registered_inform(&username, &password)?;
-    Ok(())
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let user_dao = UserDao::new(&transaction);
+    match user_dao.insert(new_user).await {
+        Ok(_) => {
+            /* 增加邮件发送逻辑 */
+            let template = EmailTemplate::Register { username, password };
+            smtp::send(&state.email, &template, REGISTER_EMAIL_SUBJECT, &email).await?;
+            transaction.commit().await?;
+            Ok(())
+        }
+        Err(e) => Err(e),
+    }
 }
 
 /* 用户删除 */
@@ -48,7 +57,6 @@ pub async fn batch_delete(state: &AppState, operator: Uuid, uids: Vec<i32>) -> A
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let user_dao = UserDao::new(&transaction);
-    /* TODO: 用户相关资源处理 */
     /* 用户信息删除 */
     for &id in uids.iter() {
         info!("delete user with id: {id}");
@@ -57,6 +65,7 @@ pub async fn batch_delete(state: &AppState, operator: Uuid, uids: Vec<i32>) -> A
         if user.enable {
             return Err(AppError::BadRequestError("enabled user exists".into()));
         }
+        /* TODO: 用户相关资源处理 */
         user_dao.soft_deleted_user(operator, &id).await?;
     }
     transaction.commit().await?;

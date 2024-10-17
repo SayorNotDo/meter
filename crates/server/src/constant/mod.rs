@@ -1,3 +1,4 @@
+use crate::configure::{get_static_dir, template::EmailTemplateEngine};
 use std::time::Duration;
 
 use jsonwebtoken::{DecodingKey, EncodingKey};
@@ -12,6 +13,8 @@ pub const PROJECT_ID: &str = "project_id";
 
 pub const WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/register"];
 pub const ACCESS_WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/register"];
+pub const EMAIL_ADDR: &str = "chenwentao@datatower.ai";
+pub const REGISTER_EMAIL_SUBJECT: &str = "<DTest-测试平台> 注册邮件通知";
 
 pub static CONFIG: Lazy<crate::config::Config> =
     Lazy::new(|| crate::config::Config::parse("./config.toml").unwrap());
@@ -40,3 +43,13 @@ pub static PAGE_ENCODE_KEY: Lazy<EncodingKey> =
 
 pub static PAGE_DECODE_KEY: Lazy<DecodingKey> =
     Lazy::new(|| DecodingKey::from_base64_secret("U29tZVNlY3JldEtleQ==".into()).unwrap());
+
+pub static TEMPLATE_ENGINE: Lazy<EmailTemplateEngine> = Lazy::new(|| {
+    let path = get_static_dir()
+        .expect("failed to get static dir")
+        .join("templates/**/*")
+        .into_os_string()
+        .into_string()
+        .expect("failed to get template path");
+    EmailTemplateEngine::new(&path).expect("failed to get contant template engine")
+});

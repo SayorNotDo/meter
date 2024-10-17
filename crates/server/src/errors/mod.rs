@@ -1,4 +1,5 @@
 pub mod custom_extractor;
+
 use axum::{
     extract::rejection::JsonRejection,
     http::StatusCode,
@@ -46,8 +47,10 @@ pub enum ResourceType {
 pub enum AppError {
     #[error("{0} not found")]
     NotFoundError(Resource),
-    #[error("bad request {0}")]
+    #[error("bad request: {0}")]
     BadRequestError(String),
+    #[error(transparent)]
+    ConfigError(#[from] config::ConfigError),
     #[error("{0}")]
     InvalidPayloadError(String),
     #[error("{0}")]
@@ -137,6 +140,12 @@ impl AppError {
             ),
             TimeConvertError(_err) => (
                 "TIME_CONVERT_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            ConfigError(_) => (
+                "CONFIG_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,

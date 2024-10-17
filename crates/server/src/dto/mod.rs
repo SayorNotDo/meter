@@ -1,4 +1,5 @@
 use garde::Validate;
+use lettre::message::header;
 use lettre::Message;
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +36,33 @@ impl TryFrom<&Email> for Message {
         Ok(Message::builder()
             .from(value.from.parse()?)
             .to(value.to.parse()?)
+            .header(header::ContentType::TEXT_HTML)
             .subject(value.subject.clone())
             .body(value.body.clone())?)
+    }
+}
+
+#[allow(dead_code)]
+#[derive(Debug)]
+pub enum EmailTemplate {
+    Register { username: String, password: String },
+    ForgetPassword { username: String, password: String },
+}
+
+impl EmailTemplate {
+    pub fn get(&self) -> (tera::Context, &'static str) {
+        let mut ctx = tera::Context::new();
+        match self {
+            Self::Register { username, password } => {
+                ctx.insert("username", username);
+                ctx.insert("password", password);
+                (ctx, "email/register.html")
+            }
+            Self::ForgetPassword { username, password } => {
+                ctx.insert("username", username);
+                ctx.insert("password", password);
+                (ctx, "register.html")
+            }
+        }
     }
 }

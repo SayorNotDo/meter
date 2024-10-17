@@ -20,6 +20,7 @@ use crate::state::AppState;
 
 mod api;
 mod config;
+mod configure;
 mod constant;
 mod dao;
 mod dto;

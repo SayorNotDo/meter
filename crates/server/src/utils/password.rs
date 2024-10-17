@@ -1,5 +1,6 @@
 use super::hash;
-use crate::errors::{AppResult, invalid_input_error};
+use crate::errors::{invalid_input_error, AppResult};
+use rand::Rng;
 use tracing::debug;
 
 pub async fn hash(password: String) -> AppResult<String> {
@@ -21,8 +22,20 @@ pub async fn verify(password: String, hash: String) -> AppResult {
     }
 }
 
-pub async fn generate() -> AppResult<String> {
-    Ok("".into())
+pub fn generate() -> AppResult<String> {
+    const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+                                abcdefghijklmnopqrstuvwxyz\
+                                0123456789\
+                                !@#$%^&*()-_+=<>?";
+    let mut rng = rand::thread_rng();
+    let password: String = (0..12)
+        .map(|_| {
+            let idx = rng.gen_range(0..CHARSET.len());
+            CHARSET[idx] as char
+        })
+        .collect();
+
+    Ok(password)
 }
 
 #[cfg(test)]
@@ -35,7 +48,6 @@ mod tests {
         let hashed_password = hash(password.to_string()).await.unwrap();
         assert!(!hashed_password.is_empty());
     }
-
 
     #[tokio::test]
     pub async fn test_verify() {
