@@ -1,6 +1,6 @@
 use crate::{
     dto::{
-        request::{UserDeleteRequest, UserStatusRequest},
+        request::{UserDeleteRequest, UserQueryParam, UserStatusRequest},
         response::ListUserResponse,
     },
     errors::AppResult,
@@ -22,7 +22,7 @@ pub async fn list(
     user: UserClaims,
 ) -> AppResult<Json<ListUserResponse>> {
     info!("controller layer get user list");
-    match service::user::list(&state, user.uid).await {
+    match service::user::list(&state, user.uid, UserQueryParam { idle: false }).await {
         Ok(resp) => Ok(Json(ListUserResponse { list: resp })),
         Err(e) => Err(e),
     }

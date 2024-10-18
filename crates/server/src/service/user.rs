@@ -168,7 +168,9 @@ pub async fn update_info(
     Ok(())
 }
 
-pub async fn list(state: &AppState, _uid: Uuid) -> AppResult<Vec<User>> {
+pub async fn list(state: &AppState, _uid: Uuid, param: UserQueryParam) -> AppResult<Vec<User>> {
+    info!("service layer get user with params: {param:?}");
+
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
     let users = user_dao.all().await?;
@@ -195,6 +197,3 @@ pub async fn check_unique_username_or_email(
     user_dao.check_unique_by_username(username).await?;
     user_dao.check_unique_by_email(email).await
 }
-
-#[cfg(test)]
-mod tests {}

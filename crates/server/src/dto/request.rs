@@ -10,6 +10,12 @@ pub struct RegisterRequest {
     pub user_info_list: Vec<UserInfo>,
 }
 
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct UserQueryParam {
+    pub idle: bool,
+}
+
 #[derive(Debug, Deserialize, Serialize, Validate)]
 pub struct UserInfo {
     #[garde(ascii, length(min = 3, max = 25))]

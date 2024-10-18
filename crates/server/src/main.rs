@@ -7,6 +7,7 @@ use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method, StatusCode,
 };
+use errors::AppResult;
 use middleware::access::AccessLayer;
 use tokio::signal;
 use tower::ServiceBuilder;
@@ -32,13 +33,14 @@ pub mod state;
 mod utils;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> AppResult<()> {
     /* Logger */
-    logger::init();
+    // logger::init();
+    let _file_appender_guard = configure::tracing::init()?;
+    info!("The initialization of Tracing was successful.");
 
     /* Config */
-    let config =
-        config::Config::parse("./config.toml").expect("Failed to parse configuration file");
+    let config = config::Config::parse("./config.toml")?;
 
     let pool = create_pool(&config.storage.database_url);
 
@@ -67,9 +69,7 @@ async fn main() {
     /* State */
     let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
     let email = Arc::new(utils::smtp::email_client_builder(&config.smtp));
-    let state = AppState::new(pool, redis, email)
-        .await
-        .expect("Failed to create state.");
+    let state = AppState::new(pool, redis, email).await?;
 
     /* Initialize App */
     let app = api::create_router()
@@ -86,19 +86,18 @@ async fn main() {
         .fallback(|| async { (StatusCode::NOT_FOUND, "Not Found") });
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8081));
-    let listener = tokio::net::TcpListener::bind(&addr)
-        .await
-        .expect("Failed to bind to address.");
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
 
     info!(
         "🚀 Server started on {} successfully!",
-        listener.local_addr().expect("Failed to get local address.")
+        listener.local_addr()?
     );
     /* Run server with graceful shutodwn */
     axum::serve(listener, app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
-        .await
-        .expect("Failed to start server...");
+        .await?;
+
+    Ok(())
 }
 
 async fn shutdown_signal() {

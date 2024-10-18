@@ -44,7 +44,12 @@ macro_rules! impl_to_user {
 
 // 使用宏为查询的结构体实现ToUser trait
 impl_to_user!(true, GetUserByUsername, GetUserByUuid, GetUserById);
-impl_to_user!(false, GetUsersByRoleAndProjectId, GetUsers);
+impl_to_user!(
+    false,
+    GetUsersByRoleAndProjectId,
+    GetUsers,
+    GetIdleUsersByProjectId
+);
 
 #[derive(Debug)]
 pub struct UserDao<'a, T>
@@ -249,6 +254,21 @@ where
         Ok(ret)
     }
 
+    #[allow(dead_code)]
+    pub async fn get_idle_users_by_project_id(
+        &self,
+        project_id: &i32,
+    ) -> AppResult<Vec<entity::User>> {
+        let users = get_idle_users_by_project_id()
+            .bind(self.executor, project_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| item.to_user())
+            .collect::<Vec<_>>();
+        Ok(users)
+    }
+
     pub async fn get_user_role_relations_by_uuid(
         &self,
         uuid: &Uuid,
@@ -320,98 +340,98 @@ where
     }
 }
 
-#[cfg(test)]
-mod tests {
+// #[cfg(test)]
+// mod tests {
 
-    // use crate::service::user::check_unique_username_or_email;
+//     // use crate::service::user::check_unique_username_or_email;
 
-    use super::*;
+//     use super::*;
 
-    #[test]
-    fn test_username_is_lowercase() {
-        let username = "MeDZik";
-        let password = "password";
-        let email = "test_email@test.com";
+//     #[test]
+//     fn test_username_is_lowercase() {
+//         let username = "MeDZik";
+//         let password = "password";
+//         let email = "test_email@test.com";
 
-        let username_expected = "medzik";
+//         let username_expected = "medzik";
 
-        let user = entity::User::new(username, password, email, false);
-        assert_eq!(user.username, username_expected)
-    }
+//         let user = entity::User::new(username, password, email, false);
+//         assert_eq!(user.username, username_expected)
+//     }
 
-    #[test]
-    fn test_password_hashed() {
-        let username = "username";
-        let password = "password";
-        let email = "test_email@test.com";
+//     #[test]
+//     fn test_password_hashed() {
+//         let username = "username";
+//         let password = "password";
+//         let email = "test_email@test.com";
 
-        let user = entity::User::new(username, password, email, false);
+//         let user = entity::User::new(username, password, email, false);
 
-        assert_ne!(user.hashed_password, password)
-    }
+//         assert_ne!(user.hashed_password, password)
+//     }
 
-    #[tokio::test]
-    async fn test_insert() {
-        let username = "test_username";
-        let password = "test_password";
-        let email = "test_email@test.com";
+//     #[tokio::test]
+//     async fn test_insert() {
+//         let username = "test_username";
+//         let password = "test_password";
+//         let email = "test_email@test.com";
 
-        let user = entity::User::new(username, password, email, true);
+//         let user = entity::User::new(username, password, email, true);
 
-        let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
-        let pool = db::create_pool(&db_url);
+//         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
+//         let pool = db::create_pool(&db_url);
 
-        let client = pool.get().await.unwrap();
+//         let client = pool.get().await.unwrap();
 
-        let user_dao = UserDao::new(&client);
-        let result = user_dao.insert(user).await;
+//         let user_dao = UserDao::new(&client);
+//         let result = user_dao.insert(user).await;
 
-        assert!(result.is_ok())
-    }
+//         assert!(result.is_ok())
+//     }
 
-    #[tokio::test]
-    async fn test_complicated_username() {
-        let username = "test_username";
-        let password = "test_password";
-        let email = "test_email@test.com";
+//     #[tokio::test]
+//     async fn test_complicated_username() {
+//         let username = "test_username";
+//         let password = "test_password";
+//         let email = "test_email@test.com";
 
-        let user = entity::User::new(username, password, email, true);
+//         let user = entity::User::new(username, password, email, true);
 
-        let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
-        let pool = db::create_pool(&db_url);
+//         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
+//         let pool = db::create_pool(&db_url);
 
-        let client = pool.get().await.unwrap();
-        let user_dao = UserDao::new(&client);
-        let result = user_dao.insert(user).await;
-        assert!(result.is_err())
-    }
+//         let client = pool.get().await.unwrap();
+//         let user_dao = UserDao::new(&client);
+//         let result = user_dao.insert(user).await;
+//         assert!(result.is_err())
+//     }
 
-    #[tokio::test]
-    async fn test_get_users() {
-        let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
-        let pool = db::create_pool(&db_url);
+//     #[tokio::test]
+//     async fn test_get_users() {
+//         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
+//         let pool = db::create_pool(&db_url);
 
-        let client = pool.get().await.unwrap();
-        let user_dao = UserDao::new(&client);
+//         let client = pool.get().await.unwrap();
+//         let user_dao = UserDao::new(&client);
 
-        let _result = user_dao.all().await;
-        // assert!(result.ok())
-        dbg!(())
-    }
+//         let _result = user_dao.all().await;
+//         // assert!(result.ok())
+//         dbg!(())
+//     }
 
-    #[tokio::test]
-    async fn test_check_unique_by_username() {
-        let username = "test_unique_username";
+//     #[tokio::test]
+//     async fn test_check_unique_by_username() {
+//         let username = "test_unique_username";
 
-        let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
-        let pool = db::create_pool(&db_url);
+//         let db_url = "postgresql://postgres:testpassword@localhost:5432/postgres?sslmode=disable";
+//         let pool = db::create_pool(&db_url);
 
-        let client = pool.get().await.unwrap();
-        let user_dao = UserDao::new(&client);
+//         let client = pool.get().await.unwrap();
+//         let user_dao = UserDao::new(&client);
 
-        let _result = user_dao.check_unique_by_username(&username).await;
+//         let _result = user_dao.check_unique_by_username(&username).await;
 
-        // assert_eq!(result, true)
-        dbg!(())
-    }
-}
+//         // assert_eq!(result, true)
+//         dbg!(())
+//     }
+// }

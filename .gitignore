@@ -1,3 +1,4 @@
+.DS_Store
 .idea
 .zed
 .vs
@@ -6,6 +7,8 @@
 /static/scripts/*
 Cargo.lock
 
-.DS_Store
+
+#log
+/logs
 
 config.toml

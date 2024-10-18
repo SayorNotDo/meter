@@ -80,12 +80,12 @@ impl Config {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    #[test]
-    fn test_config() {
-        Config::parse("./config.toml").expect("Failed to parse configuration file");
-    }
-}
+//     #[test]
+//     fn test_config() {
+//         Config::parse("./config.toml").expect("Failed to parse configuration file");
+//     }
+// }

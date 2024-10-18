@@ -63,3 +63,8 @@ pub async fn members(state: &AppState, project_id: &i32) -> AppResult<Vec<Projec
     let members = project_dao.get_project_members(project_id).await?;
     Ok(members)
 }
+
+#[allow(dead_code)]
+pub async fn get_idle_users(_state: &AppState, _project_id: &i32) -> AppResult<Vec<()>> {
+    Ok(vec![])
+}

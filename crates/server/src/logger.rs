@@ -9,6 +9,7 @@ const MAX_LEVEL: LevelFilter = LevelFilter::DEBUG;
 const MAX_LEVEL: LevelFilter = LevelFilter::INFO;
 
 // Initialize logger (tracing and panic hook).
+#[allow(dead_code)]
 pub fn init() {
     tracing_subscriber::fmt().with_max_level(MAX_LEVEL).init();
 

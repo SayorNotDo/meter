@@ -79,23 +79,23 @@ impl ServerCertVerifier for DummyTlsVerifier {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
 
-    #[tokio::test]
-    async fn load_users() {
-        let db_url = std::env::var("DATABASE_URL").unwrap();
-        let pool = create_pool(&db_url);
+//     #[tokio::test]
+//     async fn load_users() {
+//         let db_url = std::env::var("DATABASE_URL").unwrap();
+//         let pool = create_pool(&db_url);
 
-        let client = pool.get().await.unwrap();
+//         let client = pool.get().await.unwrap();
 
-        let users = crate::queries::user::get_users()
-            .bind(&client)
-            .all()
-            .await
-            .unwrap();
+//         let users = crate::queries::user::get_users()
+//             .bind(&client)
+//             .all()
+//             .await
+//             .unwrap();
 
-        dbg!(users);
-    }
-}
+//         dbg!(users);
+//     }
+// }

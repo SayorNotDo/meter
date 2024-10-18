@@ -1,10 +1,15 @@
+use crate::dao::entity;
+use crate::dto::request::UserQueryParam;
 use crate::dto::response::UserInfoResponse;
 use crate::errors::AppResult;
 use crate::service;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
 use crate::{dao::entity::UserRoleOption, dto::request::UserInfoUpdateRequest};
-use axum::{extract::Path, Extension, Json};
+use axum::{
+    extract::{Path, Query},
+    Extension, Json,
+};
 use tracing::{info, warn};
 
 #[utoipa::path(
@@ -61,12 +66,16 @@ pub async fn update(
     security(("jwt" = []))
 )]
 pub async fn list(
-    Extension(_state): Extension<AppState>,
+    Extension(state): Extension<AppState>,
     Path(_project_id): Path<i32>,
-    _user: UserClaims,
-) -> AppResult<()> {
-    info!("controller layer get user list");
-    Ok(())
+    user: UserClaims,
+    Query(params): Query<UserQueryParam>,
+) -> AppResult<Json<Vec<entity::User>>> {
+    info!("controller layer get user list by: {user:?} with params: {params:?}");
+    match service::user::list(&state, user.uid, params).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
 }
 
 #[utoipa::path(
