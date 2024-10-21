@@ -5,6 +5,14 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "server"
+path = "src/main.rs"
+
 [dependencies]
 axum = "0.7.7"
 db = { path = "../db" }
@@ -33,8 +41,12 @@ tracing = { version = "0.1.40", features = [
     "attributes",
 ] }
 tracing-opentelemetry = "0.27.0"
-opentelemetry_sdk = "0.26.0"
+opentelemetry_sdk = { version = "0.26.0", features = ["rt-tokio"] }
 opentelemetry-stdout = "0.26.0"
+opentelemetry-otlp = { version = "0.26.0", features = [
+    "http-json",
+    "reqwest-client",
+] }
 opentelemetry = "0.26.0"
 
 # Backtrace in panic hook
@@ -82,3 +94,6 @@ lettre = { version = "0.11.9", features = ["tokio1-native-tls", "builder"] }
 
 # http
 reqwest = { version = "0.12.5", features = ["json", "multipart", "stream"] }
+
+# unit-test
+test-context = "0.3.0"

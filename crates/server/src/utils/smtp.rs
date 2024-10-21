@@ -1,4 +1,4 @@
-use crate::config::ConfigSMTP;
+use crate::configure::smtp::ConfigSMTP;
 use crate::constant::{EMAIL_ADDR, TEMPLATE_ENGINE};
 use crate::dto::{Email, EmailTemplate};
 use lettre::transport::smtp::authentication::Credentials;

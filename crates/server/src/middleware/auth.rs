@@ -6,7 +6,6 @@ use axum::{
     response::Response,
 };
 use tower::{Layer, Service};
-use tracing::info;
 
 use crate::errors::AppResponseError;
 use crate::state::AppState;
@@ -81,7 +80,6 @@ where
                         {
                             let uid = user_claims.claims.uid;
                             req.extensions_mut().insert(uid);
-                            info!("-------------------------->>> insert uid: {uid} Successfully");
                             return inner.call(req).await;
                         }
                     }

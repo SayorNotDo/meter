@@ -7,8 +7,8 @@ use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     HeaderValue, Method, StatusCode,
 };
-use errors::AppResult;
-use middleware::access::AccessLayer;
+
+use server::errors::AppResult;
 use tokio::signal;
 use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
@@ -16,21 +16,12 @@ use tracing::info;
 
 use db::create_pool;
 
-use crate::middleware::auth::AuthLayer;
-use crate::state::AppState;
+use server::api;
 
-mod api;
-mod config;
-mod configure;
-mod constant;
-mod dao;
-mod dto;
-mod errors;
-mod logger;
-mod middleware;
-mod service;
-pub mod state;
-mod utils;
+use server::configure;
+use server::middleware::{access::AccessLayer, auth::AuthLayer};
+use server::state::AppState;
+use server::utils;
 
 #[tokio::main]
 async fn main() -> AppResult<()> {
@@ -40,7 +31,7 @@ async fn main() -> AppResult<()> {
     info!("The initialization of Tracing was successful.");
 
     /* Config */
-    let config = config::Config::parse("./config.toml")?;
+    let config = configure::Config::parse("./config.toml")?;
 
     let pool = create_pool(&config.storage.database_url);
 

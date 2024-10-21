@@ -16,8 +16,8 @@ pub const ACCESS_WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/register"];
 pub const EMAIL_ADDR: &str = "chenwentao@datatower.ai";
 pub const REGISTER_EMAIL_SUBJECT: &str = "<DTest-测试平台> 注册邮件通知";
 
-pub static CONFIG: Lazy<crate::config::Config> =
-    Lazy::new(|| crate::config::Config::parse("./config.toml").unwrap());
+pub static CONFIG: Lazy<crate::configure::Config> =
+    Lazy::new(|| crate::configure::Config::parse("./config.toml").unwrap());
 
 pub static DOCTOR_SCRIPT_PATH: &str = "./static/scripts/doctor";
 

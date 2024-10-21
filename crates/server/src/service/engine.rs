@@ -1,5 +1,5 @@
 use crate::dao::entity::Machine;
-use crate::{config::Config, dao::entity::Script, errors::AppResult};
+use crate::{configure::Config, dao::entity::Script, errors::AppResult};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use ssh2::Session;
