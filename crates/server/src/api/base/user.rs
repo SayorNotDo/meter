@@ -1,7 +1,7 @@
 use crate::dao::entity;
 use crate::dto::request::UserQueryParam;
 use crate::dto::response::UserInfoResponse;
-use crate::errors::AppResult;
+use crate::errors::{AppResult, AppResponseError};
 use crate::service;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;

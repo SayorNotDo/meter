@@ -2,8 +2,7 @@ use axum::extract::Extension;
 use axum::Json;
 use garde::Validate;
 use tracing::{info, warn};
-
-use crate::errors::AppResult;
+use crate::errors::{AppResponseError, AppResult};
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
 use crate::{dto::request::*, dto::response::*, service};
@@ -14,7 +13,7 @@ use crate::{dto::request::*, dto::response::*, service};
     request_body = RegisterRequest,
     path = "/auth/register",
     responses(
-    (status = 200, description = "Success register user", body = null),
+    (status = 200, description = "Success register user"),
     (status = 400, description = "Invalid data input", body = [AppResponseError]),
     (status = 500, description = "Internal server error", body = [AppResponseError])
     )
@@ -22,9 +21,9 @@ use crate::{dto::request::*, dto::response::*, service};
 pub async fn register(
     Extension(state): Extension<AppState>,
     Json(request): Json<RegisterRequest>,
-) -> AppResult<()> {
+) -> AppResult {
     info!("Register new user with request: {request:?}");
-    request.user_info_list.validate(&())?;
+    request.user_info_list.validate()?;
     match service::user::batch_register(&state, request).await {
         Ok(_) => {
             info!("Successfully register user");
@@ -56,7 +55,7 @@ pub async fn login(
     Json(request): Json<LoginRequest>,
 ) -> AppResult<Json<LoginResponse>> {
     info!("Login user with request: {request:?}.");
-    request.validate(&())?;
+    request.validate()?;
     match service::user::login(&state, request).await {
         Ok(resp) => {
             info!("Success login user: {resp:?}");

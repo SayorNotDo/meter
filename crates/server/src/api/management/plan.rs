@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use axum::extract::{Path, Query};
 use axum::{Extension, Json};
 
-use crate::{errors::AppResult, state::AppState, utils::claim::UserClaims};
+use crate::{errors::{AppResult, AppResponseError}, state::AppState, utils::claim::UserClaims};
 
 use tracing::info;
 

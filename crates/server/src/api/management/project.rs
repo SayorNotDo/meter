@@ -5,7 +5,7 @@ use axum::{Extension, Json};
 use tracing::info;
 
 use crate::dto::response::{MessageResponse, ProjectInfoResponse};
-use crate::errors::AppResult;
+use crate::errors::{AppResult, AppResponseError};
 use crate::service::project;
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
@@ -42,7 +42,7 @@ pub async fn info(
     get,
     path = "/project/list",
     responses(
-        (status = 200, description = "Get project list", body = [ProjectListResponse]),
+        (status = 200, description = "Get project list", body = [ProjectInfo]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 404, description = "Project not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError])

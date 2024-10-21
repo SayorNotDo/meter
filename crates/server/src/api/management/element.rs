@@ -21,7 +21,7 @@ use tracing::{info, warn};
     path = "/management/element",
     request_body = CreateElementRequest,
     responses(
-        (status = 200, description = "Element created", body = [ElementResponse])
+        (status = 200, description = "Element created")
     ),
     security(("jwt" = []))
 )]

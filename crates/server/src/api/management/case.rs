@@ -16,7 +16,7 @@ use crate::dto::{
     request::{CreateScriptRequest, ListQueryParam, QueryTemplateParam},
     response::{FileModuleResponse, RequirementInfoResponse},
 };
-use crate::errors::{AppError, AppResult};
+use crate::errors::{AppError, AppResult, AppResponseError};
 use crate::service::{self, case, file};
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
