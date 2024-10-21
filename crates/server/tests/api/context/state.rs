@@ -1,11 +1,12 @@
-use std::sync::Arc;
-
-use crate::helper::api::Api;
 use db::create_pool;
+use once_cell::sync::Lazy;
+use std::sync::Arc;
 
 use server::state::AppState;
 use server::{configure, utils};
 use test_context::AsyncTestContext;
+
+use crate::helper::{api::Api, INIT_SUBCRIBER};
 
 pub struct TestContext {
     pub state: AppState,
@@ -14,6 +15,7 @@ pub struct TestContext {
 
 impl AsyncTestContext for TestContext {
     async fn setup() -> Self {
+        Lazy::force(&INIT_SUBCRIBER);
         let config = configure::Config::parse("./config.toml").unwrap();
 
         let pool = create_pool(&config.storage.database_url);
@@ -27,5 +29,7 @@ impl AsyncTestContext for TestContext {
         Self { state, api }
     }
 
-    async fn teardown(self) -> () {}
+    async fn teardown(self) -> () {
+        /* TODO: test-app shutdown code */
+    }
 }

@@ -97,3 +97,4 @@ reqwest = { version = "0.12.5", features = ["json", "multipart", "stream"] }
 
 # unit-test
 test-context = "0.3.0"
+wiremock = "0.6.2"
