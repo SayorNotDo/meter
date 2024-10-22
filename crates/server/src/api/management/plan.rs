@@ -10,7 +10,11 @@ use std::collections::HashMap;
 use axum::extract::{Path, Query};
 use axum::{Extension, Json};
 
-use crate::{errors::{AppResult, AppResponseError}, state::AppState, utils::claim::UserClaims};
+use crate::{
+    errors::{AppResponseError, AppResult},
+    state::AppState,
+    utils::claim::UserClaims,
+};
 
 use tracing::info;
 
@@ -56,7 +60,7 @@ pub async fn tree(
     path = "/management/test-plan/module/count/:project_id",
     params(PlanQueryParam),
     responses(
-        (status = 200, description = "Get case module info", body = [()]),
+        (status = 200, description = "Get case module info"),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 404, description = "case module info not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),

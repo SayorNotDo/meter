@@ -5,11 +5,12 @@ use chrono::{DateTime, Utc};
 use db::queries::project::*;
 use garde::rules::AsStr;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::entity::ProjectMember;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct Project {
     pub id: i32,
     pub name: String,
@@ -24,7 +25,7 @@ pub struct Project {
     pub module_setting: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct ProjectInfo {
     pub id: i32,
     pub name: String,

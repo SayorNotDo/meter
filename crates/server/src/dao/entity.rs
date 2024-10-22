@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct User {
     pub id: i32,
     pub uuid: Uuid,
@@ -42,7 +42,7 @@ impl User {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Clone, ToSchema)]
 pub struct UserRole {
     pub id: i32,
     pub name: String,
@@ -54,7 +54,7 @@ pub struct UserRole {
     pub description: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct UserRoleRelation {
     pub id: i32,
     pub user_id: Uuid,
@@ -70,7 +70,7 @@ pub struct UserRoleOption {
     pub name: String,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct UserRolePermission {
     pub user_role: UserRole,
     pub user_role_permissions: Vec<Permission>,
@@ -85,7 +85,7 @@ pub struct ProjectMember {
     pub last_project_id: Option<i32>,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct Permission {
     pub id: i32,
     pub module: String,
@@ -113,7 +113,7 @@ pub struct Template {
     pub custom_fields: Vec<CustomField>,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct CustomField {
     pub id: i32,
     pub name: String,
@@ -124,7 +124,7 @@ pub struct CustomField {
     pub options: Vec<FieldOption>,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct FieldOption {
     pub id: i32,
     pub name: String,
@@ -132,7 +132,7 @@ pub struct FieldOption {
     pub position: i32,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct PlanDetail {
     pub id: i32,
     pub name: String,
@@ -222,7 +222,7 @@ impl FunctionalCase {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct CaseDetail {
     pub id: i32,
     pub name: String,
@@ -281,7 +281,7 @@ impl Element {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct ElementDetail {
     pub id: i32,
     pub name: String,
@@ -304,7 +304,7 @@ pub struct ElementInfo {
     pub selector: Option<String>,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct OperationOption {
     pub id: i32,
     pub name: String,

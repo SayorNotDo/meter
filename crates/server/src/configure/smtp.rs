@@ -1,7 +1,6 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct ConfigSMTP {
     pub host: String,
     pub port: u16,

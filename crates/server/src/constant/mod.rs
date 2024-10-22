@@ -1,8 +1,11 @@
-use crate::configure::{get_static_dir, template::EmailTemplateEngine};
+use crate::configure::{env::get_env_source, get_static_dir, template::EmailTemplateEngine};
+use crate::utils::{http::HttpClient, ClientBuilder};
 use std::time::Duration;
 
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use once_cell::sync::Lazy;
+
+pub const ENV_PREFIX: &str = "APP";
 
 // Development mode change 120 to 604800
 pub const EXPIRE_SESSION_CODE_SECS: Duration = Duration::from_secs(604800);
@@ -17,7 +20,10 @@ pub const EMAIL_ADDR: &str = "chenwentao@datatower.ai";
 pub const REGISTER_EMAIL_SUBJECT: &str = "<DTest-测试平台> 注册邮件通知";
 
 pub static CONFIG: Lazy<crate::configure::Config> =
-    Lazy::new(|| crate::configure::Config::parse("./config.toml").unwrap());
+    Lazy::new(|| crate::configure::Config::read(get_env_source(ENV_PREFIX)).unwrap());
+
+pub static HTTP: Lazy<reqwest::Client> =
+    Lazy::new(|| HttpClient::build_from_config(&CONFIG).unwrap());
 
 pub static DOCTOR_SCRIPT_PATH: &str = "./static/scripts/doctor";
 

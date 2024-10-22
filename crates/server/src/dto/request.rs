@@ -1,5 +1,7 @@
 use crate::dao::entity::{CustomField, Step};
 use chrono::{DateTime, Utc};
+use fake::faker::internet::en::{SafeEmail, Username};
+use fake::Dummy;
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -16,10 +18,12 @@ pub struct UserQueryParam {
     pub idle: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+#[derive(Debug, Deserialize, Serialize, Dummy, Validate, ToSchema)]
 pub struct UserInfo {
+    #[dummy(faker = "Username()")]
     #[garde(ascii, length(min = 3, max = 25))]
     pub username: String,
+    #[dummy(faker = "SafeEmail()")]
     #[garde(email)]
     pub email: String,
 }

@@ -16,7 +16,7 @@ use utoipa::ToSchema;
 
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ToSchema)]
 pub struct Resource {
     pub details: Vec<(String, String)>,
     pub resource_type: ResourceType,
@@ -29,7 +29,9 @@ impl std::fmt::Display for Resource {
     }
 }
 
-#[derive(Debug, EnumString, strum::Display, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, EnumString, strum::Display, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ToSchema,
+)]
 pub enum ResourceType {
     #[strum(serialize = "USER")]
     User,
@@ -43,7 +45,7 @@ pub enum ResourceType {
     Project,
 }
 
-#[derive(Debug, thiserror::Error, ToSchema)]
+#[derive(Debug, thiserror::Error)]
 pub enum AppError {
     #[error("{0} not found")]
     NotFoundError(Resource),

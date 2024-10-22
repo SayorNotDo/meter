@@ -1,9 +1,12 @@
 use db::create_pool;
 use once_cell::sync::Lazy;
-use std::sync::Arc;
-
+use server::constant::ENV_PREFIX;
 use server::state::AppState;
-use server::{configure, utils};
+use server::{
+    configure::{env::get_env_source, Config},
+    utils,
+};
+use std::sync::Arc;
 use test_context::AsyncTestContext;
 
 use crate::helper::{api::Api, INIT_SUBCRIBER};
@@ -16,7 +19,7 @@ pub struct TestContext {
 impl AsyncTestContext for TestContext {
     async fn setup() -> Self {
         Lazy::force(&INIT_SUBCRIBER);
-        let config = configure::Config::parse("./config.toml").unwrap();
+        let config = Config::read(get_env_source(ENV_PREFIX)).unwrap();
 
         let pool = create_pool(&config.storage.database_url);
 

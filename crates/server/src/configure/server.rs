@@ -3,7 +3,6 @@ use std::net::{AddrParseError, SocketAddr};
 use serde::Deserialize;
 
 #[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct ConfigHTTP {
     pub host: String,
     pub http_port: u16,
@@ -12,6 +11,7 @@ pub struct ConfigHTTP {
     pub cors: Vec<String>,
     pub tls_cert: String,
     pub tls_key: String,
+    pub timeout: u64,
 }
 
 impl ConfigHTTP {

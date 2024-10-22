@@ -16,7 +16,7 @@ use crate::dto::{
     request::{CreateScriptRequest, ListQueryParam, QueryTemplateParam},
     response::{FileModuleResponse, RequirementInfoResponse},
 };
-use crate::errors::{AppError, AppResult, AppResponseError};
+use crate::errors::{AppError, AppResponseError, AppResult};
 use crate::service::{self, case, file};
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
@@ -26,7 +26,7 @@ use tracing::info;
     get,
     path = "/case/module/tree/:project_id",
     responses(
-        (status = 200, description = "Get case tree", body = [()]),
+        (status = 200, description = "Get case tree"),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 404, description = "Not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
@@ -186,7 +186,7 @@ pub async fn field(
     get,
     path = "/case/info/requirement/:project_id",
     responses(
-        (status = 200, description = "Get related pr info", body = [()]),
+        (status = 200, description = "Get related pr info"),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 404, description = "case tree not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
@@ -209,7 +209,7 @@ pub async fn info(
     path = "/management/case/list/:project_id",
     params(ListQueryParam),
     responses(
-        (status = 200, description = "Get case list", body = [()]),
+        (status = 200, description = "Get case list"),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 404, description = "case list not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
@@ -233,7 +233,7 @@ pub async fn list(
     path = "/management/case/count/:project_id",
     params(CaseQueryParam),
     responses(
-        (status = 200, description = "Get case module info", body = [()]),
+        (status = 200, description = "Get case module info"),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 404, description = "case module info not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
@@ -257,7 +257,7 @@ pub async fn count(
     path = "/management/case/detail/:case_id",
     params(),
     responses(
-        (status = 200, description = "Get case details", body = [()]),
+        (status = 200, description = "Get case details"),
         (status = 404, description = "Case not found", body = [AppResponseError]),
     ),
     security(("jwt" = []))
