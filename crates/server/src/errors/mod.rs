@@ -70,6 +70,8 @@ pub enum AppError {
     #[error(transparent)]
     ParseJsonError(#[from] serde_json::Error),
     #[error(transparent)]
+    AddrParseError(#[from] std::net::AddrParseError),
+    #[error(transparent)]
     JsonExtractRejection(#[from] JsonRejection),
     #[error(transparent)]
     JwtError(#[from] jsonwebtoken::errors::Error),
@@ -156,6 +158,12 @@ impl AppError {
             ),
             ConfigError(_) => (
                 "CONFIG_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            AddrParseError(_err) => (
+                "ADDR_PARSE_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,

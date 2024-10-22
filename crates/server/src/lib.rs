@@ -5,6 +5,7 @@ pub mod dao;
 pub mod dto;
 pub mod errors;
 pub mod middleware;
+pub mod server;
 pub mod service;
 pub mod state;
 pub mod utils;

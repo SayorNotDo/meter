@@ -9,11 +9,14 @@ use server::{
 use std::sync::Arc;
 use test_context::AsyncTestContext;
 
+use wiremock::MockServer;
+
 use crate::helper::{api::Api, INIT_SUBCRIBER};
 
 pub struct TestContext {
     pub state: AppState,
     pub api: Api,
+    pub mock_server: MockServer,
 }
 
 impl AsyncTestContext for TestContext {
@@ -23,13 +26,18 @@ impl AsyncTestContext for TestContext {
 
         let pool = create_pool(&config.storage.database_url);
 
+        let mock_server = MockServer::start().await;
         let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
         let email = Arc::new(utils::smtp::email_client_builder(&config.smtp));
         let api = Api::new(&config.http);
         let state = server::state::AppState::new(pool, redis, email)
             .await
             .unwrap();
-        Self { state, api }
+        Self {
+            state,
+            api,
+            mock_server,
+        }
     }
 
     async fn teardown(self) -> () {
