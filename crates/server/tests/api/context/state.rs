@@ -1,17 +1,11 @@
-use db::create_pool;
 use once_cell::sync::Lazy;
+use server::configure::{env::get_env_source, Config};
 use server::constant::ENV_PREFIX;
 use server::state::AppState;
-use server::{
-    configure::{env::get_env_source, Config},
-    utils,
-};
-use std::sync::Arc;
 use test_context::AsyncTestContext;
 
-use wiremock::MockServer;
-
 use crate::helper::{api::Api, INIT_SUBCRIBER};
+use wiremock::MockServer;
 
 pub struct TestContext {
     pub state: AppState,
@@ -23,16 +17,13 @@ impl AsyncTestContext for TestContext {
     async fn setup() -> Self {
         Lazy::force(&INIT_SUBCRIBER);
         let config = Config::read(get_env_source(ENV_PREFIX)).unwrap();
-
-        let pool = create_pool(&config.storage.database_url);
-
-        let mock_server = MockServer::start().await;
-        let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
-        let email = Arc::new(utils::smtp::email_client_builder(&config.smtp));
-        let api = Api::new(&config.http);
-        let state = server::state::AppState::new(pool, redis, email)
+        let server = server::server::AppServer::new(config.clone())
             .await
             .unwrap();
+        let state = server.state.clone();
+        let server_task = tokio::task::spawn(server.run());
+        let mock_server = MockServer::start().await;
+        let api = Api::new(&config.http);
         Self {
             state,
             api,

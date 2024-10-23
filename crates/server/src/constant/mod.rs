@@ -1,5 +1,6 @@
 use crate::configure::{env::get_env_source, get_static_dir, template::EmailTemplateEngine};
 use crate::utils::{http::HttpClient, ClientBuilder};
+use axum::http::{HeaderValue, Method};
 use std::time::Duration;
 
 use jsonwebtoken::{DecodingKey, EncodingKey};
@@ -15,6 +16,15 @@ pub const AUTHORIZATION: &str = "Authorization";
 pub const PROJECT_ID: &str = "project_id";
 
 pub const WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/register"];
+pub const ALLOW_METHOD: [Method; 6] = [
+    Method::GET,
+    Method::POST,
+    Method::PATCH,
+    Method::OPTIONS,
+    Method::DELETE,
+    Method::PUT,
+];
+pub const ALLOW_ORIGIN: [HeaderValue; 1] = [HeaderValue::from_static("http://localhost:3000")];
 pub const ACCESS_WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/register"];
 pub const EMAIL_ADDR: &str = "chenwentao@datatower.ai";
 pub const REGISTER_EMAIL_SUBJECT: &str = "<DTest-测试平台> 注册邮件通知";

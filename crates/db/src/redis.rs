@@ -2,21 +2,32 @@ use std::time::Duration;
 
 use redis::{Client, RedisError};
 use tracing::info;
-
 pub type RedisClient = Client;
 
+pub fn redis_client_builder(redis_url: &str) -> redis::RedisClient {
+    redis::RedisClient::open(redis_url).unwrap()
+}
+
 pub trait RedisClientExt {
-    fn ping(&self) -> impl std::future::Future<Output=Result<Option<String>, RedisError>>;
+    fn ping(&self) -> impl std::future::Future<Output = Result<Option<String>, RedisError>>;
 
-    fn set(&self, key: &str, value: &str, expire: Duration) -> impl std::future::Future<Output=Result<(), RedisError>>;
+    fn set(
+        &self,
+        key: &str,
+        value: &str,
+        expire: Duration,
+    ) -> impl std::future::Future<Output = Result<(), RedisError>>;
 
-    fn exist(&self, key: &str) -> impl std::future::Future<Output=Result<bool, RedisError>>;
+    fn exist(&self, key: &str) -> impl std::future::Future<Output = Result<bool, RedisError>>;
 
-    fn get(&self, key: &str) -> impl std::future::Future<Output=Result<Option<String>, RedisError>>;
+    fn get(
+        &self,
+        key: &str,
+    ) -> impl std::future::Future<Output = Result<Option<String>, RedisError>>;
 
-    fn del(&self, key: &str) -> impl std::future::Future<Output=Result<bool, RedisError>>;
+    fn del(&self, key: &str) -> impl std::future::Future<Output = Result<bool, RedisError>>;
 
-    fn ttl(&self, key: &str) -> impl std::future::Future<Output=Result<i64, RedisError>>;
+    fn ttl(&self, key: &str) -> impl std::future::Future<Output = Result<i64, RedisError>>;
 }
 
 impl RedisClientExt for Client {
@@ -54,30 +65,21 @@ impl RedisClientExt for Client {
 
     async fn get(&self, key: &str) -> Result<Option<String>, RedisError> {
         let mut conn = self.get_multiplexed_async_connection().await?;
-        let value = redis::cmd("GET")
-            .arg(&[key])
-            .query_async(&mut conn)
-            .await?;
+        let value = redis::cmd("GET").arg(&[key]).query_async(&mut conn).await?;
         info!("get key redis: {value:?}");
         Ok(value)
     }
 
     async fn del(&self, key: &str) -> Result<bool, RedisError> {
         let mut conn = self.get_multiplexed_async_connection().await?;
-        let value: i32= redis::cmd("DEL")
-            .arg(key)
-            .query_async(&mut conn)
-            .await?;
+        let value: i32 = redis::cmd("DEL").arg(key).query_async(&mut conn).await?;
         info!("del key redis: {value:?}");
         Ok(value == 1)
     }
 
     async fn ttl(&self, key: &str) -> Result<i64, RedisError> {
         let mut conn = self.get_multiplexed_async_connection().await?;
-        let value = redis::cmd("TTL")
-            .arg(&[key])
-            .query_async(&mut conn)
-            .await?;
+        let value = redis::cmd("TTL").arg(&[key]).query_async(&mut conn).await?;
         info!("ttl key redis: {value:?}");
         Ok(value)
     }

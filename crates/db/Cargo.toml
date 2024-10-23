@@ -9,10 +9,13 @@ path = "src/lib.rs"
 
 [build-dependencies]
 serde = { version = "1.0.202", features = ["derive"] }
+strum = { version = "0.26.2", features = ["derive"] }
+config = "0.14.0"
 anyhow = "1.0.86"
 toml = "0.8.13"
 
 [dependencies]
+sqlx = { version = "0.8.2", features = ["runtime-tokio"] }
 cornucopia_async = "0.6.0"
 redis = { version = "0.27.5", features = ["tokio-comp"] }
 tokio-postgres = { version = "0.7.10", features = [

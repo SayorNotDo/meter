@@ -1,7 +1,8 @@
+use crate::constant::{ALLOW_METHOD, ALLOW_ORIGIN};
 use axum::extract::Extension;
 use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
-    HeaderValue, Method, StatusCode,
+    StatusCode,
 };
 use db::create_pool;
 use std::sync::Arc;
@@ -40,23 +41,13 @@ impl AppServer {
     }
 
     pub async fn run(self) -> AppResult<()> {
+        /* Middleware */
         let authorization = ServiceBuilder::new().layer(AuthLayer);
         let _access = ServiceBuilder::new().layer(AccessLayer);
 
         let cors = CorsLayer::new()
-            .allow_origin(
-                "http://localhost:3000"
-                    .parse::<HeaderValue>()
-                    .expect("Invalid header value"),
-            )
-            .allow_methods([
-                Method::GET,
-                Method::POST,
-                Method::PATCH,
-                Method::OPTIONS,
-                Method::DELETE,
-                Method::PUT,
-            ])
+            .allow_origin(ALLOW_ORIGIN)
+            .allow_methods(ALLOW_METHOD)
             .allow_credentials(true)
             .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 

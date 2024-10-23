@@ -42,7 +42,6 @@ pub async fn send(
     info!("Send: {subject} email to addr: {receiver}");
     let email = create(template, subject, receiver)?;
     client.send_email(&email).await?;
-    info!("Send the email successfully: {email:?}");
     Ok(())
 }
 
