@@ -4,9 +4,7 @@ use redis::{Client, RedisError};
 use tracing::info;
 pub type RedisClient = Client;
 
-pub fn redis_client_builder(redis_url: &str) -> redis::RedisClient {
-    redis::RedisClient::open(redis_url).unwrap()
-}
+
 
 pub trait RedisClientExt {
     fn ping(&self) -> impl std::future::Future<Output = Result<Option<String>, RedisError>>;

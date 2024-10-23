@@ -21,7 +21,7 @@ impl AsyncTestContext for TestContext {
             .await
             .unwrap();
         let state = server.state.clone();
-        let server_task = tokio::task::spawn(server.run());
+        let _server_task = tokio::task::spawn(server.run());
         let mock_server = MockServer::start().await;
         let api = Api::new(&config.http);
         Self {
