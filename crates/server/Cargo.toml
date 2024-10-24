@@ -55,7 +55,7 @@ backtrace = "0.3.71"
 # Time Processing
 chrono = { version = "0.4.38", features = ["serde"] }
 hex = "0.4.3"
-time = "0.3.36"
+time = { version = "0.3.36", features = [] }
 
 # Database
 uuid = { version = "1.8.0", features = ["serde", "v4"] }
@@ -98,7 +98,7 @@ reqwest = { version = "0.12.5", features = ["json", "multipart", "stream"] }
 # unit-test
 test-context = "0.3.0"
 wiremock = "0.6.2"
-fake = {version = "2.10.0", features = ["derive", "uuid", "chrono"]}
+fake = { version = "2.10.0", features = ["derive", "uuid", "chrono"] }
 
 
 # log

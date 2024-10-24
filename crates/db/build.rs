@@ -103,25 +103,31 @@ fn cornucopia() {
     );
 
     let queries_path = "queries";
+    let migrations_path = "migrations";
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let file_path = Path::new(&out_dir).join("cornucopia.rs");
 
     // Rerun this build script if the queries or migrations change.
     println!("cargo:rerun-if-changed={queries_path}");
-
+    println!("cargo:rerun-if-changed={migrations_path}");
     let output = std::process::Command::new("cornucopia")
         .arg("-q")
         .arg(queries_path)
         // .arg("--serialize")
         .arg("-d")
         .arg(&file_path)
+        // .arg("schema")
+        // .arg(migrations_path)
         .arg("live")
         .arg(&config.storage.database_url)
         .output()
         .unwrap();
 
     if !output.status.success() {
-        panic!("{}", &std::str::from_utf8(&output.stderr).unwrap());
+        panic!(
+            "Build Failure: {}",
+            &std::str::from_utf8(&output.stderr).unwrap()
+        );
     }
 }

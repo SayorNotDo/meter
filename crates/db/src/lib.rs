@@ -1,22 +1,12 @@
-use std::{str::FromStr, sync::Arc};
-
 pub use cornucopia_async::GenericClient;
+
 pub use cornucopia_async::Params;
-
-// use deadpool::managed::Object;
-// use deadpool_postgres::Manager;
-
+use std::{str::FromStr, sync::Arc};
 
 pub use deadpool_postgres::{Client, Pool, PoolError, Transaction};
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls_pki_types::{CertificateDer, ServerName, UnixTime};
 pub use tokio_postgres::Error as TokioPostgresError;
-
-// use tokio_postgres::{Client as TokioPostgresClient, Transaction as TokioPostgresTransaction};
-// pub trait DbExecutor: GenericClient {}
-// impl DbExecutor for TokioPostgresClient {}
-// impl DbExecutor for TokioPostgresTransaction<'_> {}
-// impl DbExecutor for Object<Manager> {}
 
 pub mod redis;
 
@@ -41,22 +31,33 @@ pub fn redis_client_builder(redis_url: &str) -> redis::RedisClient {
     redis::RedisClient::open(redis_url).unwrap()
 }
 
-pub async fn create_database(database_name: &str) {
-    let _create_query = format!("CREATE DATABASE {database_name}");
-}
+// pub async fn create_database(database_url: &str) -> Result<(), sqlx::Error> {
+//     let pool = PgPoolOptions::new()
+//         .max_connections(5)
+//         .connect(database_url)
+//         .await?;
+//     Ok(())
+// }
 
-pub async fn migrate(_database_url: &str) -> Result<(), sqlx::Error> {
-    // let pool = sqlx::connet(&database_url).await?;
-    // sqlx::migrate!("/migrations").run(&pool).await?;
+// pub async fn migrate(database_url: &str) -> Result<(), sqlx::Error> {
+//     let pool = PgPoolOptions::new()
+//         .max_connections(5)
+//         .connect(database_url)
+//         .await?;
+//     sqlx::migrate!("./migrations").run(&pool).await?;
 
-    Ok(())
-}
+//     Ok(())
+// }
 
-pub async fn drop_database(pool: Pool, database_name: &str) {
-    let drop_query = format!("DROP DATABASE {database_name} WITH (FORCE);");
-    let client = pool.get().await.unwrap();
-    client.execute(&drop_query, &vec![]).await.unwrap();
-}
+// pub async fn drop_database(database_url: &str, database_name: &str) -> Result<(), sqlx::Error> {
+//     let drop_query = format!("DROP DATABASE {database_name} WITH (FORCE);");
+//     let pool = PgPoolOptions::new()
+//         .max_connections(5)
+//         .connect(database_url)
+//         .await?;
+//     sqlx::query(&drop_query).execute(&pool).await?;
+//     Ok(())
+// }
 
 include!(concat!(env!("OUT_DIR"), "/cornucopia.rs"));
 

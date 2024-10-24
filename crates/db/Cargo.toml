@@ -15,8 +15,8 @@ anyhow = "1.0.86"
 toml = "0.8.13"
 
 [dependencies]
-sqlx = { version = "0.8.2", features = ["runtime-tokio"] }
 cornucopia_async = "0.6.0"
+# sqlx = { version = "0.8.2", features = ["runtime-tokio", "postgres"] }
 redis = { version = "0.27.5", features = ["tokio-comp"] }
 tokio-postgres = { version = "0.7.10", features = [
     "with-uuid-1",
