@@ -1,4 +1,6 @@
 use crate::constant::{ALLOW_METHOD, ALLOW_ORIGIN};
+use crate::utils::http::HttpClient;
+use crate::utils::ClientBuilder;
 use axum::extract::Extension;
 use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
@@ -35,8 +37,9 @@ impl AppServer {
         let pool = create_pool(&config.storage.database_url);
         let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
         let email = Arc::new(smtp::email_client_builder(&config.smtp));
+        let http = HttpClient::build_from_config(&config)?;
 
-        let state = AppState::new(pool, redis, email).await?;
+        let state = AppState::new(pool, redis, email, http).await?;
         Ok(Self { state, tcp })
     }
 

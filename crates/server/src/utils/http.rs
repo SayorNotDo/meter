@@ -1,10 +1,10 @@
 use std::time::Duration;
 
-use super::ClientBuilder;
 use crate::errors::AppResult;
 use reqwest::Response;
 use serde::Serialize;
 
+use super::ClientBuilder;
 pub type HttpClient = reqwest::Client;
 
 pub trait HttpClientExt: ClientBuilder {

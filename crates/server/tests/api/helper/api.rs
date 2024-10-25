@@ -4,6 +4,7 @@ use reqwest::StatusCode;
 use server::configure::server::ConfigHTTP;
 use server::constant::HTTP;
 use server::dto::request::*;
+use server::dto::response::MessageResponse;
 use server::utils::http::HttpClientExt;
 
 pub struct Api {
@@ -25,6 +26,9 @@ impl Api {
         let resp = HTTP
             .post_request(&format!("{}/auth/register", self.addr), req)
             .await?;
-        Ok((resp.status(), resp.json().await?))
+        let status = resp.status();
+        let json_body = resp.json().await?;
+        println!("=============>>> {:?}", json_body);
+        Ok((status, json_body))
     }
 }

@@ -8,12 +8,13 @@ pub enum AppResponseResult<T = MessageResponse> {
     Err(AppResponseError),
 }
 
-#[allow(dead_code)]
 impl<T> AppResponseResult<T> {
+    #[allow(dead_code)]
     pub fn is_ok(&self) -> bool {
         matches!(*self, Self::Ok(_))
     }
 
+    #[allow(dead_code)]
     pub fn is_err(&self) -> bool {
         matches!(*self, Self::Err(_))
     }

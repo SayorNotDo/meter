@@ -49,6 +49,10 @@ pub enum ResourceType {
 pub enum AppError {
     #[error("{0} not found")]
     NotFoundError(Resource),
+    #[error("{0} not available")]
+    NotAvailableError(Resource),
+    #[error("{0} already exists")]
+    ResourceExistsError(Resource),
     #[error("bad request: {0}")]
     BadRequestError(String),
     #[error("forbidden: {0}")]
@@ -77,8 +81,6 @@ pub enum AppError {
     JwtError(#[from] jsonwebtoken::errors::Error),
     #[error(transparent)]
     HttpClientError(#[from] reqwest::Error),
-    #[error("{0} already exists")]
-    ResourceExistsError(Resource),
     #[error(transparent)]
     DatabaseError(#[from] TokioPostgresError),
     #[error(transparent)]
@@ -138,11 +140,23 @@ impl AppError {
                 vec![],
                 StatusCode::FORBIDDEN,
             ),
+            NotAvailableError(resource) => (
+                format!("{resource}_NOT_AVAILABLE_ERROR"),
+                None,
+                vec![],
+                StatusCode::NOT_FOUND,
+            ),
             InvalidSessionError(_err) => (
                 "INVALID_SESSION_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::BAD_REQUEST,
+            ),
+            ResourceExistsError(resource) => (
+                format!("{resource}_ALREADY_EXISTS_ERROR"),
+                Some(resource.resource_type as i32),
+                resource.details.clone(),
+                StatusCode::CONFLICT,
             ),
             InvalidPayloadError(_err) => (
                 "INVALID_PAYLOAD_ERROR".to_string(),
@@ -235,12 +249,6 @@ impl AppError {
                     .map(|(p, e)| (p.to_string(), e.to_string()))
                     .collect(),
                 StatusCode::BAD_REQUEST,
-            ),
-            ResourceExistsError(resource) => (
-                format!("{resource}_ALREADY_EXISTS_ERROR"),
-                Some(resource.resource_type as i32),
-                resource.details.clone(),
-                StatusCode::CONFLICT,
             ),
             DatabaseError(_err) => (
                 "DATABASE_ERROR".to_string(),

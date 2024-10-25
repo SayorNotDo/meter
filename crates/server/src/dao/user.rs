@@ -298,18 +298,18 @@ where
         role_id: &i32,
     ) -> AppResult<Vec<entity::Permission>> {
         let mut ret = vec![];
-        let user_role_permissions = get_user_role_permissions_by_role_id()
-            .bind(self.executor, role_id)
-            .all()
-            .await?;
-        for item in user_role_permissions {
-            let permission = entity::Permission {
-                id: item.id,
-                module: "".to_string(),
-                scope: item.permission,
-            };
-            ret.push(permission);
-        }
+        // let user_role_permissions = get_user_role_permissions_by_role_id()
+        //     .bind(self.executor, role_id)
+        //     .all()
+        //     .await?;
+        // for item in user_role_permissions {
+        //     let permission = entity::Permission {
+        //         id: item.id,
+        //         module: "".to_string(),
+        //         scope: item.permission,
+        //     };
+        //     ret.push(permission);
+        // }
         Ok(ret)
     }
 

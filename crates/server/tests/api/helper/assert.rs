@@ -5,7 +5,7 @@ macro_rules! assert_err {
         {
             assert!(
                 matches!($result, $crate::helper::result::AppResponseResult::Err(ref _e) $( if $closure(_e) )?),
-            "Match failed: {:?}",$result,)
+                "Match failed: {:?}",$result,)
         }
     };
 }

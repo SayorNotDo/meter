@@ -1,11 +1,11 @@
-use axum::extract::Extension;
-use axum::Json;
-use garde::Validate;
-use tracing::{info, warn};
 use crate::errors::{AppResponseError, AppResult};
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
 use crate::{dto::request::*, dto::response::*, service};
+use axum::extract::Extension;
+use axum::Json;
+use garde::Validate;
+use tracing::{info, warn};
 
 /// User Register
 #[utoipa::path(
@@ -13,22 +13,20 @@ use crate::{dto::request::*, dto::response::*, service};
     request_body = RegisterRequest,
     path = "/auth/register",
     responses(
-    (status = 200, description = "Success register user"),
+    (status = 200, description = "Success register user", body = [MessageResponse]),
     (status = 400, description = "Invalid data input", body = [AppResponseError]),
+    (status = 409, description = "User already exists", body = [AppResponseError]),
     (status = 500, description = "Internal server error", body = [AppResponseError])
     )
 )]
 pub async fn register(
     Extension(state): Extension<AppState>,
     Json(request): Json<RegisterRequest>,
-) -> AppResult {
+) -> AppResult<Json<MessageResponse>> {
     info!("Register new user with request: {request:?}");
     request.user_info_list.validate()?;
     match service::user::batch_register(&state, request).await {
-        Ok(_) => {
-            info!("Successfully register user");
-            Ok(())
-        }
+        Ok(_) => Ok(Json(MessageResponse::new("Success register user"))),
         Err(e) => {
             warn!("Failed to register user: {e:?}");
             Err(e)

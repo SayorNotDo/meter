@@ -10,6 +10,7 @@ use wiremock::MockServer;
 pub struct TestContext {
     pub state: AppState,
     pub api: Api,
+    #[allow(dead_code)]
     pub mock_server: MockServer,
 }
 

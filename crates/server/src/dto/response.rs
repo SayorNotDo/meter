@@ -8,6 +8,7 @@ use crate::dao::entity::{
     UserRoleRelation,
 };
 use crate::dao::project::ProjectInfo;
+use crate::errors::AppResponseError;
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
 pub struct MessageResponse {
@@ -184,4 +185,21 @@ pub struct CreateScriptResponse {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct DiagnoseResponse {
     pub msg: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum AppResultResponse<R> {
+    Err(AppResponseError),
+    Ok(R),
+}
+
+impl<R> AppResultResponse<R> {
+    pub const fn is_ok(&self) -> bool {
+        matches!(*self, AppResultResponse::Ok(_))
+    }
+
+    pub const fn is_err(&self) -> bool {
+        !self.is_ok()
+    }
 }

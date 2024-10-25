@@ -25,6 +25,7 @@ config = "0.14.0"
 
 # Errors
 anyhow = "1.0.86"
+thiserror = "1.0.61"
 
 # Observability
 tracing-bunyan-formatter = "0.3.9"
@@ -67,7 +68,6 @@ utoipa-swagger-ui = { version = "8.0.1", features = ["axum"] }
 
 garde = { version = "0.20.0", features = ["full"] }
 serde_json = "1.0.117"
-thiserror = "1.0.61"
 strum = { version = "0.26.2", features = ["derive"] }
 toml = "0.8.13"
 
