@@ -131,7 +131,7 @@ COMMENT ON COLUMN role_permission_relation.role_id IS '角色ID';
 COMMENT ON COLUMN role_permission_relation.permission_id IS '权限ID';
 
 -- table permission
-DROP TABLE IF EXISTS permission
+DROP TABLE IF EXISTS permission;
 
 CREATE TABLE permission
 (
@@ -148,7 +148,7 @@ COMMENT ON COLUMN permission.scope IS '权限控制范围';
 COMMENT ON COLUMN permission.created_at IS '创建时间';
 
 -- table api_permission_relation
-DROP TABLE IF EXISTS api_permission_relation
+DROP TABLE IF EXISTS api_permission_relation;
 
 CREATE TABLE api_permission_relation
 (

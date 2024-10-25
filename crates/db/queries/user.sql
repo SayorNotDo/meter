@@ -147,11 +147,11 @@ FROM users u
 WHERE u.uuid = :uuid;
 
 --! get_user_role_permissions_by_role_id
-SELECT id,
-       role_id,
-       permission
-FROM user_role_permission
-WHERE role_id = :role_id;
+-- SELECT id,
+--        role_id,
+--        permission
+-- FROM user_role_permission
+-- WHERE role_id = :role_id;
 
 --! get_users_by_role_and_project_id : (updated_at?, last_project_id?)
 SELECT u.id,
