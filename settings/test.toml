@@ -1,1 +1,32 @@
 profile = "test"
+
+[http]
+host = "0.0.0.0"
+http_port = 80
+enable_https = false
+https_port = 443
+timeout = 10
+cors = ["localhost:3000"]
+tls_cert = ""
+tls_key = ""
+
+[jwt]
+private_access_key = "./static/keys/private_access_rsa_key.pem"
+public_access_key = "./static/keys/public_access_rsa_key.pem"
+private_refresh_key = "./static/keys/private_refresh_rsa_key.pem"
+public_refresh_key = "./static/keys/public_refresh_rsa_key.pem"
+expires = 24
+
+[storage]
+database_url = "postgresql://postgres:testpassword@db/test_postgres?sslmode=disable"
+redis_url = "redis://redis/"
+script_path = "./static/scripts/gen"
+template_path = "./static/templates"
+
+
+[smtp]
+host = "smtp.gmail.com"
+port = 587
+username = "example@datatower.ai"
+password = "example"
+tls_off = true

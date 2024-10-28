@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: test_postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - network
+
+  dbmate:
+    image: ghcr.io/amacneil/dbmate:latest
+    environment:
+      DATABASE_URL: postgresql://postgres:testpassword@db:5432/test_postgres?sslmode=disable
+    volumes:
+      - ./crates/db:/db
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["up"]
+    networks:
+      - network
+
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: testpassword
+    command: ["redis-server", "--requirepass", "testpassword"]
+    ports:
+      - "6379:6379"
+    networks:
+      - network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["cargo", "test", "--", "--color=always"]
+    depends_on:
+      - db
+      - redis
+      - dbmate
+      # - mailpit
+    ports:
+      - "8081:8081"
+    networks:
+      - network
+
+  # mailpit:
+  #   image: axllent/mailpit
+  #   restart: unless-stopped
+  #   environment:
+  #     MP_MAX_MESSAGES: 5000
+  #     MP_DATABASE: /data/mailpit.db
+  #     MP_SMTP_AUTH_ACCEPT_ANY: 1
+  #     MP_SMTP_AUTH_ALLOW_INSECURE: 1
+  #   ports:
+  #     - "8025:8025"
+  #     - "1025:1025"
+
+networks:
+  network:
+    driver: bridge

@@ -1,10 +1,9 @@
-version: '3.4'
+version: "3.4"
 services:
-
   db:
     image: postgres:14-alpine
     environment:
-      DATABASE_URL: postgresql://postgres:testpassword@db:5432/postgres?sslmode=disable
+      DATABASE_URL: postgresql://postgres:testpassword@db/postgres?sslmode=disable
       POSTGRES_PASSWORD: testpassword
       POSTGRES_USER: postgres
     ports:
@@ -30,4 +29,4 @@ services:
       - "8081:8081"
     build:
       context: .
-      dockerfile: Dockerfile  # or Dockerfile.dev
+      dockerfile: Dockerfile # or Dockerfile.dev

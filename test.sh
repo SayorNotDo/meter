@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export APP_PROFILE=test
+
 LOCAL_MIGRATIONS_DIR="./crates/db/migrations"
 REMOTE_MIGRATIONS_DIR="migrations"
 
@@ -63,7 +65,7 @@ else
 fi
 
 echo "Running cargo test..."
-cargo test
+cargo test -- --color=always
 
 
 echo "Finishing with drop Postgresql database..."
