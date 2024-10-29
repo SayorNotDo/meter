@@ -18,8 +18,8 @@ public_refresh_key = "./static/keys/public_refresh_rsa_key.pem"
 expires = 24
 
 [storage]
-database_url = "postgresql://postgres:testpassword@db/test_postgres?sslmode=disable"
-redis_url = "redis://redis/"
+database_url = "postgresql://postgres:testpassword@db:5432/test_postgres?sslmode=disable"
+redis_url = "redis://redis:6379/"
 script_path = "./static/scripts/gen"
 template_path = "./static/templates"
 

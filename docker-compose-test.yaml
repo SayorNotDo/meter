@@ -20,7 +20,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:testpassword@db:5432/test_postgres?sslmode=disable
     volumes:
-      - ./crates/db:/db
+      - ./crates/db/migrations:/db/migrations
     depends_on:
       db:
         condition: service_healthy
@@ -44,27 +44,36 @@ services:
       context: .
       dockerfile: Dockerfile
     command: ["cargo", "test", "--", "--color=always"]
+    environment:
+      APP_PROFILE: test
+      RUST_BACKTRACE: 1
+      RUST_LOG: debug
     depends_on:
-      - db
-      - redis
-      - dbmate
-      # - mailpit
+      db:
+        condition: service_healthy
+      dbmate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+      mailpit:
+        condition: service_started
     ports:
       - "8081:8081"
+    restart: on-failure
     networks:
       - network
 
-  # mailpit:
-  #   image: axllent/mailpit
-  #   restart: unless-stopped
-  #   environment:
-  #     MP_MAX_MESSAGES: 5000
-  #     MP_DATABASE: /data/mailpit.db
-  #     MP_SMTP_AUTH_ACCEPT_ANY: 1
-  #     MP_SMTP_AUTH_ALLOW_INSECURE: 1
-  #   ports:
-  #     - "8025:8025"
-  #     - "1025:1025"
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 5000
+      # MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - "8025:8025"
+      - "1025:1025"
 
 networks:
   network:
