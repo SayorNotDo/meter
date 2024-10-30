@@ -25,8 +25,8 @@ template_path = "./static/templates"
 
 
 [smtp]
-host = "smtp.gmail.com"
-port = 587
-username = "example@datatower.ai"
-password = "example"
-tls_off = true
+host = "mailpit"
+port = 1025
+username = "test@datatower.ai"
+password = "test1234"
+protocol = "local"

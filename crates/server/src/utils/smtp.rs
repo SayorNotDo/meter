@@ -1,4 +1,4 @@
-use crate::configure::smtp::ConfigSMTP;
+use crate::configure::smtp::{ConfigSMTP, Protocol};
 use crate::constant::{EMAIL_ADDR, TEMPLATE_ENGINE};
 use crate::dto::{Email, EmailTemplate};
 use lettre::transport::smtp::authentication::Credentials;
@@ -23,14 +23,19 @@ impl EmailClientExt for EmailClient {
 }
 
 pub fn email_client_builder(config: &ConfigSMTP) -> EmailClient {
-    AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config.host)
-        .expect("Failed to init email client...")
-        .credentials(Credentials::new(
-            config.username.clone(),
-            config.password.clone(),
-        ))
-        .port(config.port)
-        .build()
+    match config.protocol {
+        Protocol::STARTTLS => AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config.host)
+            .expect("Failed to initialize email client...")
+            .credentials(Credentials::new(
+                config.username.clone(),
+                config.password.clone(),
+            ))
+            .port(config.port)
+            .build(),
+        Protocol::LOCAL => AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&config.host)
+            .port(config.port)
+            .build(),
+    }
 }
 
 pub async fn send(

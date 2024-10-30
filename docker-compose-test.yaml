@@ -44,6 +44,12 @@ services:
       context: .
       dockerfile: Dockerfile
     command: ["cargo", "test", "--", "--color=always"]
+    working_dir: /meter
+    volumes:
+      - ./crates:/meter/crates
+      - ./settings:/meter/settings
+      - ./static:/meter/static
+      - ./logs:/meter/logs
     environment:
       APP_PROFILE: test
       RUST_BACKTRACE: 1
@@ -59,21 +65,24 @@ services:
         condition: service_started
     ports:
       - "8081:8081"
-    restart: on-failure
     networks:
       - network
 
   mailpit:
     image: axllent/mailpit
     restart: unless-stopped
+    volumes:
+      - ./crates/server/tests/data:/data
     environment:
       MP_MAX_MESSAGES: 5000
-      # MP_DATABASE: /data/mailpit.db
+      MP_DATABASE: /data/mailpit.db
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
     ports:
-      - "8025:8025"
-      - "1025:1025"
+      - 8025:8025
+      - 1025:1025
+    networks:
+      - network
 
 networks:
   network:

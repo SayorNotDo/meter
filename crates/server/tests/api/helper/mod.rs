@@ -6,6 +6,7 @@ use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 pub mod api;
 pub mod assert;
 pub mod result;
+pub mod user;
 
 pub(crate) static INIT_SUBCRIBER: Lazy<()> = Lazy::new(|| {
     configure::tracing::init_subscriber(

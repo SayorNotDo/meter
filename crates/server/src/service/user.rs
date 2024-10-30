@@ -40,7 +40,7 @@ pub async fn register(state: &AppState, username: String, email: String) -> AppR
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let user_dao = UserDao::new(&transaction);
-    match user_dao.insert(new_user).await {
+    match user_dao.insert(&new_user).await {
         Ok(_) => {
             /* 增加邮件发送逻辑 */
             let template = EmailTemplate::Register { username, password };

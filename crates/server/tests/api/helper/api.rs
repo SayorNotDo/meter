@@ -4,7 +4,7 @@ use reqwest::StatusCode;
 use server::configure::server::ConfigHTTP;
 use server::constant::HTTP;
 use server::dto::request::*;
-use server::dto::response::MessageResponse;
+// use server::dto::response::MessageResponse;
 use server::utils::http::HttpClientExt;
 
 pub struct Api {
@@ -28,7 +28,19 @@ impl Api {
             .await?;
         let status = resp.status();
         let json_body = resp.json().await?;
-        println!("=============>>> {:?}", json_body);
+        Ok((status, json_body))
+    }
+
+    #[logfn(Info)]
+    pub async fn login(
+        &self,
+        req: &LoginRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let resp = HTTP
+            .post_request(&format!("{}/auth/login", self.addr), req)
+            .await?;
+        let status = resp.status();
+        let json_body = resp.json().await?;
         Ok((status, json_body))
     }
 }

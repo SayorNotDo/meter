@@ -295,9 +295,9 @@ where
 
     pub async fn get_user_role_permissions_by_role_id(
         &self,
-        role_id: &i32,
+        _role_id: &i32,
     ) -> AppResult<Vec<entity::Permission>> {
-        let mut ret = vec![];
+        let ret = vec![];
         // let user_role_permissions = get_user_role_permissions_by_role_id()
         //     .bind(self.executor, role_id)
         //     .all()
@@ -313,13 +313,13 @@ where
         Ok(ret)
     }
 
-    pub async fn insert(&self, object: entity::User) -> AppResult<i32> {
+    pub async fn insert(&self, object: &entity::User) -> AppResult<i32> {
         let user_id = insert_user()
             .bind(
                 self.executor,
-                &object.username.as_str(),
-                &object.hashed_password.as_str(),
-                &object.email.as_str(),
+                &object.username,
+                &object.hashed_password,
+                &object.email,
                 &object.uuid,
             )
             .one()
