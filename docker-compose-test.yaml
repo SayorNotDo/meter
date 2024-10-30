@@ -69,7 +69,7 @@ services:
       - network
 
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit:latest
     restart: unless-stopped
     volumes:
       - ./crates/server/tests/data:/data
@@ -79,8 +79,8 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
     ports:
-      - 8025:8025
-      - 1025:1025
+      - "8025:8025"
+      - "1025:1025"
     networks:
       - network
 

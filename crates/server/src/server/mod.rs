@@ -24,7 +24,7 @@ use crate::{
 
 pub struct AppServer {
     pub state: AppState,
-    pub tcp: tokio::net::TcpListener,
+    tcp: tokio::net::TcpListener,
 }
 
 impl AppServer {
@@ -34,12 +34,7 @@ impl AppServer {
         tracing::info!("🚀 Server started on {addr} successfully!");
         config.http.http_port = addr.port();
 
-        let pool = create_pool(&config.storage.database_url);
-        let redis = Arc::new(db::redis_client_builder(&config.storage.redis_url));
-        let email = Arc::new(smtp::email_client_builder(&config.smtp));
-        let http = HttpClient::build_from_config(&config)?;
-
-        let state = AppState::new(pool, redis, email, http).await?;
+        let state = AppState::new(config).await?;
         Ok(Self { state, tcp })
     }
 

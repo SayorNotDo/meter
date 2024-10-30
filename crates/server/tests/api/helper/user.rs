@@ -2,9 +2,9 @@ use fake::{faker::internet::en::FreeEmail, Fake, Faker};
 use server::{
     dao::{entity::User, user::UserDao},
     errors::AppResult,
-    state::AppState,
     utils,
 };
+use std::sync::Arc;
 use std::collections::HashMap;
 use strum::{EnumIter, IntoEnumIterator};
 use uuid::Uuid;
@@ -24,9 +24,9 @@ pub struct TestUser {
 }
 
 impl TestUser {
-    pub async fn create_user(state: &AppState) -> AppResult<HashMap<Role, TestUser>> {
+    pub async fn create_user(pool: &db::Pool) -> AppResult<HashMap<Role, TestUser>> {
         let mut users = HashMap::<Role, TestUser>::new();
-        let mut client = state.pool.get().await?;
+        let mut client = pool.get().await?;
         let transaction = client.transaction().await?;
         let user_dao = UserDao::new(&transaction);
         for role in Role::iter() {

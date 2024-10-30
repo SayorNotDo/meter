@@ -14,7 +14,7 @@ pub struct SeedDbTestContext {
 impl AsyncTestContext for SeedDbTestContext {
     async fn setup() -> Self {
         let app = TestContext::setup().await;
-        let users = TestUser::create_user(&app.state)
+        let users = TestUser::create_user(&app.state.pool)
             .await
             .expect("failed to create test users");
         Self { app, users }

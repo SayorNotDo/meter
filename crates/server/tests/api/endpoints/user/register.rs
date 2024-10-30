@@ -4,7 +4,6 @@ use server::{
         request::{RegisterRequest, UserInfo},
         response::MessageResponse,
     },
-    // errors::AppResponseError,
 };
 
 use crate::{context::state::TestContext, helper::result::AppResponseResult};
