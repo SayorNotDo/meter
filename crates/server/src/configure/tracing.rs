@@ -26,24 +26,26 @@ where
     let provider = TracerProvider::builder()
         .with_simple_exporter(opentelemetry_stdout::SpanExporter::default())
         .build();
-    // let mut headers = HashMap::with_capacity(2);
-    // headers.insert(
-    //     "Authorization".into(),
-    //     "Basic cm9vdEBleGFtcGxlLmNvbTp1c3JRQWdtMHVIaVRoUEtv".into(),
-    // );
-    // headers.insert("stream-name".into(), "default".into());
+    /* OpenObserve Setting
+     let mut headers = HashMap::with_capacity(2);
+     headers.insert(
+         "Authorization".into(),
+         "Basic cm9vdEBleGFtcGxlLmNvbTp1c3JRQWdtMHVIaVRoUEtv".into(),
+     );
+     headers.insert("stream-name".into(), "default".into());
 
-    // let exporter = opentelemetry_otlp::new_exporter()
-    //     .http()
-    //     .with_headers(headers)
-    //     .with_endpoint("http://192.168.50.134:5080/api/default/default/_json".to_string())
-    //     .with_timeout(Duration::from_secs(3));
+     let exporter = opentelemetry_otlp::new_exporter()
+         .http()
+         .with_headers(headers)
+         .with_endpoint("http://192.168.50.134:5080/api/default/default/_json".to_string())
+         .with_timeout(Duration::from_secs(3));
 
-    // let provider = opentelemetry_otlp::new_pipeline()
-    //     .tracing()
-    //     .with_exporter(exporter)
-    //     .install_batch(opentelemetry_sdk::runtime::Tokio)
-    //     .expect("initialize tracing provider failure...");
+     let provider = opentelemetry_otlp::new_pipeline()
+         .tracing()
+         .with_exporter(exporter)
+         .install_batch(opentelemetry_sdk::runtime::Tokio)
+         .expect("initialize tracing provider failure...");
+     */
 
     let tracer = provider.tracer("tracing_server");
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);

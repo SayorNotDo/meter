@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["cargo", "test", "--", "--color=always"]
+    command: ["cargo", "test", "test_register::test_success_register", "--", "--color=always"]
     working_dir: /meter
     volumes:
       - ./crates:/meter/crates

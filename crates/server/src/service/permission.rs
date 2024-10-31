@@ -34,7 +34,7 @@ pub async fn check_user_permission(
     info!("--------------->>> role's permission list: {role_permission_list:?}");
     /* 查询请求API所需的权限列表 */
     let api_permission_list = perm_dao.get_permission_by_api(uri, method).await?;
-    info!("--------------->>> api's permission list: {api_permission_list:?}");
+    info!("--------------->>> api permission list: {api_permission_list:?}");
     let enable = api_permission_list
         .iter()
         .all(|item| role_permission_list.contains(item));

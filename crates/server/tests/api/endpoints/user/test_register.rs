@@ -145,12 +145,12 @@ pub async fn test_permission_denied_register(ctx: &mut SeedDbTestContext) {
 
 #[test_context(SeedDbTestContext)]
 #[tokio::test]
-pub async fn test_batch_users_register(ctx: &mut SeedDbTestContext) {}
+pub async fn test_batch_users_register(_ctx: &mut SeedDbTestContext) {}
 
 #[test_context(SeedDbTestContext)]
 #[tokio::test]
-pub async fn test_batch_users_within_invalid_register(ctx: &mut SeedDbTestContext) {}
+pub async fn test_batch_users_within_invalid_register(_ctx: &mut SeedDbTestContext) {}
 
 #[test_context(SeedDbTestContext)]
 #[tokio::test]
-pub async fn test_batch_users_within_already_exists_register(ctx: &mut SeedDbTestContext) {}
+pub async fn test_batch_users_within_already_exists_register(_ctx: &mut SeedDbTestContext) {}

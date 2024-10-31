@@ -36,7 +36,7 @@ impl AppServer {
     pub async fn run(self) -> AppResult<()> {
         /* Middleware */
         let authorization = ServiceBuilder::new().layer(AuthLayer);
-        let _access = ServiceBuilder::new().layer(AccessLayer);
+        let access = ServiceBuilder::new().layer(AccessLayer);
 
         let cors = CorsLayer::new()
             .allow_origin(ALLOW_ORIGIN)
@@ -45,6 +45,7 @@ impl AppServer {
             .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
         let app = api::create_router()
+            .layer(access)
             .layer(authorization)
             .layer(Extension(self.state))
             .layer(TraceLayer::new_for_http())

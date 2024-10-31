@@ -49,7 +49,7 @@ impl TestUser {
             users.insert(role, test_user);
         }
         transaction.commit().await?;
-        info!("logging created users: {users:?}");
+        info!("Created users: {users:?}");
         Ok(users)
     }
 
