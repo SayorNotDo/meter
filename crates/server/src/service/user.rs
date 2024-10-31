@@ -87,7 +87,8 @@ pub async fn login(state: &AppState, request: LoginRequest) -> AppResult<LoginRe
     info!("User login request: {request:?}.");
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
-    let user = user_dao.find_by_username(&request.username).await?;
+    let username = request.username.to_lowercase();
+    let user = user_dao.find_by_username(username).await?;
     /* 校验用户密码 */
     utils::password::verify(request.password.clone(), user.hashed_password.clone()).await?;
     /* 用户是否处于启用状态 */

@@ -50,7 +50,7 @@ SET deleted_at = NOW(),
     deleted_by = :deleted_by
 WHERE id = :uid;
 
---! get_user_by_username (username?) : (updated_at?, last_project_id?)
+--! get_user_by_username : (updated_at?, last_project_id?)
 SELECT id,
        uuid,
        username,

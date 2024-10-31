@@ -1,5 +1,5 @@
 use super::hash;
-use crate::errors::{invalid_input_error, AppResult};
+use crate::errors::{AppError, AppResult};
 use rand::Rng;
 use tracing::debug;
 
@@ -13,10 +13,7 @@ pub async fn verify(password: String, hash: String) -> AppResult {
     let join_handle = tokio::task::spawn_blocking(move || hash::argon_verify(password, hash));
     if let Err(e) = join_handle.await? {
         debug!("Failed to verify password: {e:?}");
-        Err(invalid_input_error(
-            "password",
-            "The password is not correct.",
-        ))
+        Err(AppError::BadRequestError(e.to_string()))
     } else {
         Ok(())
     }

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::errors::AppResult;
+use crate::{errors::AppResult, configure::Config};
 use reqwest::Response;
 use serde::Serialize;
 
@@ -32,7 +32,7 @@ pub trait HttpClientExt: ClientBuilder {
 }
 
 impl ClientBuilder for HttpClient {
-    fn build_from_config(config: &crate::configure::Config) -> AppResult<Self> {
+    fn build_from_config(config: &Config) -> AppResult<Self> {
         Ok(reqwest::Client::builder()
             .timeout(Duration::from_secs(config.http.timeout))
             .build()?)

@@ -17,10 +17,12 @@ use tracing::{info, warn};
     (status = 400, description = "Invalid data input", body = [AppResponseError]),
     (status = 409, description = "User already exists", body = [AppResponseError]),
     (status = 500, description = "Internal server error", body = [AppResponseError])
-    )
+    ),
+    security(("jwt" = []))
 )]
 pub async fn register(
     Extension(state): Extension<AppState>,
+    _user: UserClaims,
     Json(request): Json<RegisterRequest>,
 ) -> AppResult<Json<MessageResponse>> {
     info!("Register new user with request: {request:?}");

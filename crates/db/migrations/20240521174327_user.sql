@@ -11,7 +11,7 @@ CREATE TABLE users
     username             VARCHAR   NOT NULL UNIQUE,
     hashed_password      VARCHAR   NOT NULL,
     email                VARCHAR UNIQUE,
-    enable               BOOLEAN DEFAULT FALSE,
+    enable               BOOLEAN DEFAULT TRUE,
     last_project_id      INT,
     created_at           TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMP,

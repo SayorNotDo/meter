@@ -100,42 +100,6 @@ COMMENT ON COLUMN plan_case_relation.case_id IS '测试用例ID';
 COMMENT ON COLUMN plan_case_relation.created_at IS '创建时间';
 COMMENT ON COLUMN plan_case_relation.created_by IS '创建人';
 
-DROP TABLE IF EXISTS organizations;
-
-CREATE TABLE organizations
-(
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR   NOT NULL,
-    description VARCHAR,
-    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMP,
-    created_by  UUID,
-    updated_by  UUID,
-    deleted     BOOLEAN   NOT NULL DEFAULT FALSE,
-    deleted_at  TIMESTAMP,
-    deleted_by  UUID
-);
-
-
--- comments
-COMMENT ON COLUMN organizations.id IS '组织ID';
-COMMENT ON COLUMN organizations.name IS '组织名称';
-COMMENT ON COLUMN organizations.description IS '组织描述';
-COMMENT ON COLUMN organizations.created_at IS '创建时间';
-COMMENT ON COLUMN organizations.updated_at IS '更新时间';
-COMMENT ON COLUMN organizations.created_by IS '创建人';
-COMMENT ON COLUMN organizations.updated_by IS '更新人';
-COMMENT ON COLUMN organizations.deleted IS '是否删除';
-COMMENT ON COLUMN organizations.deleted_at IS '删除时间';
-COMMENT ON COLUMN organizations.deleted_by IS '删除人';
-
--- create trigger: set updated_at field
-CREATE TRIGGER set_timestamp_organization
-    BEFORE UPDATE
-    ON organizations
-    FOR EACH ROW
-EXECUTE PROCEDURE trigger_set_timestamp();
-
 DROP TABLE IF EXISTS functional_cases;
 
 CREATE TABLE functional_cases

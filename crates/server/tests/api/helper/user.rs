@@ -4,9 +4,9 @@ use server::{
     errors::AppResult,
     utils,
 };
-use std::sync::Arc;
 use std::collections::HashMap;
 use strum::{EnumIter, IntoEnumIterator};
+use tracing::info;
 use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, EnumIter, Hash)]
@@ -16,9 +16,12 @@ pub enum Role {
     System,
 }
 
+#[allow(dead_code)]
+#[derive(Debug)]
 pub struct TestUser {
     pub id: i32,
     pub uuid: Uuid,
+    pub email: String,
     pub username: String,
     pub password: String,
 }
@@ -35,16 +38,32 @@ impl TestUser {
             let hashed_password = utils::password::hash(password.clone()).await?;
             let email = FreeEmail().fake::<String>();
             let user = User::new(&username, &hashed_password, &email, true);
-            let ret = user_dao.insert(&user).await?;
+            let id = user_dao.insert(&user).await?;
             let test_user = TestUser {
-                id: ret,
+                id,
                 uuid: user.uuid,
+                email,
                 username,
                 password,
             };
             users.insert(role, test_user);
         }
         transaction.commit().await?;
+        info!("logging created users: {users:?}");
         Ok(users)
+    }
+
+    pub async fn disable_user(pool: &db::Pool, id: i32) -> AppResult {
+        let client = pool.get().await?;
+        let user_dao = UserDao::new(&client);
+        user_dao.batch_update_user_status(false, vec![id]).await?;
+        Ok(())
+    }
+
+    pub async fn enable_user(pool: &db::Pool, id: i32) -> AppResult {
+        let client = pool.get().await?;
+        let user_dao = UserDao::new(&client);
+        user_dao.batch_update_user_status(true, vec![id]).await?;
+        Ok(())
     }
 }

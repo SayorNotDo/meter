@@ -1,10 +1,13 @@
 use tokio::task::JoinHandle;
 
 use once_cell::sync::Lazy;
-use server::configure::{env::get_env_source, Config};
-use server::constant::ENV_PREFIX;
-use server::errors::AppResult;
-use server::state::AppState;
+use server::{
+    self,
+    configure::{env::get_env_source, Config},
+    constant::ENV_PREFIX,
+    errors::AppResult,
+    state::AppState,
+};
 use test_context::AsyncTestContext;
 use tracing::info;
 
@@ -23,13 +26,13 @@ impl AsyncTestContext for TestContext {
     async fn setup() -> Self {
         Lazy::force(&INIT_SUBCRIBER);
         let config = Config::read(get_env_source(ENV_PREFIX)).unwrap();
-        let server = server::server::AppServer::new(config.clone())
+        let server = server::server::AppServer::new(config)
             .await
-            .unwrap();
+            .expect("Failed to setup server");
         let state = server.state.clone();
         let server_task = tokio::task::spawn(server.run());
         let mock_server = MockServer::start().await;
-        let api = Api::new(&config.http);
+        let api = Api::new(&state.config.http);
         let tasks = vec![server_task];
         Self {
             tasks,
@@ -43,6 +46,7 @@ impl AsyncTestContext for TestContext {
         /* TODO: test-app shutdown code */
         for task in self.tasks {
             task.abort();
+            info!("Shutting down task: {task:?}");
         }
         info!("Teardown done successfully...")
     }

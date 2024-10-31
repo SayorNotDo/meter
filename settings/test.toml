@@ -2,7 +2,7 @@ profile = "test"
 
 [http]
 host = "0.0.0.0"
-http_port = 80
+http_port = 0
 enable_https = false
 https_port = 443
 timeout = 10
@@ -19,7 +19,7 @@ expires = 24
 
 [storage]
 database_url = "postgresql://postgres:testpassword@db:5432/test_postgres?sslmode=disable"
-redis_url = "redis://redis:6379/"
+redis_url = "redis://:testpassword@redis:6379/"
 script_path = "./static/scripts/gen"
 template_path = "./static/templates"
 

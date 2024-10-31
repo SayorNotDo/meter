@@ -1,14 +1,13 @@
 use ::tracing::info;
 use serde::Deserialize;
 use std::fs;
-use std::str::FromStr;
 
 use config::{ConfigError, Environment};
 use secret::ConfigJWT;
 use server::ConfigHTTP;
 use smtp::ConfigSMTP;
 use storage::ConfigStorage;
-
+use crate::configure::env::get_profile;
 use crate::utils::dir::get_project_root;
 
 pub mod env;
@@ -38,9 +37,7 @@ impl Config {
 
     pub fn read(env: Environment) -> Result<Self, ConfigError> {
         let config_dir = get_setting_dir()?;
-        let profile = std::env::var("APP_PROFILE")
-            .map(|env| Profile::from_str(&env).map_err(|e| ConfigError::Message(e.to_string())))
-            .unwrap_or_else(|_| Ok(Profile::Dev))?;
+        let profile = get_profile()?;
         let profile_filename = format!("{profile}.toml");
         let config = config::Config::builder()
             .add_source(config::File::from(config_dir.join("base.toml")))

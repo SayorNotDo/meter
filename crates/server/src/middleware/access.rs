@@ -5,7 +5,6 @@ use axum::{
 };
 
 use tower::{Layer, Service};
-use tracing::info;
 use uuid::Uuid;
 
 use crate::{constant, errors::AppResponseError, service::permission, state::AppState};
@@ -66,7 +65,6 @@ where
                 return future.await;
             }
             /* access check main logic */
-            info!("-------------->>> Access middleware processing with user: {uid}");
             if let Some(param) = headers.get(constant::PROJECT_ID) {
                 if let Ok(parma_str) = param.to_str() {
                     if let Ok(project_id) = parma_str.parse::<i32>() {

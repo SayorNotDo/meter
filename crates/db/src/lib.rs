@@ -31,34 +31,6 @@ pub fn redis_client_builder(redis_url: &str) -> redis::RedisClient {
     redis::RedisClient::open(redis_url).unwrap()
 }
 
-// pub async fn create_database(database_url: &str) -> Result<(), sqlx::Error> {
-//     let pool = PgPoolOptions::new()
-//         .max_connections(5)
-//         .connect(database_url)
-//         .await?;
-//     Ok(())
-// }
-
-// pub async fn migrate(database_url: &str) -> Result<(), sqlx::Error> {
-//     let pool = PgPoolOptions::new()
-//         .max_connections(5)
-//         .connect(database_url)
-//         .await?;
-//     sqlx::migrate!("./migrations").run(&pool).await?;
-
-//     Ok(())
-// }
-
-// pub async fn drop_database(database_url: &str, database_name: &str) -> Result<(), sqlx::Error> {
-//     let drop_query = format!("DROP DATABASE {database_name} WITH (FORCE);");
-//     let pool = PgPoolOptions::new()
-//         .max_connections(5)
-//         .connect(database_url)
-//         .await?;
-//     sqlx::query(&drop_query).execute(&pool).await?;
-//     Ok(())
-// }
-
 include!(concat!(env!("OUT_DIR"), "/cornucopia.rs"));
 
 #[derive(Debug)]

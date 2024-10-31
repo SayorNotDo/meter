@@ -1,13 +1,9 @@
 use crate::constant::{ALLOW_METHOD, ALLOW_ORIGIN};
-use crate::utils::http::HttpClient;
-use crate::utils::ClientBuilder;
 use axum::extract::Extension;
 use axum::http::{
     header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     StatusCode,
 };
-use db::create_pool;
-use std::sync::Arc;
 use std::time::Duration;
 use tokio::signal;
 use tower::ServiceBuilder;
@@ -19,7 +15,6 @@ use crate::{
     errors::AppResult,
     middleware::{access::AccessLayer, auth::AuthLayer},
     state::AppState,
-    utils::smtp,
 };
 
 pub struct AppServer {

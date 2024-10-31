@@ -6,6 +6,7 @@ pub mod hash;
 pub mod http;
 pub mod password;
 pub mod smtp;
+pub mod task;
 pub mod time;
 
 pub trait ClientBuilder: Sized {
