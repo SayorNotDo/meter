@@ -5,6 +5,7 @@ use axum::{
 };
 
 use tower::{Layer, Service};
+use tracing::info;
 use uuid::Uuid;
 
 use crate::{constant, errors::AppResponseError, service::permission, state::AppState};
@@ -66,6 +67,7 @@ where
             }
             /* access check main logic */
             if let Some(param) = headers.get(constant::PROJECT_ID) {
+                info!("======>>> access layer get project_id from header: {param:?}");
                 if let Ok(parma_str) = param.to_str() {
                     if let Ok(project_id) = parma_str.parse::<i32>() {
                         /* 检查当前请求用户是否拥有对应接口所需要的权限 */
@@ -82,7 +84,10 @@ where
                                 return future.await;
                             }
                             Ok(_) => err_msg = "Access denied".to_string(),
-                            Err(e) => err_msg = e.to_string(),
+                            Err(e) => {
+                                info!("=======>>> {e:?}");
+                                err_msg = e.to_string()
+                            }
                         }
                     }
                 }

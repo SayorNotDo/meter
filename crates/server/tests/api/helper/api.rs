@@ -4,7 +4,7 @@ use log_derive::logfn;
 use reqwest::StatusCode;
 use server::{
     configure::server::ConfigHTTP,
-    constant::HTTP,
+    constant::{HTTP, PROJECT_ID},
     dto::{request::*, response::*},
     utils::http::HttpClientExt,
 };
@@ -23,11 +23,18 @@ impl Api {
     pub async fn register(
         &self,
         token: &str,
+        project_id: i32,
         req: &RegisterRequest,
     ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, format!("{}", project_id).parse()?);
         let resp = HTTP
             .post(&format!("{}/auth/register", self.addr))
-            .header(reqwest::header::AUTHORIZATION, format!("Bearer {token}"))
+            .headers(headers)
             .json(req)
             .send()
             .await?;

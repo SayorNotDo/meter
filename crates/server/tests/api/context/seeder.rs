@@ -1,14 +1,17 @@
 use std::collections::HashMap;
 
+use crate::helper::{
+    project::TestProject,
+    user::{Role, TestUser},
+};
 use test_context::AsyncTestContext;
-
-use crate::helper::user::{Role, TestUser};
 
 use super::state::TestContext;
 
 pub struct SeedDbTestContext {
     pub app: TestContext,
     pub users: HashMap<Role, TestUser>,
+    pub project: TestProject,
 }
 
 impl AsyncTestContext for SeedDbTestContext {
@@ -17,7 +20,15 @@ impl AsyncTestContext for SeedDbTestContext {
         let users = TestUser::create_user(&app.state.pool)
             .await
             .expect("Failed to create test users...");
-        Self { app, users }
+        let project =
+            TestProject::create_project(&app.state.pool, users.get(&Role::Admin).unwrap().uuid)
+                .await
+                .expect("Failed to create test project");
+        Self {
+            app,
+            users,
+            project,
+        }
     }
 
     async fn teardown(self) {

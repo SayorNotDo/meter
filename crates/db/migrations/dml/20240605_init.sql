@@ -3,32 +3,22 @@ INSERT INTO users
 (username,
  uuid,
  hashed_password,
- last_organization_id,
  last_project_id,
  email)
 VALUES ('admin',
         '24578899-b163-48fe-8594-1fa60134ed2d',
         '$argon2id$v=19$m=19456,t=2,p=1$NskOoxLFUtTPzhT4UyNCSw$u1FSg95/l5fQ5EzyQWod7aknDyitqhAcUjePnLH/pBg',
         1,
-        1,
         'admin@test.io');
-
--- 初始化组织
-INSERT INTO organizations (name, description, created_by)
-VALUES ('默认组织',
-        '系统默认创建的组织',
-        (SELECT uuid FROM users WHERE username = 'admin'));
 
 -- 初始化项目
 INSERT INTO projects
 (name,
- organization_id,
  created_by,
  enable,
  description,
  module_setting)
 VALUES ('默认项目',
-        (SELECT id FROM organizations WHERE name = '默认组织'),
         (SELECT uuid FROM users WHERE username = 'admin'),
         true,
         '系统默认创建的项目',

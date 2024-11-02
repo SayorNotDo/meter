@@ -29,7 +29,7 @@ pub async fn test_success_register(ctx: &mut SeedDbTestContext) {
     let (status, resp) = ctx
         .app
         .api
-        .register(&token.access_token, &req)
+        .register(&token.access_token, ctx.project.id, &req)
         .await
         .unwrap();
     assert!(matches!(
@@ -40,7 +40,7 @@ pub async fn test_success_register(ctx: &mut SeedDbTestContext) {
     let (status, _) = ctx
         .app
         .api
-        .register(&token.access_token, &req)
+        .register(&token.access_token, ctx.project.id, &req)
         .await
         .unwrap();
     assert!(!status.is_success(), "status: {status}");
@@ -55,7 +55,7 @@ pub async fn test_unauthorized_register(ctx: &mut TestContext) {
 
     let req: RegisterRequest = RegisterRequest { user_info_list };
 
-    let (status, _) = ctx.api.register("Bearer ", &req).await.unwrap();
+    let (status, _) = ctx.api.register("Bearer ", 1, &req).await.unwrap();
     assert!(status.is_client_error(), "status: {status}");
 }
 
@@ -82,7 +82,7 @@ pub async fn test_forbidden_admin_register(ctx: &mut SeedDbTestContext) {
     let (status, _) = ctx
         .app
         .api
-        .register(&token.access_token, &RegisterRequest { user_info_list })
+        .register(&token.access_token, 1, &RegisterRequest { user_info_list })
         .await
         .unwrap();
     assert!(status.is_client_error(), "status: {status}");
@@ -112,7 +112,7 @@ pub async fn test_forbidden_user_register(ctx: &mut SeedDbTestContext) {
     let (status, _) = ctx
         .app
         .api
-        .register(&token.access_token, &req)
+        .register(&token.access_token, 1, &req)
         .await
         .unwrap();
     assert!(status.is_client_error(), "status: {status}");
@@ -136,7 +136,7 @@ pub async fn test_permission_denied_register(ctx: &mut SeedDbTestContext) {
     let (status, _) = ctx
         .app
         .api
-        .register(&token.access_token, &RegisterRequest { user_info_list })
+        .register(&token.access_token, 1, &RegisterRequest { user_info_list })
         .await
         .unwrap();
 

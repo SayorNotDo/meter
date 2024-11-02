@@ -11,7 +11,7 @@ use server::{
 use test_context::AsyncTestContext;
 use tracing::info;
 
-use crate::helper::{api::Api, INIT_SUBCRIBER};
+use crate::helper::{api::Api, INIT_SUBSCRIBER};
 use wiremock::MockServer;
 
 pub struct TestContext {
@@ -24,7 +24,7 @@ pub struct TestContext {
 
 impl AsyncTestContext for TestContext {
     async fn setup() -> Self {
-        Lazy::force(&INIT_SUBCRIBER);
+        Lazy::force(&INIT_SUBSCRIBER);
         let config = Config::read(get_env_source(ENV_PREFIX)).unwrap();
         let server = server::server::AppServer::new(config)
             .await

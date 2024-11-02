@@ -99,7 +99,6 @@ test-context = "0.3.0"
 wiremock = "0.6.2"
 fake = { version = "2.10.0", features = ["derive", "uuid", "chrono"] }
 
-
 # log
 log = "0.4.22"
 log-derive = "0.4.1"

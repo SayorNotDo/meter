@@ -14,7 +14,6 @@ use super::entity::ProjectMember;
 pub struct Project {
     pub id: i32,
     pub name: String,
-    pub organization_id: i32,
     pub created_at: DateTime<Utc>,
     pub created_by: Uuid,
     pub updated_at: Option<DateTime<Utc>>,
@@ -46,7 +45,6 @@ impl Project {
     #[allow(dead_code)]
     pub fn new(
         name: String,
-        organization_id: i32,
         created_by: Uuid,
         description: Option<String>,
         module_setting: Option<String>,
@@ -54,7 +52,6 @@ impl Project {
         Self {
             id: 0,
             name,
-            organization_id,
             created_at: Utc::now(),
             created_by,
             updated_at: None,
@@ -128,7 +125,7 @@ impl<'a> ProjectDao<'a> {
     }
 
     #[allow(dead_code)]
-    async fn insert(&self, object: Project) -> AppResult<i32> {
+    pub async fn insert(&self, object: &Project) -> AppResult<i32> {
         let description = match &object.description {
             Some(s) => s.as_str(),
             None => "".as_str(),
@@ -140,7 +137,7 @@ impl<'a> ProjectDao<'a> {
         let project_id = insert_project()
             .bind(
                 self.client,
-                &object.name.as_str(),
+                &object.name,
                 &object.created_by,
                 &description,
                 &module_setting,
