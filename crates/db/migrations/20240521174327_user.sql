@@ -48,6 +48,19 @@ CREATE TRIGGER set_timestamp_user
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
+-- init admin user
+INSERT INTO users
+(username,
+ uuid,
+ hashed_password,
+ last_project_id,
+ email)
+VALUES ('admin',
+        '24578899-b163-48fe-8594-1fa60134ed2d',
+        '$argon2id$v=19$m=19456,t=2,p=1$NskOoxLFUtTPzhT4UyNCSw$u1FSg95/l5fQ5EzyQWod7aknDyitqhAcUjePnLH/pBg',
+        1,
+        'admin@test.io');
+
 -- table user_role
 
 DROP TABLE IF EXISTS user_role;
@@ -67,7 +80,7 @@ CREATE TABLE user_role
 -- comments
 COMMENT ON COLUMN user_role.id IS '角色ID';
 COMMENT ON COLUMN user_role.name IS '角色名称';
-COMMENT ON COLUMN user_role.type IS '所属类型 SYSTEM, ORGANIZATION, PROJECT';
+COMMENT ON COLUMN user_role.type IS '所属类型 SYSTEM, PROJECT';
 COMMENT ON COLUMN user_role.internal IS '是否内置角色';
 COMMENT ON COLUMN user_role.created_at IS '创建时间';
 COMMENT ON COLUMN user_role.created_by IS '创建人';
@@ -79,6 +92,19 @@ CREATE TRIGGER set_timestamp_user_role
     ON user_role
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
+
+-- init admin role
+INSERT INTO user_role
+(name,
+ type,
+ internal,
+ description,
+ created_by)
+VALUES ('ADMIN',
+'PROJECT',
+true,
+'拥有系统全部组织以及项目的操作权限',
+(SELECT uuid FROM users WHERE username = 'admin'));
 
 -- table user_role_relation
 

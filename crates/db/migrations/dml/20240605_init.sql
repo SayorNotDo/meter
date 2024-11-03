@@ -11,6 +11,7 @@ VALUES ('admin',
         1,
         'admin@test.io');
 
+
 -- 初始化项目
 INSERT INTO projects
 (name,

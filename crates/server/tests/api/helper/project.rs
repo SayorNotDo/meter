@@ -17,12 +17,22 @@ impl TestProject {
         let client = pool.get().await?;
         let project_dao = ProjectDao::new(&client);
         let new_project = Project::new("测试项目".to_string(), uid, None, None);
-        let project = project_dao.insert(&new_project).await?;
-        Ok(TestProject {
-            id: project,
-            name: new_project.name,
-            description: new_project.description,
-            created_by: new_project.created_by,
-        })
+        match project_dao.find_by_name(new_project.name.clone()).await {
+            Ok(project) => Ok(TestProject {
+                id: project.id,
+                name: new_project.name,
+                description: new_project.description,
+                created_by: new_project.created_by,
+            }),
+            Err(_) => {
+                let id = project_dao.insert(&new_project).await?;
+                Ok(TestProject {
+                    id,
+                    name: new_project.name,
+                    description: new_project.description,
+                    created_by: new_project.created_by,
+                })
+            }
+        }
     }
 }

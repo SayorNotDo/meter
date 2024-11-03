@@ -39,6 +39,20 @@ CREATE TRIGGER set_timestamp_project
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
+-- init default project
+INSERT INTO projects
+(name,
+ created_by,
+ enable,
+ description,
+ module_setting)
+VALUES ('默认项目',
+        (SELECT uuid FROM users WHERE username = 'admin'),
+        true,
+        '系统默认创建的项目',
+        '["bugManagement","caseManagement","apiTest","testPlan"]');
+
+
 DROP TABLE IF EXISTS plans;
 
 CREATE TABLE plans

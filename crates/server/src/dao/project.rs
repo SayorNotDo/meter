@@ -97,7 +97,7 @@ macro_rules! impl_to_project {
     };
 }
 
-impl_to_project!(FindProjectById, FindProjectsByUid);
+impl_to_project!(FindProjectById, FindProjectsByUid, FindProjectByName);
 
 #[derive(Debug)]
 pub struct ProjectDao<'a> {
@@ -149,6 +149,17 @@ impl<'a> ProjectDao<'a> {
 
     pub async fn find_by_id(&self, id: i32) -> AppResult<ProjectInfo> {
         let ret = find_project_by_id().bind(self.client, &id).opt().await?;
+        match ret {
+            Some(project) => Ok(project.to_project()),
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::Project,
+            })),
+        }
+    }
+
+    pub async fn find_by_name(&self, name: String) -> AppResult<ProjectInfo> {
+        let ret = find_project_by_name().bind(self.client, &name).opt().await?;
         match ret {
             Some(project) => Ok(project.to_project()),
             None => Err(AppError::NotFoundError(Resource {
