@@ -4,18 +4,18 @@ DROP TABLE IF EXISTS projects;
 
 CREATE TABLE projects
 (
-    id              SERIAL PRIMARY KEY,
-    name            VARCHAR   UNIQUE NOT NULL,
-    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMP,
-    created_by      UUID,
-    updated_by      UUID,
-    enable          BOOLEAN   NOT NULL DEFAULT TRUE,
-    deleted         BOOLEAN   NOT NULL DEFAULT FALSE,
-    deleted_at      TIMESTAMP,
-    deleted_by      UUID,
-    description     VARCHAR,
-    module_setting  VARCHAR
+    id             SERIAL PRIMARY KEY,
+    name           VARCHAR UNIQUE NOT NULL,
+    created_at     TIMESTAMP      NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMP,
+    created_by     UUID,
+    updated_by     UUID,
+    enable         BOOLEAN        NOT NULL DEFAULT TRUE,
+    deleted        BOOLEAN        NOT NULL DEFAULT FALSE,
+    deleted_at     TIMESTAMP,
+    deleted_by     UUID,
+    description    VARCHAR,
+    module_setting VARCHAR
 );
 
 -- comments
@@ -39,37 +39,25 @@ CREATE TRIGGER set_timestamp_project
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
--- init default project
-INSERT INTO projects
-(name,
- created_by,
- enable,
- description,
- module_setting)
-VALUES ('默认项目',
-        (SELECT uuid FROM users WHERE username = 'admin'),
-        true,
-        '系统默认创建的项目',
-        '["bugManagement","caseManagement","apiTest","testPlan"]');
 
 
 DROP TABLE IF EXISTS plans;
 
 CREATE TABLE plans
 (
-    id  SERIAL PRIMARY KEY,
-    name    VARCHAR NOT NULL,
-    project_id INT NOT NULL,
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR   NOT NULL,
+    project_id  INT       NOT NULL,
     description VARCHAR,
-    module_id   INT NOT NULL,
+    module_id   INT       NOT NULL,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by  UUID NOT NULL,
+    created_by  UUID      NOT NULL,
     updated_at  TIMESTAMP,
     updated_by  UUID,
-    status  VARCHAR NOT NULL DEFAULT 'NEW',
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    status      VARCHAR   NOT NULL DEFAULT 'NEW',
+    deleted     BOOLEAN   NOT NULL DEFAULT FALSE,
     deleted_at  TIMESTAMP,
-    deleted_by UUID,
+    deleted_by  UUID,
     start_date  DATE,
     end_date    DATE
 );
@@ -100,11 +88,11 @@ DROP TABLE IF EXISTS plan_case_relation;
 
 CREATE TABLE plan_case_relation
 (
-    id  SERIAL PRIMARY KEY,
-    plan_id INT NOT NULL,
-    case_id INT NOT NULL,
-    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by  UUID NOT NULL
+    id         SERIAL PRIMARY KEY,
+    plan_id    INT       NOT NULL,
+    case_id    INT       NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID      NOT NULL
 );
 
 -- comments
@@ -118,19 +106,19 @@ DROP TABLE IF EXISTS functional_cases;
 
 CREATE TABLE functional_cases
 (
-    id         SERIAL PRIMARY KEY,
-    name       VARCHAR   NOT NULL,
-    module_id  INT       NOT NULL,
-    template_id INT NOT NULL,
-    tags       VARCHAR,
-    status     VARCHAR       NOT NULL DEFAULT 'UN_REVIEWED',
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP,
-    created_by UUID NOT NULL,
-    updated_by UUID,
-    deleted    BOOLEAN   NOT NULL DEFAULT FALSE,
-    deleted_at TIMESTAMP,
-    deleted_by UUID
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR   NOT NULL,
+    module_id   INT       NOT NULL,
+    template_id INT       NOT NULL,
+    tags        VARCHAR,
+    status      VARCHAR   NOT NULL DEFAULT 'UN_REVIEWED',
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMP,
+    created_by  UUID      NOT NULL,
+    updated_by  UUID,
+    deleted     BOOLEAN   NOT NULL DEFAULT FALSE,
+    deleted_at  TIMESTAMP,
+    deleted_by  UUID
 );
 
 -- create trigger: set updated_at field
@@ -157,23 +145,25 @@ COMMENT ON COLUMN functional_cases.deleted_by IS '删除人';
 
 DROP TABLE IF EXISTS functional_case_custom_field;
 
-CREATE TABLE functional_case_custom_field (
-    id SERIAL PRIMARY KEY,
-    case_id INT NOT NULL,
-    field_id INT NOT NULL,
-    value   VARCHAR NOT NULL
+CREATE TABLE functional_case_custom_field
+(
+    id       SERIAL PRIMARY KEY,
+    case_id  INT     NOT NULL,
+    field_id INT     NOT NULL,
+    value    VARCHAR NOT NULL
 );
 
 DROP TABLE IF EXISTS case_issue_relation;
 
-CREATE TABLE case_issue_relation (
-    id SERIAL PRIMARY KEY,
-    case_id INT NOT NULL,
-    issue_id VARCHAR NOT NULL,
-    source  VARCHAR NOT NULL,
-    uri VARCHAR NOT NULL,
+CREATE TABLE case_issue_relation
+(
+    id         SERIAL PRIMARY KEY,
+    case_id    INT       NOT NULL,
+    issue_id   VARCHAR   NOT NULL,
+    source     VARCHAR   NOT NULL,
+    uri        VARCHAR   NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by UUID NOT NULL,
+    created_by UUID      NOT NULL,
     updated_at TIMESTAMP,
     updated_by UUID
 );
@@ -187,13 +177,14 @@ EXECUTE PROCEDURE trigger_set_timestamp();
 
 DROP TABLE IF EXISTS script_element_relation;
 
-CREATE TABLE script_element_relation (
-    id                      SERIAL PRIMARY KEY,
-    script_id               INT NOT NULL,
-    field_type              VARCHAR NOT NULL,
-    element_operation_id    INT NOT NULL,
-    position                INT NOT NULL,
-    attach_info             VARCHAR
+CREATE TABLE script_element_relation
+(
+    id                   SERIAL PRIMARY KEY,
+    script_id            INT     NOT NULL,
+    field_type           VARCHAR NOT NULL,
+    element_operation_id INT     NOT NULL,
+    position             INT     NOT NULL,
+    attach_info          VARCHAR
 );
 
 
@@ -201,16 +192,16 @@ DROP TABLE IF EXISTS machine;
 
 CREATE TABLE machine
 (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR,
-    type VARCHAR,
-    addr VARCHAR,
+    id             SERIAL PRIMARY KEY,
+    name           VARCHAR,
+    type           VARCHAR,
+    addr           VARCHAR,
     authentication VARCHAR,
-    internal BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by UUID NOT NULL,
-    updated_at TIMESTAMP,
-    updated_by UUID
+    internal       BOOLEAN   NOT NULL DEFAULT FALSE,
+    created_at     TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by     UUID      NOT NULL,
+    updated_at     TIMESTAMP,
+    updated_by     UUID
 );
 
 --create trigger: set updated_at field
@@ -229,7 +220,7 @@ CREATE TABLE file_module
     project_id  INT       NOT NULL,
     name        VARCHAR,
     position    INT       NOT NULL DEFAULT 0,
-    module_type VARCHAR NOT NULL,
+    module_type VARCHAR   NOT NULL,
     attach_info VARCHAR,
     parent_id   INT,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),

@@ -9,7 +9,32 @@ use strum::{EnumIter, IntoEnumIterator};
 use tracing::info;
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, EnumIter, Hash)]
+trait ToTestUser {
+    fn to_test_user(&self) -> TestUser;
+}
+
+macro_rules! impl_to_test_user {
+    ($($t:ty),*) => {
+        $(
+
+        impl ToTestUser for $t {
+            fn to_test_user(&self) -> TestUser {
+                TestUser {
+                    id: self.id,
+                    uuid: self.uuid,
+                    email: self.email.clone(),
+                    username: self.username.clone(),
+                    password: "test_password".to_string(),
+                    }
+                }
+            }
+        )*
+    };
+}
+
+impl_to_test_user!(User);
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, EnumIter, Hash, Clone, Copy)]
 pub enum Role {
     Admin,
     User,
@@ -33,18 +58,32 @@ impl TestUser {
         let transaction = client.transaction().await?;
         let user_dao = UserDao::new(&transaction);
         for role in Role::iter() {
-            let username = Faker.fake::<String>();
-            let password: String = utils::password::generate()?;
-            let hashed_password = utils::password::hash(password.clone()).await?;
-            let email = FreeEmail().fake::<String>();
-            let user = User::new(&username, &hashed_password, &email, true);
-            let id = user_dao.insert(&user).await?;
-            let test_user = TestUser {
-                id,
-                uuid: user.uuid,
-                email,
-                username,
-                password,
+            let test_user = match role {
+                Role::User => {
+                    let username = Faker.fake::<String>();
+                    let password: String = utils::password::generate()?;
+                    let hashed_password = utils::password::hash(password.clone()).await?;
+                    let email = FreeEmail().fake::<String>();
+                    let user = User::new(&username, &hashed_password, &email, true);
+                    let id = user_dao.insert(&user).await?;
+                    TestUser {
+                        id,
+                        uuid: user.uuid,
+                        email,
+                        username,
+                        password,
+                    }
+                }
+                Role::Admin => user_dao
+                    .find_by_username("admin".to_string())
+                    .await
+                    .expect("admin not found")
+                    .to_test_user(),
+                Role::System => user_dao
+                    .find_by_username("__system__".to_string())
+                    .await
+                    .expect("system not found")
+                    .to_test_user(),
             };
             users.insert(role, test_user);
         }

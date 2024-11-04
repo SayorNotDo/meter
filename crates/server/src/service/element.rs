@@ -8,7 +8,7 @@ use crate::{
     dao::{element::ElementDao, entity::Element, file::FileDao},
     dto::{
         request::{CreateElementRequest, ElementQueryParam, ListQueryParam},
-        response::ListElementResoponse,
+        response::ListElementResponse,
     },
     errors::AppResult,
     service::token::generate_page_token,
@@ -47,7 +47,7 @@ pub async fn list(
     state: &AppState,
     project_id: &i32,
     param: &ListQueryParam,
-) -> AppResult<ListElementResoponse> {
+) -> AppResult<ListElementResponse> {
     info!("service layer for list with project_id: {project_id:?}, param: {param:?}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
@@ -76,7 +76,7 @@ pub async fn list(
         .get_element_list(&module_id, &page_size, &offset)
         .await?;
     transaction.commit().await?;
-    Ok(ListElementResoponse {
+    Ok(ListElementResponse {
         next_page_token,
         list,
     })

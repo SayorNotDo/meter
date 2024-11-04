@@ -8,6 +8,7 @@ use server::{
     dto::{request::*, response::*},
     utils::http::HttpClientExt,
 };
+
 pub struct Api {
     addr: String,
 }
@@ -67,6 +68,26 @@ impl Api {
         let resp = HTTP
             .get(&format!("{}/auth/logout", self.addr))
             .header(reqwest::header::AUTHORIZATION, format!("Bearer {token}"))
+            .send()
+            .await?;
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn get_role_permission_list(
+        &self,
+        token: &str,
+        project_id: i32,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<Vec<UriPermission>>)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append("project_id", format!("{}", project_id).parse()?);
+        let resp = HTTP
+            .get(&format!("{}/system/role/permission/list", self.addr))
+            .headers(headers)
             .send()
             .await?;
         Ok((resp.status(), resp.json().await?))

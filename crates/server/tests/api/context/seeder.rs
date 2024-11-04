@@ -20,10 +20,12 @@ impl AsyncTestContext for SeedDbTestContext {
         let users = TestUser::create_user(&app.state.pool)
             .await
             .expect("Failed to create test users...");
-        let project =
-            TestProject::create_project(&app.state.pool, users.get(&Role::Admin).unwrap().uuid)
-                .await
-                .expect("Failed to create test project");
+        let project = TestProject::get_default_project(
+            &app.state.pool,
+            users.get(&Role::System).unwrap().uuid,
+        )
+        .await
+        .expect("Failed to create test project");
         Self {
             app,
             users,

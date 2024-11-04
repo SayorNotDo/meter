@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     dto::{
         request::{CreateElementRequest, ElementQueryParam, ListQueryParam},
-        response::{FileModuleResponse, ListElementResoponse},
+        response::{FileModuleResponse, ListElementResponse},
     },
     errors::AppResult,
     service::{element, file},
@@ -75,7 +75,7 @@ pub async fn list(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
     Query(param): Query<ListQueryParam>,
-) -> AppResult<Json<ListElementResoponse>> {
+) -> AppResult<Json<ListElementResponse>> {
     info!(
         "controller layer query element list with params: {}",
         project_id

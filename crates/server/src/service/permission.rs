@@ -3,7 +3,6 @@ use crate::{
     errors::AppResult,
     state::AppState,
 };
-use tracing::info;
 use uuid::Uuid;
 
 #[allow(dead_code)]
@@ -31,10 +30,8 @@ pub async fn check_user_permission(
         .get_role_by_uuid_and_project_id(uid, project_id)
         .await?;
     let role_permission_list = perm_dao.get_permission_by_role_id(role.id).await?;
-    info!("--------------->>> role's permission list: {role_permission_list:?}");
     /* 查询请求API所需的权限列表 */
     let api_permission_list = perm_dao.get_permission_by_api(uri, method).await?;
-    info!("--------------->>> api permission list: {api_permission_list:?}");
     let enable = api_permission_list
         .iter()
         .all(|item| role_permission_list.contains(item));

@@ -83,6 +83,13 @@ impl TokenResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct UriPermission {
+    pub uri: String,
+    pub method: String,
+    pub permission: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UserRoleOption {
     pub id: i32,
     pub name: String,
@@ -123,7 +130,7 @@ pub struct ListCaseResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct ListElementResoponse {
+pub struct ListElementResponse {
     pub next_page_token: String,
     pub list: Vec<ElementDetail>,
 }

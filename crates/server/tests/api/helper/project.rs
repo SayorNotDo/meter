@@ -2,6 +2,7 @@ use server::{
     dao::project::{Project, ProjectDao},
     errors::AppResult,
 };
+use tracing::info;
 use uuid::Uuid;
 
 #[allow(dead_code)]
@@ -13,6 +14,7 @@ pub struct TestProject {
 }
 
 impl TestProject {
+    #[allow(dead_code)]
     pub async fn create_project(pool: &db::Pool, uid: Uuid) -> AppResult<TestProject> {
         let client = pool.get().await?;
         let project_dao = ProjectDao::new(&client);
@@ -34,5 +36,19 @@ impl TestProject {
                 })
             }
         }
+    }
+
+    pub async fn get_default_project(pool: &db::Pool, uid: Uuid) -> AppResult<TestProject> {
+        let client = pool.get().await?;
+        let project_dao = ProjectDao::new(&client);
+        let projects = project_dao.find_projects_by_uid(uid.clone()).await?;
+        info!("==============>>> projects: {projects:?}");
+        let project = projects.get(0).expect("Failed to get default project");
+        Ok(TestProject {
+            id: project.id,
+            name: project.name.clone(),
+            description: project.description.clone(),
+            created_by: uid,
+        })
     }
 }

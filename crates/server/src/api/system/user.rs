@@ -1,3 +1,4 @@
+use crate::dto::response::UriPermission;
 use crate::{
     dto::{
         request::{UserDeleteRequest, UserQueryParam, UserStatusRequest},
@@ -63,4 +64,18 @@ pub async fn delete(
         Ok(_) => Ok(()),
         Err(e) => Err(e),
     }
+}
+
+#[utoipa::path(
+    get,
+    path = "/role/permission/list",
+    responses(
+    ),
+    security(("jwt" = []))
+)]
+pub async fn role_permission_list(
+    Extension(_state): Extension<AppState>,
+) -> AppResult<Json<Vec<UriPermission>>> {
+    let resp = vec![];
+    Ok(Json(resp))
 }

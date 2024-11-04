@@ -16,7 +16,7 @@ path = "src/main.rs"
 [dependencies]
 axum = "0.7.7"
 db = { path = "../db" }
-tokio = { version = "1.37.0", features = ["full"] }
+tokio = { version = "1.41.0", features = ["full"] }
 serde = { version = "1.0.198", features = ["derive"] }
 tower-http = { version = "0.6.1", features = ["cors", "trace", "timeout"] }
 

@@ -6,17 +6,18 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE users
 (
-    id                   SERIAL PRIMARY KEY,
-    uuid                 UUID      NOT NULL,
-    username             VARCHAR   NOT NULL UNIQUE,
-    hashed_password      VARCHAR   NOT NULL,
-    email                VARCHAR UNIQUE,
-    enable               BOOLEAN DEFAULT TRUE,
-    last_project_id      INT,
-    created_at           TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at           TIMESTAMP,
-    deleted_at           TIMESTAMP,
-    deleted_by           UUID
+    id              SERIAL PRIMARY KEY,
+    uuid            UUID      NOT NULL,
+    username        VARCHAR   NOT NULL UNIQUE,
+    hashed_password VARCHAR   NOT NULL,
+    email           VARCHAR UNIQUE,
+    enable          BOOLEAN            DEFAULT TRUE,
+    last_project_id INT,
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by      UUID,
+    updated_at      TIMESTAMP,
+    deleted_at      TIMESTAMP,
+    deleted_by      UUID
 );
 
 -- comments
@@ -26,6 +27,7 @@ COMMENT ON COLUMN users.username IS '用户名';
 COMMENT ON COLUMN users.hashed_password IS '用户密码';
 COMMENT ON COLUMN users.email IS '用户邮箱';
 COMMENT ON COLUMN users.last_project_id IS '最后登录的项目ID';
+COMMENT ON COLUMN users.created_by IS '创建人';
 COMMENT ON COLUMN users.created_at IS '创建时间';
 COMMENT ON COLUMN users.updated_at IS '更新时间';
 COMMENT ON COLUMN users.deleted_at IS '删除时间';
@@ -48,18 +50,6 @@ CREATE TRIGGER set_timestamp_user
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
--- init admin user
-INSERT INTO users
-(username,
- uuid,
- hashed_password,
- last_project_id,
- email)
-VALUES ('admin',
-        '24578899-b163-48fe-8594-1fa60134ed2d',
-        '$argon2id$v=19$m=19456,t=2,p=1$NskOoxLFUtTPzhT4UyNCSw$u1FSg95/l5fQ5EzyQWod7aknDyitqhAcUjePnLH/pBg',
-        1,
-        'admin@test.io');
 
 -- table user_role
 
@@ -93,18 +83,6 @@ CREATE TRIGGER set_timestamp_user_role
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
--- init admin role
-INSERT INTO user_role
-(name,
- type,
- internal,
- description,
- created_by)
-VALUES ('ADMIN',
-'PROJECT',
-true,
-'拥有系统全部组织以及项目的操作权限',
-(SELECT uuid FROM users WHERE username = 'admin'));
 
 -- table user_role_relation
 
@@ -112,14 +90,14 @@ DROP TABLE IF EXISTS user_role_relation;
 
 CREATE TABLE user_role_relation
 (
-    id              SERIAL PRIMARY KEY,
-    user_id         UUID,
-    role_id         INT,
-    project_id      INT NOT NULL,
-    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by      UUID,
-    updated_at      TIMESTAMP,
-    updated_by      UUID
+    id         SERIAL PRIMARY KEY,
+    user_id    UUID,
+    role_id    INT,
+    project_id INT       NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID,
+    updated_at TIMESTAMP,
+    updated_by UUID
 );
 
 -- comments
@@ -145,10 +123,10 @@ DROP TABLE IF EXISTS role_permission_relation;
 
 CREATE TABLE role_permission_relation
 (
-    id         SERIAL PRIMARY KEY,
-    role_id    INT NOT NULL,
-    permission_id INT NOT NULL,
-    created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+    id            SERIAL PRIMARY KEY,
+    role_id       INT       NOT NULL,
+    permission_id INT       NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- comments
@@ -161,10 +139,10 @@ DROP TABLE IF EXISTS permission;
 
 CREATE TABLE permission
 (
-    id  SERIAL  PRIMARY KEY,
-    module  VARCHAR NOT NULL,
-    scope   VARCHAR NOT NULL,
-    created_at  TIMESTAMP NOT NULL DEFAULT NOW()
+    id         SERIAL PRIMARY KEY,
+    module     VARCHAR   NOT NULL,
+    scope      VARCHAR   NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- comments
@@ -178,11 +156,11 @@ DROP TABLE IF EXISTS api_permission_relation;
 
 CREATE TABLE api_permission_relation
 (
-    id  SERIAL  PRIMARY KEY,
-    uri VARCHAR NOT NULL,
-    method  VARCHAR NOT NULL,
-    permission_id   INT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    id            SERIAL PRIMARY KEY,
+    uri           VARCHAR   NOT NULL,
+    method        VARCHAR   NOT NULL,
+    permission_id INT       NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- comments
