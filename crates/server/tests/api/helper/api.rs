@@ -53,7 +53,6 @@ impl Api {
         Ok((resp.status(), resp.json().await?))
     }
 
-    #[logfn(Info)]
     pub async fn get_token(&self, req: &LoginRequest) -> anyhow::Result<TokenResponse> {
         let (_, resp) = self.login(req).await?;
         let resp = unwrap!(resp);

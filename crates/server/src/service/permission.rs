@@ -23,9 +23,14 @@ pub async fn check_user_permission(
     method: &str,
 ) -> AppResult<bool> {
     let client = state.pool.get().await?;
-    let perm_dao = PermissionDao::new(&client);
-    /* 獲取當前用戶的角色及權限*/
     let user_dao = UserDao::new(&client);
+    /* 判断当前用户是否处于可用状态 */
+    let user = user_dao.find_by_uid(uid).await?;
+    if !user.enable {
+        return Ok(false);
+    }
+    let perm_dao = PermissionDao::new(&client);
+    /* 获取当前用戶的角色及对应的权限 */
     let role = user_dao
         .get_role_by_uuid_and_project_id(uid, project_id)
         .await?;

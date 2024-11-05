@@ -2,7 +2,6 @@ use server::{
     dao::project::{Project, ProjectDao},
     errors::AppResult,
 };
-use tracing::info;
 use uuid::Uuid;
 
 #[allow(dead_code)]
@@ -42,7 +41,6 @@ impl TestProject {
         let client = pool.get().await?;
         let project_dao = ProjectDao::new(&client);
         let projects = project_dao.find_projects_by_uid(uid.clone()).await?;
-        info!("==============>>> projects: {projects:?}");
         let project = projects.get(0).expect("Failed to get default project");
         Ok(TestProject {
             id: project.id,

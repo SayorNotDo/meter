@@ -1,14 +1,13 @@
-use ::tracing::info;
 use serde::Deserialize;
 use std::fs;
 
+use crate::configure::env::get_profile;
+use crate::utils::dir::get_project_root;
 use config::{ConfigError, Environment};
 use secret::ConfigJWT;
 use server::ConfigHTTP;
 use smtp::ConfigSMTP;
 use storage::ConfigStorage;
-use crate::configure::env::get_profile;
-use crate::utils::dir::get_project_root;
 
 pub mod env;
 pub mod secret;
@@ -44,7 +43,7 @@ impl Config {
             .add_source(config::File::from(config_dir.join(profile_filename)))
             .add_source(env)
             .build()?;
-        info!("Successfully read config profile: {profile}.");
+        // info!("Successfully read config profile: {profile}.");
         config.try_deserialize()
     }
 }

@@ -34,6 +34,11 @@ impl AsyncTestContext for SeedDbTestContext {
     }
 
     async fn teardown(self) {
+        for user in self.users.iter() {
+            TestUser::enable_user(&self.app.state.pool, user.1.id)
+                .await
+                .expect("Failed to enable user");
+        }
         self.app.teardown().await
     }
 }

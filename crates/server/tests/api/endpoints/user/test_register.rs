@@ -82,7 +82,11 @@ pub async fn test_forbidden_admin_register(ctx: &mut SeedDbTestContext) {
     let (status, _) = ctx
         .app
         .api
-        .register(&token.access_token, 1, &RegisterRequest { user_info_list })
+        .register(
+            &token.access_token,
+            ctx.project.id,
+            &RegisterRequest { user_info_list },
+        )
         .await
         .unwrap();
     assert!(status.is_client_error(), "status: {status}");
