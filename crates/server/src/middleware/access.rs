@@ -92,7 +92,7 @@ where
                 .status(StatusCode::FORBIDDEN)
                 .body(Body::from(
                     serde_json::to_string(&AppResponseError::new(
-                        "FORBIDDEN".to_string(),
+                        "FORBIDDEN_ERROR".to_string(),
                         err_msg,
                         None,
                         vec![],

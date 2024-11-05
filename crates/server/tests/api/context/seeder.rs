@@ -5,7 +5,7 @@ use crate::helper::{
     user::{Role, TestUser},
 };
 use test_context::AsyncTestContext;
-
+use tracing::info;
 use super::state::TestContext;
 
 pub struct SeedDbTestContext {
@@ -39,6 +39,7 @@ impl AsyncTestContext for SeedDbTestContext {
                 .await
                 .expect("Failed to enable user");
         }
-        self.app.teardown().await
+        self.app.teardown().await;
+        info!("Teardown done successfully...");
     }
 }

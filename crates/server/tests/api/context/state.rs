@@ -9,7 +9,6 @@ use server::{
     state::AppState,
 };
 use test_context::AsyncTestContext;
-use tracing::info;
 
 use crate::helper::{api::Api, INIT_SUBSCRIBER};
 use wiremock::MockServer;
@@ -46,8 +45,6 @@ impl AsyncTestContext for TestContext {
         /* TODO: test-app shutdown code */
         for task in self.tasks {
             task.abort();
-            info!("Shutting down task: {task:?}");
         }
-        info!("Teardown done successfully...")
     }
 }

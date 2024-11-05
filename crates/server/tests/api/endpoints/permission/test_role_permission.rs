@@ -1,7 +1,7 @@
-use crate::{context::seeder::SeedDbTestContext, helper::user::Role, unwrap};
+use crate::{assert_err, context::seeder::SeedDbTestContext, helper::user::Role, unwrap};
 
 use crate::helper::user::TestUser;
-use server::dto::request::LoginRequest;
+use server::{dto::request::LoginRequest, errors::AppResponseError};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]
@@ -47,6 +47,6 @@ pub async fn test_access_denied_get_role_permission_list(ctx: &mut SeedDbTestCon
         .get_role_permission_list(&token.access_token, ctx.project.id)
         .await
         .unwrap();
-    let _resp = unwrap!(resp);
     assert!(status.is_client_error(), "status: {status}");
+    assert_err!(resp, |e: &AppResponseError| e.kind == "FORBIDDEN_ERROR");
 }
