@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: [ "cargo", "test", "--", "--color=always" ]
+    command: [ "cargo", "test", "--", "--nocapture", "--color=always" ]
     working_dir: /meter
     volumes:
       - ./crates:/meter/crates
@@ -53,7 +53,7 @@ services:
     environment:
       APP_PROFILE: test
       RUST_BACKTRACE: 1
-      RUST_LOG: debug
+      RUST_LOG: info
     depends_on:
       db:
         condition: service_healthy

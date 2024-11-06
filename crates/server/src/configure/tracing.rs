@@ -1,5 +1,5 @@
-use opentelemetry::trace::TracerProvider as _;
-use opentelemetry_sdk::trace::TracerProvider;
+// use opentelemetry::trace::TracerProvider as _;
+// use opentelemetry_sdk::trace::TracerProvider;
 // use opentelemetry_otlp::WithExportConfig;
 use crate::errors::AppResult;
 // use std::collections::HashMap;
@@ -11,7 +11,7 @@ use tracing_appender::{
 };
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
-use tracing_opentelemetry;
+// use tracing_opentelemetry;
 use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, EnvFilter, Registry};
 
 fn create_subscriber<W>(
@@ -23,9 +23,9 @@ where
     W: for<'a> MakeWriter<'a> + Send + Sync + 'static,
 {
     /* Opentelemetry */
-    let provider = TracerProvider::builder()
-        .with_simple_exporter(opentelemetry_stdout::SpanExporter::default())
-        .build();
+    // let provider = TracerProvider::builder()
+    //     .with_simple_exporter(opentelemetry_stdout::SpanExporter::default())
+    //     .build();
     /* OpenObserve Setting
      let mut headers = HashMap::with_capacity(2);
      headers.insert(
@@ -47,12 +47,12 @@ where
          .expect("initialize tracing provider failure...");
      */
 
-    let tracer = provider.tracer("tracing_server");
-    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+    // let tracer = provider.tracer("tracing_server");
+    // let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
     Registry::default()
         .with(env_filter)
-        .with(telemetry)
+        // .with(telemetry)
         .with(JsonStorageLayer)
         .with(BunyanFormattingLayer::new(name.into(), std::io::stdout))
         .with(BunyanFormattingLayer::new(name.into(), writer))

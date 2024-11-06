@@ -25,6 +25,12 @@ pub async fn check(redis: &RedisClient, claims: &UserClaims) -> AppResult<Uuid> 
     Ok(claims.uid)
 }
 
+pub async fn delete(redis: &RedisClient, uid: Uuid) -> AppResult<()> {
+    let session_key = SessionKey { uuid: uid };
+    redis::del(redis, &session_key).await?;
+    Ok(())
+}
+
 pub async fn set(redis: &RedisClient, uuid: Uuid) -> AppResult<Uuid> {
     let (key, value) = generate(uuid);
     redis::set(redis, (&key, &value)).await?;

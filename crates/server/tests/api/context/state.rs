@@ -9,8 +9,10 @@ use server::{
     state::AppState,
 };
 use test_context::AsyncTestContext;
+use tracing::info;
 
 use crate::helper::{api::Api, INIT_SUBSCRIBER};
+
 use wiremock::MockServer;
 
 pub struct TestContext {
@@ -46,5 +48,6 @@ impl AsyncTestContext for TestContext {
         for task in self.tasks {
             task.abort();
         }
+        info!("Teardown done successfully...");
     }
 }
