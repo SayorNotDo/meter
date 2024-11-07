@@ -1,7 +1,11 @@
-use crate::{assert_err, context::seeder::SeedDbTestContext, helper::user::Role, unwrap};
+use crate::{assert_err, context::seeder::SeedDbTestContext, helper::user::Role};
 
+use crate::helper::result::AppResponseResult;
 use crate::helper::user::TestUser;
-use server::{dto::request::LoginRequest, errors::AppResponseError};
+use server::{
+    dto::{request::LoginRequest, response::UriPermission},
+    errors::AppResponseError,
+};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]
@@ -21,8 +25,15 @@ pub async fn test_get_role_permission_list(ctx: &mut SeedDbTestContext) {
         .get_role_permission_list(&token.access_token, ctx.project.id)
         .await
         .unwrap();
-    let _resp = unwrap!(resp);
     assert!(status.is_success(), "status: {status}");
+    if let AppResponseResult::Ok(resp) = resp {
+        assert!(!resp.is_empty(), "resp: {resp:?}");
+        assert!(
+            resp.iter()
+                .all(|item| { matches!(item, UriPermission { .. }) }),
+            "resp: {resp:?}"
+        );
+    }
 }
 
 #[test_context(SeedDbTestContext)]

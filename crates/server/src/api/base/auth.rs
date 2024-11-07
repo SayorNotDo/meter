@@ -84,7 +84,7 @@ pub async fn logout(
     user: UserClaims,
 ) -> AppResult<Json<MessageResponse>> {
     info!("Logout user's uuid: {}", user.uid);
-    match service::user::logout(&state, user.uid).await {
+    match service::user::logout(&state, user.uid, user.sid).await {
         Ok(_) => {
             info!("Logout successfully");
             Ok(Json(MessageResponse::new("This user has logged out.")))

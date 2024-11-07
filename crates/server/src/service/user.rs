@@ -103,10 +103,9 @@ pub async fn login(state: &AppState, request: LoginRequest) -> AppResult<LoginRe
 }
 
 /* 用户登出 */
-pub async fn logout(state: &AppState, uid: Uuid) -> AppResult<MessageResponse> {
+pub async fn logout(state: &AppState, uid: Uuid, sid: Uuid) -> AppResult<MessageResponse> {
     info!("User logout");
-    let key = SessionKey { uuid: uid };
-    crate::service::redis::del(&state.redis, &key).await?;
+    session::delete(&state.redis, uid, sid).await?;
     Ok(MessageResponse {
         message: "Successfully logout".to_string(),
     })

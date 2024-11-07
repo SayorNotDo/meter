@@ -335,6 +335,20 @@ where
         Ok(user_id)
     }
 
+    pub async fn insert_user_role_relation(
+        &self,
+        uid: Uuid,
+        role_id: i32,
+        project_id: i32,
+        created_by: Uuid,
+    ) -> AppResult<i32> {
+        let relation_id = insert_user_role_relation()
+            .bind(self.executor, &uid, &role_id, &project_id, &created_by)
+            .one()
+            .await?;
+        Ok(relation_id)
+    }
+
     pub async fn all(&self) -> AppResult<Vec<entity::User>> {
         let users = get_users()
             .bind(self.executor)

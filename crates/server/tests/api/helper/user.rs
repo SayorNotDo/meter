@@ -74,11 +74,25 @@ impl TestUser {
                         password,
                     }
                 }
-                Role::Admin => user_dao
-                    .find_by_username("admin".to_string())
-                    .await
-                    .expect("admin not found")
-                    .to_test_user(),
+                Role::Admin => {
+                    let username = Faker.fake::<String>();
+                    let password: String = utils::password::generate()?;
+                    let hashed_password = utils::password::hash(password.clone()).await?;
+                    let email = FreeEmail().fake::<String>();
+                    let user = User::new(&username, &hashed_password, &email, true);
+                    let id = user_dao.insert(&user).await?;
+                    let system = user_dao.find_by_username("__system__".to_string()).await?;
+                    user_dao
+                        .insert_user_role_relation(user.uuid, 1, 1, system.uuid)
+                        .await?;
+                    TestUser {
+                        id,
+                        uuid: user.uuid,
+                        email,
+                        username,
+                        password,
+                    }
+                }
                 Role::System => user_dao
                     .find_by_username("__system__".to_string())
                     .await

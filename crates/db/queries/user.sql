@@ -44,6 +44,11 @@ UPDATE users
 SET enable = :enable
 WHERE id = ANY(:uid);
 
+--! insert_user_role_relation
+INSERT INTO user_role_relation (user_id, role_id, project_id, created_by)
+VALUES (:user_id, :role_id, :project_id, :created_by)
+RETURNING id;
+
 --! soft_delete_user
 UPDATE users
 SET deleted_at = NOW(),

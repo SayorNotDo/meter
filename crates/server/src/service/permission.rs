@@ -1,3 +1,4 @@
+use crate::dao::entity::UserRolePermission;
 use crate::{
     dao::{entity::Permission, permission::PermissionDao, user::UserDao},
     errors::AppResult,
@@ -13,6 +14,10 @@ pub async fn get_role_permission(state: &AppState, role_id: i32) -> AppResult<Ve
     let permission_list = perm_dao.get_permission_by_role_id(role_id).await?;
 
     Ok(permission_list)
+}
+
+pub async fn get_role_permission_list(state: &AppState) -> AppResult<Vec<UserRolePermission>> {
+    Ok(vec![])
 }
 
 pub async fn check_user_permission(

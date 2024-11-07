@@ -1,12 +1,10 @@
-use std::collections::HashMap;
-use server::service::session::delete;
-
+use super::state::TestContext;
 use crate::helper::{
     project::TestProject,
     user::{Role, TestUser},
 };
+use std::collections::HashMap;
 use test_context::AsyncTestContext;
-use super::state::TestContext;
 
 pub struct SeedDbTestContext {
     pub app: TestContext,
@@ -24,8 +22,8 @@ impl AsyncTestContext for SeedDbTestContext {
             &app.state.pool,
             users.get(&Role::System).unwrap().uuid,
         )
-            .await
-            .expect("Failed to create test project");
+        .await
+        .expect("Failed to create test project");
         Self {
             app,
             users,
@@ -38,7 +36,6 @@ impl AsyncTestContext for SeedDbTestContext {
             TestUser::enable_user(&self.app.state.pool, user.1.id)
                 .await
                 .expect("Failed to enable user");
-            delete(&self.app.state.redis, user.1.uuid).await.expect("Failed to delete session");
         }
         self.app.teardown().await;
     }

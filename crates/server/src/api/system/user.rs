@@ -1,5 +1,5 @@
-use crate::dto::response::UriPermission;
 use crate::{
+    dao::entity::UserRolePermission,
     dto::{
         request::{UserDeleteRequest, UserQueryParam, UserStatusRequest},
         response::ListUserResponse,
@@ -10,6 +10,7 @@ use crate::{
     utils::claim::UserClaims,
 };
 use axum::{Extension, Json};
+use std::os::macos::raw::stat;
 use tracing::info;
 
 #[utoipa::path(
@@ -70,12 +71,15 @@ pub async fn delete(
     get,
     path = "/role/permission/list",
     responses(
+        (status = 200, description = "Get role permission list", body = [Vec<UserRolePermission>]),
     ),
     security(("jwt" = []))
 )]
 pub async fn role_permission_list(
-    Extension(_state): Extension<AppState>,
-) -> AppResult<Json<Vec<UriPermission>>> {
-    let resp = vec![];
-    Ok(Json(resp))
+    Extension(state): Extension<AppState>,
+) -> AppResult<Json<Vec<UserRolePermission>>> {
+    match service::permission::get_role_permission_list(&state).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
 }

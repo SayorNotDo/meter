@@ -28,12 +28,14 @@ VALUES ('admin',
 
 -- init system role
 INSERT INTO user_role
-(name,
+(id,
+ name,
  type,
  internal,
  description,
  created_by)
-VALUES ('SYSTEM',
+VALUES (1,
+        'SYSTEM',
         'SYSTEM',
         true,
         '系统抽象角色',
@@ -41,12 +43,14 @@ VALUES ('SYSTEM',
 
 -- init admin role
 INSERT INTO user_role
-(name,
+(id,
+ name,
  type,
  internal,
  description,
  created_by)
-VALUES ('ADMIN',
+VALUES (2,
+        'ADMIN',
         'PROJECT',
         true,
         '拥有系统全部组织以及项目的操作权限',
@@ -54,12 +58,14 @@ VALUES ('ADMIN',
 
 -- init default project
 INSERT INTO projects
-(name,
+(id,
+ name,
  created_by,
  enable,
  description,
  module_setting)
-VALUES ('默认项目',
+VALUES (1,
+        '默认项目',
         (SELECT uuid FROM users WHERE username = '__system__'),
         true,
         '系统默认创建的项目',
@@ -91,23 +97,20 @@ VALUES ((SELECT uuid FROM users WHERE username = 'admin'),
 INSERT INTO permission
 (module,
  scope)
-VALUES ('system:role',
-        'READ');
+VALUES ('system:role', 'READ'),
+       ('system:role', 'WRITE'),
+       ('system:user', 'READ'),
+       ('system:user', 'WRITE');
 
-INSERT INTO permission
-(module,
- scope)
-VALUES ('system:role',
-        'WRITE');
 
 -- init api permission
 INSERT INTO api_permission_relation
 (uri,
  method,
  permission_id)
-VALUES ('/system/role/permission/list',
-        'GET',
-        (SELECT id FROM permission WHERE module = 'system:role' AND scope = 'READ'));
+VALUES ('/system/role/permission/list', 'GET',
+        (SELECT id FROM permission WHERE module = 'system:role' AND scope = 'READ')),
+       ('/auth/register', 'POST', (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'WRITE'));
 
 -- init internal role permission
 INSERT INTO role_permission_relation
@@ -116,10 +119,18 @@ VALUES ((SELECT id FROM user_role WHERE name = 'SYSTEM'),
         (SELECT id FROM permission WHERE module = 'system:role' AND scope = 'READ')),
        ((SELECT id FROM user_role WHERE name = 'SYSTEM'),
         (SELECT id FROM permission WHERE module = 'system:role' AND scope = 'WRITE')),
+       ((SELECT id FROM user_role WHERE name = 'SYSTEM'),
+        (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'READ')),
+       ((SELECT id FROM user_role WHERE name = 'SYSTEM'),
+        (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'WRITE')),
        ((SELECT id FROM user_role WHERE name = 'ADMIN'),
         (SELECT id FROM permission WHERE module = 'system:role' AND scope = 'READ')),
        ((SELECT id FROM user_role WHERE name = 'ADMIN'),
-        (SELECT id FROM permission WHERE module = 'system:role' AND scope = 'WRITE'));
+        (SELECT id FROM permission WHERE module = 'system:role' AND scope = 'WRITE')),
+       ((SELECT id FROM user_role WHERE name = 'ADMIN'),
+        (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'READ')),
+       ((SELECT id FROM user_role WHERE name = 'ADMIN'),
+        (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'WRITE'));
 
 -- migrate:down
 

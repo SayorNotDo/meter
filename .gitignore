@@ -11,4 +11,6 @@ Cargo.lock
 #log
 /logs
 
+/crates/server/tests/data
+
 config.toml
