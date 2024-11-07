@@ -17,6 +17,8 @@ pub async fn get_role_permission(state: &AppState, role_id: i32) -> AppResult<Ve
 }
 
 pub async fn get_role_permission_list(state: &AppState) -> AppResult<Vec<UserRolePermission>> {
+    let client = state.pool.get().await?;
+
     Ok(vec![])
 }
 

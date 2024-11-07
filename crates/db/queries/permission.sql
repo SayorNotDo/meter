@@ -16,3 +16,12 @@ SELECT
 FROM api_permission_relation apr
 LEFT JOIN permission p ON p.id = apr.permission_id
 WHERE apr.uri = :uri AND apr.method = :method;
+
+
+--! get_permission_group_by_role
+SELECT
+    r.id
+FROM role_permission_relation rpr
+LEFT JOIN permission p ON p.id = rpr.permission_id
+WHERE rpr.role_id = ANY()
+;

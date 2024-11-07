@@ -23,13 +23,12 @@ where
             .all()
             .await?
             .into_iter()
-            .map(|item| {
-                Permission {
-                    id: item.id,
-                    module: item.module,
-                    scope: item.scope,
-            }
-        }).collect::<Vec<_>>();
+            .map(|item| Permission {
+                id: item.id,
+                module: item.module,
+                scope: item.scope,
+            })
+            .collect::<Vec<_>>();
         Ok(permission_list)
     }
 
@@ -43,13 +42,12 @@ where
             .all()
             .await?
             .into_iter()
-            .map(|item| {
-                Permission {
-                    id: item.id,
-                    module: item.module,
-                    scope: item.scope,
-            }
-        }).collect::<Vec<_>>();
+            .map(|item| Permission {
+                id: item.id,
+                module: item.module,
+                scope: item.scope,
+            })
+            .collect::<Vec<_>>();
         Ok(permission_list)
     }
 }
