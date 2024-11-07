@@ -73,6 +73,18 @@ impl Api {
     }
 
     #[logfn(Info)]
+
+    pub async fn create_role(&self, token: &str, req: &CreateRoleRequest) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let resp = HTTP
+            .post(&format!("{}/system/role", self.addr))
+            .header(reqwest::header::AUTHORIZATION, format!("Bearer {token}"))
+            .json(req)
+            .send()
+            .await?;
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
     pub async fn get_role_permission_list(
         &self,
         token: &str,

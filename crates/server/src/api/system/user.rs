@@ -4,13 +4,12 @@ use crate::{
         request::{UserDeleteRequest, UserQueryParam, UserStatusRequest},
         response::ListUserResponse,
     },
-    errors::AppResult,
+    errors::{AppResult, AppResponseError},
     service,
     state::AppState,
     utils::claim::UserClaims,
 };
 use axum::{Extension, Json};
-use std::os::macos::raw::stat;
 use tracing::info;
 
 #[utoipa::path(
@@ -72,6 +71,7 @@ pub async fn delete(
     path = "/role/permission/list",
     responses(
         (status = 200, description = "Get role permission list", body = [Vec<UserRolePermission>]),
+        (status = 400, description = "role permission list not found", body = [AppResponseError])
     ),
     security(("jwt" = []))
 )]

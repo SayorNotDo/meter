@@ -96,6 +96,13 @@ pub struct CaseQueryParam {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
+pub struct CreateRoleRequest {
+    pub name: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatePlanRequest {
     pub name: String,
     pub description: Option<String>,

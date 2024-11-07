@@ -1,5 +1,6 @@
 use crate::{context::seeder::SeedDbTestContext, helper::user::Role};
-use server::dto::request::LoginRequest;
+use server::dto::request::{CreateRoleRequest, LoginRequest};
+use fake::{Fake, Faker};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]
@@ -11,8 +12,11 @@ pub async fn test_success_create_role(ctx: &mut SeedDbTestContext) {
         username: admin.username.clone(),
         password: admin.password.clone(),
     };
-    let _token = ctx.app.api.get_token(&req).await.unwrap();
-    //
-    // let (status, _resp) = ctx.app.api.create_role(&token.access_token).await.unwrap();
-    // assert!(status.is_success(), "status: {status}");
+    let token = ctx.app.api.get_token(&req).await.unwrap();
+    let req: CreateRoleRequest = CreateRoleRequest {
+        name: Faker.fake::<String>(),
+        description: Some(Faker.fake::<String>())
+    };
+    let (status, _resp) = ctx.app.api.create_role(&token.access_token, &req).await.unwrap();
+    assert!(status.is_success(), "status: {status}");
 }
