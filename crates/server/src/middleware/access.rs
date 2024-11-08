@@ -86,6 +86,8 @@ where
                         }
                     }
                 }
+            } else {
+                err_msg = "projectId is required".to_string();
             }
             /* Access denied */
             let resp = Response::builder()

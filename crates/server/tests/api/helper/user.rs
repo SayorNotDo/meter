@@ -1,6 +1,10 @@
 use fake::{faker::internet::en::FreeEmail, Fake, Faker};
+use server::dao::permission::PermissionDao;
 use server::{
-    dao::{entity::User, user::UserDao},
+    dao::{
+        entity::{Permission, User},
+        user::UserDao,
+    },
     errors::AppResult,
     utils,
 };
@@ -9,6 +13,7 @@ use strum::{EnumIter, IntoEnumIterator};
 use tracing::info;
 use uuid::Uuid;
 
+#[allow(dead_code)]
 trait ToTestUser {
     fn to_test_user(&self) -> TestUser;
 }
@@ -16,7 +21,6 @@ trait ToTestUser {
 macro_rules! impl_to_test_user {
     ($($t:ty),*) => {
         $(
-
         impl ToTestUser for $t {
             fn to_test_user(&self) -> TestUser {
                 TestUser {
@@ -25,6 +29,7 @@ macro_rules! impl_to_test_user {
                     email: self.email.clone(),
                     username: self.username.clone(),
                     password: "test_password".to_string(),
+                    permission: vec![]
                     }
                 }
             }
@@ -49,6 +54,7 @@ pub struct TestUser {
     pub email: String,
     pub username: String,
     pub password: String,
+    pub permission: Vec<Permission>,
 }
 
 impl TestUser {
@@ -57,6 +63,7 @@ impl TestUser {
         let mut client = pool.get().await?;
         let transaction = client.transaction().await?;
         let user_dao = UserDao::new(&transaction);
+        let perm_dao = PermissionDao::new(&transaction);
         for role in Role::iter() {
             let test_user = match role {
                 Role::User => {
@@ -72,6 +79,7 @@ impl TestUser {
                         email,
                         username,
                         password,
+                        permission: vec![],
                     }
                 }
                 Role::Admin => {
@@ -85,19 +93,28 @@ impl TestUser {
                     user_dao
                         .insert_user_role_relation(user.uuid, 1, 1, system.uuid)
                         .await?;
+                    let permission = perm_dao.get_permission_by_role_id(2).await?;
                     TestUser {
                         id,
                         uuid: user.uuid,
                         email,
                         username,
                         password,
+                        permission,
                     }
                 }
-                Role::System => user_dao
-                    .find_by_username("__system__".to_string())
-                    .await
-                    .expect("system not found")
-                    .to_test_user(),
+                Role::System => {
+                    let user = user_dao.find_by_username("__system__".to_string()).await?;
+                    let permission = perm_dao.get_permission_by_role_id(1).await?;
+                    TestUser {
+                        id: user.id,
+                        uuid: user.uuid,
+                        email: user.email,
+                        username: user.username,
+                        password: "test_password".to_string(),
+                        permission,
+                    }
+                }
             };
             users.insert(role, test_user);
         }

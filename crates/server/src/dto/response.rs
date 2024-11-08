@@ -83,6 +83,11 @@ impl TokenResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct CreateEntityResponse {
+    pub id: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UriPermission {
     pub uri: String,
     pub method: String,

@@ -94,11 +94,15 @@ pub struct CaseQueryParam {
     pub is_deleted: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateRoleRequest {
+    #[garde(length(min = 3))]
     pub name: String,
+    #[garde(skip)]
     pub description: Option<String>,
+    #[garde(length(min = 1))]
+    pub permission_list: Vec<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]

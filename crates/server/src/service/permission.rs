@@ -11,15 +11,14 @@ pub async fn get_role_permission(state: &AppState, role_id: i32) -> AppResult<Ve
     let client = state.pool.get().await?;
     let perm_dao = PermissionDao::new(&client);
 
-    let permission_list = perm_dao.get_permission_by_role_id(role_id).await?;
-
-    Ok(permission_list)
+    Ok(perm_dao.get_permission_by_role_id(role_id).await?)
 }
 
 pub async fn get_role_permission_list(state: &AppState) -> AppResult<Vec<UserRolePermission>> {
-    let _client = state.pool.get().await?;
+    let client = state.pool.get().await?;
+    let perm_dao = PermissionDao::new(&client);
 
-    Ok(vec![])
+    Ok(perm_dao.get_permission_group_by_role().await?)
 }
 
 pub async fn check_user_permission(

@@ -64,7 +64,8 @@ CREATE TABLE user_role
     description VARCHAR,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by  UUID,
-    updated_at  TIMESTAMP
+    updated_at  TIMESTAMP,
+    updated_by  UUID
 );
 
 -- comments
@@ -75,6 +76,7 @@ COMMENT ON COLUMN user_role.internal IS '是否内置角色';
 COMMENT ON COLUMN user_role.created_at IS '创建时间';
 COMMENT ON COLUMN user_role.created_by IS '创建人';
 COMMENT ON COLUMN user_role.updated_at IS '更新时间';
+COMMENT ON COLUMN user_role.updated_by IS '更新人';
 
 -- create trigger: set updated_at field
 CREATE TRIGGER set_timestamp_user_role

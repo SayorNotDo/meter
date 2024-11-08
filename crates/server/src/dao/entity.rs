@@ -70,12 +70,6 @@ pub struct UserRoleOption {
     pub name: String,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
-pub struct UserRolePermission {
-    pub user_role: UserRole,
-    pub user_role_permissions: Vec<Permission>,
-}
-
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ProjectMember {
     pub id: i32,
@@ -83,6 +77,12 @@ pub struct ProjectMember {
     pub email: String,
     pub created_at: DateTime<Utc>,
     pub last_project_id: Option<i32>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
+pub struct UserRolePermission {
+    pub user_role: UserRole,
+    pub permission_list: Vec<Permission>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]

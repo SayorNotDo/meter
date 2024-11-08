@@ -2,6 +2,7 @@ use super::result::AppResponseResult;
 use crate::unwrap;
 use log_derive::logfn;
 use reqwest::StatusCode;
+use server::dao::entity::UserRolePermission;
 use server::{
     configure::server::ConfigHTTP,
     constant::{HTTP, PROJECT_ID},
@@ -32,9 +33,9 @@ impl Api {
             reqwest::header::AUTHORIZATION,
             format!("Bearer {token}").parse()?,
         );
-        headers.append(PROJECT_ID, format!("{}", project_id).parse()?);
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
         let resp = HTTP
-            .post(&format!("{}/auth/register", self.addr))
+            .post(format!("{}/auth/register", self.addr))
             .headers(headers)
             .json(req)
             .send()
@@ -65,7 +66,7 @@ impl Api {
     #[logfn(Info)]
     pub async fn logout(&self, token: &str) -> anyhow::Result<(StatusCode, AppResponseResult)> {
         let resp = HTTP
-            .get(&format!("{}/auth/logout", self.addr))
+            .get(format!("{}/auth/logout", self.addr))
             .header(reqwest::header::AUTHORIZATION, format!("Bearer {token}"))
             .send()
             .await?;
@@ -73,12 +74,43 @@ impl Api {
     }
 
     #[logfn(Info)]
-
-    pub async fn create_role(&self, token: &str, req: &CreateRoleRequest) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+    pub async fn create_role(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &CreateRoleRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<CreateEntityResponse>)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
         let resp = HTTP
-            .post(&format!("{}/system/role", self.addr))
-            .header(reqwest::header::AUTHORIZATION, format!("Bearer {token}"))
+            .post(format!("{}/system/role", self.addr))
+            .headers(headers)
             .json(req)
+            .send()
+            .await?;
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn get_role_permission(
+        &self,
+        token: &str,
+        project_id: i32,
+        role_id: i32,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .get(format!("{}/system/role/permission/{}", self.addr, role_id))
+            .headers(headers)
             .send()
             .await?;
         Ok((resp.status(), resp.json().await?))
@@ -89,15 +121,15 @@ impl Api {
         &self,
         token: &str,
         project_id: i32,
-    ) -> anyhow::Result<(StatusCode, AppResponseResult<Vec<UriPermission>>)> {
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<Vec<UserRolePermission>>)> {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.append(
             reqwest::header::AUTHORIZATION,
             format!("Bearer {token}").parse()?,
         );
-        headers.append("project_id", format!("{}", project_id).parse()?);
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
         let resp = HTTP
-            .get(&format!("{}/system/role/permission/list", self.addr))
+            .get(format!("{}/system/role/permission/list", self.addr))
             .headers(headers)
             .send()
             .await?;

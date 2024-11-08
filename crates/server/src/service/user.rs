@@ -1,6 +1,8 @@
+use garde::Validate;
 use tracing::info;
 use uuid::Uuid;
 
+use crate::dto::response::CreateEntityResponse;
 use crate::{
     constant::REGISTER_EMAIL_SUBJECT,
     dao::{
@@ -18,7 +20,6 @@ use crate::{
     state::AppState,
     utils::{self, smtp},
 };
-
 /* 用户注册 */
 pub async fn batch_register(state: &AppState, request: RegisterRequest) -> AppResult {
     info!("Register a new user request: {request:?}.");
@@ -136,11 +137,11 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
         let permissions = user_dao
             .get_user_role_permissions_by_role_id(&item.id)
             .await?;
-        let user_role_permissions = UserRolePermission {
+        let user_role_permission_list = UserRolePermission {
             user_role: item.clone(),
-            user_role_permissions: permissions,
+            permission_list: permissions,
         };
-        permissions_list.push(user_role_permissions);
+        permissions_list.push(user_role_permission_list);
     }
     Ok(UserInfoResponse {
         username: user.username,
@@ -175,6 +176,13 @@ pub async fn list(state: &AppState, _uid: Uuid, param: UserQueryParam) -> AppRes
     let user_dao = UserDao::new(&client);
     let users = user_dao.all().await?;
     Ok(users)
+}
+
+pub async fn create_role(
+    state: &AppState,
+    request: CreateRoleRequest,
+) -> AppResult<CreateEntityResponse> {
+    Ok(CreateEntityResponse { id: 1 })
 }
 
 pub async fn role_list(state: &AppState, project_id: i32) -> AppResult<Vec<UserRoleOption>> {
