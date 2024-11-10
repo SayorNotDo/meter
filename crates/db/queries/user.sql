@@ -44,6 +44,11 @@ UPDATE users
 SET enable = :enable
 WHERE id = ANY(:uid);
 
+--! insert_user_role (description?) :
+INSERT INTO user_role (name, type, internal, description, created_by)
+VALUES (:name, :type, FALSE, :description, :created_by)
+RETURNING id;
+
 --! insert_user_role_relation
 INSERT INTO user_role_relation (user_id, role_id, project_id, created_by)
 VALUES (:user_id, :role_id, :project_id, :created_by)
@@ -131,6 +136,18 @@ FROM users u
          JOIN user_role r ON urr.role_id = r.id
          JOIN users creator ON creator.uuid = r.created_by
 WHERE u.uuid = :uuid AND urr.project_id = :project_id;
+
+--! get_user_role_by_name : (description?, updated_at?, updated_by?)
+SELECT id,
+       name,
+       created_by,
+       created_at,
+       internal,
+       description,
+       updated_at,
+       updated_by
+FROM user_role
+WHERE name = :name;
 
 --! get_user_role_list_by_project_id
 SELECT urr.role_id as id,

@@ -23,6 +23,20 @@ where
         PermissionDao { executor }
     }
 
+    pub async fn insert_role_permission_relation(
+        &self,
+        role_id: i32,
+        permission_ids: Vec<i32>,
+    ) -> AppResult {
+        for item in permission_ids.iter() {
+            let _ = insert_role_permission_relation()
+                .bind(self.executor, &role_id, &item)
+                .one()
+                .await?;
+        }
+        Ok(())
+    }
+
     pub async fn get_permission_by_role_id(&self, role_id: i32) -> AppResult<Vec<Permission>> {
         let permission_list = get_permission_by_role_id()
             .bind(self.executor, &role_id)

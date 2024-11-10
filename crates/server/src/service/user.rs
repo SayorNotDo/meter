@@ -1,7 +1,7 @@
-use garde::Validate;
 use tracing::info;
 use uuid::Uuid;
 
+use crate::dao::permission::PermissionDao;
 use crate::dto::response::CreateEntityResponse;
 use crate::{
     constant::REGISTER_EMAIL_SUBJECT,
@@ -181,8 +181,22 @@ pub async fn list(state: &AppState, _uid: Uuid, param: UserQueryParam) -> AppRes
 pub async fn create_role(
     state: &AppState,
     request: CreateRoleRequest,
+    uid: Uuid,
 ) -> AppResult<CreateEntityResponse> {
-    Ok(CreateEntityResponse { id: 1 })
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let user_dao = UserDao::new(&transaction);
+    let perm_dao = PermissionDao::new(&transaction);
+    user_dao.check_role_unique_by_name(&request.name).await?;
+    let role_id = user_dao
+        .insert_role(request.name, "PROJECT".into(), request.description, uid)
+        .await?;
+
+    perm_dao
+        .insert_role_permission_relation(role_id, request.permission_list)
+        .await?;
+    transaction.commit().await?;
+    Ok(CreateEntityResponse { id: role_id })
 }
 
 pub async fn role_list(state: &AppState, project_id: i32) -> AppResult<Vec<UserRoleOption>> {

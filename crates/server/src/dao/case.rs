@@ -282,7 +282,7 @@ where
         script_id: &i32,
         field_type: String,
         steps: &Vec<Step>,
-    ) -> AppResult<()> {
+    ) -> AppResult {
         for item in steps.iter() {
             let serialized = serde_json::to_string(&item.attach_info)?;
             let _ = insert_script_element_relation()

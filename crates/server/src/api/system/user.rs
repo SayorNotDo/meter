@@ -1,18 +1,15 @@
-use crate::dao::entity::UserRole;
-use crate::dto::response::CreateEntityResponse;
 use crate::{
-    dao::entity::UserRolePermission,
+    dao::entity::{Permission, UserRolePermission},
     dto::{
         request::{CreateRoleRequest, UserDeleteRequest, UserQueryParam, UserStatusRequest},
-        response::{ListUserResponse, MessageResponse},
+        response::{CreateEntityResponse, ListUserResponse, MessageResponse},
     },
     errors::{AppResponseError, AppResult},
     service,
     state::AppState,
     utils::claim::UserClaims,
 };
-use axum::extract::Path;
-use axum::{Extension, Json};
+use axum::{extract::Path, Extension, Json};
 use garde::Validate;
 use tracing::info;
 
@@ -22,7 +19,7 @@ use tracing::info;
     request_body = CreateRoleRequest,
     responses(
         (status = 200, description = "Success create user role", body = [MessageResponse]),
-        (status = 400, description = "Invalid parameters", body = [AppResponseError]),
+        (status = 400, description = "INVALID_INPUT_ERROR", body = [AppResponseError]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 403, description = "Forbidden", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
@@ -31,11 +28,11 @@ use tracing::info;
 )]
 pub async fn create_role(
     Extension(state): Extension<AppState>,
-    _user: UserClaims,
+    user: UserClaims,
     Json(request): Json<CreateRoleRequest>,
 ) -> AppResult<Json<CreateEntityResponse>> {
     request.validate()?;
-    match service::user::create_role(&state, request).await {
+    match service::user::create_role(&state, request, user.uid).await {
         Ok(resp) => Ok(Json(resp)),
         Err(err) => Err(err),
     }
@@ -102,22 +99,13 @@ pub async fn delete(
     security(("jwt" = []))
 )]
 pub async fn role_permission(
-    Extension(_state): Extension<AppState>,
-    Path(_role_id): Path<i32>,
-) -> AppResult<Json<UserRolePermission>> {
-    Ok(Json(UserRolePermission {
-        user_role: UserRole {
-            id: 0,
-            name: "".to_string(),
-            role_type: "".to_string(),
-            internal: false,
-            created_at: Default::default(),
-            created_by: "".to_string(),
-            updated_at: None,
-            description: None,
-        },
-        permission_list: vec![],
-    }))
+    Extension(state): Extension<AppState>,
+    Path(role_id): Path<i32>,
+) -> AppResult<Json<Vec<Permission>>> {
+    match service::permission::get_role_permission(&state, role_id).await {
+        Ok(permission) => Ok(Json(permission)),
+        Err(e) => Err(e),
+    }
 }
 
 #[utoipa::path(

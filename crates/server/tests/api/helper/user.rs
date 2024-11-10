@@ -25,6 +25,7 @@ macro_rules! impl_to_test_user {
             fn to_test_user(&self) -> TestUser {
                 TestUser {
                     id: self.id,
+                    role_id: 0,
                     uuid: self.uuid,
                     email: self.email.clone(),
                     username: self.username.clone(),
@@ -50,6 +51,7 @@ pub enum Role {
 #[derive(Debug)]
 pub struct TestUser {
     pub id: i32,
+    pub role_id: i32,
     pub uuid: Uuid,
     pub email: String,
     pub username: String,
@@ -75,6 +77,7 @@ impl TestUser {
                     let id = user_dao.insert(&user).await?;
                     TestUser {
                         id,
+                        role_id: 0,
                         uuid: user.uuid,
                         email,
                         username,
@@ -96,6 +99,7 @@ impl TestUser {
                     let permission = perm_dao.get_permission_by_role_id(2).await?;
                     TestUser {
                         id,
+                        role_id: 2,
                         uuid: user.uuid,
                         email,
                         username,
@@ -108,6 +112,7 @@ impl TestUser {
                     let permission = perm_dao.get_permission_by_role_id(1).await?;
                     TestUser {
                         id: user.id,
+                        role_id: 1,
                         uuid: user.uuid,
                         email: user.email,
                         username: user.username,

@@ -28,44 +28,40 @@ VALUES ('admin',
 
 -- init system role
 INSERT INTO user_role
-(id,
- name,
+(name,
  type,
  internal,
  description,
  created_by)
-VALUES (1,
-        'SYSTEM',
+VALUES ('SYSTEM',
         'SYSTEM',
         true,
         '系统抽象角色',
         (SELECT uuid FROM users WHERE username = '__system__'));
 
+
 -- init admin role
 INSERT INTO user_role
-(id,
- name,
+(name,
  type,
  internal,
  description,
  created_by)
-VALUES (2,
-        'ADMIN',
+VALUES ('ADMIN',
         'PROJECT',
         true,
         '拥有系统全部组织以及项目的操作权限',
         (SELECT uuid FROM users WHERE username = '__system__'));
 
+
 -- init default project
 INSERT INTO projects
-(id,
- name,
+(name,
  created_by,
  enable,
  description,
  module_setting)
-VALUES (1,
-        '默认项目',
+VALUES ('默认项目',
         (SELECT uuid FROM users WHERE username = '__system__'),
         true,
         '系统默认创建的项目',

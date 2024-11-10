@@ -2,7 +2,7 @@ use super::result::AppResponseResult;
 use crate::unwrap;
 use log_derive::logfn;
 use reqwest::StatusCode;
-use server::dao::entity::UserRolePermission;
+use server::dao::entity::{Permission, UserRolePermission};
 use server::{
     configure::server::ConfigHTTP,
     constant::{HTTP, PROJECT_ID},
@@ -101,7 +101,7 @@ impl Api {
         token: &str,
         project_id: i32,
         role_id: i32,
-    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<Vec<Permission>>)> {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.append(
             reqwest::header::AUTHORIZATION,

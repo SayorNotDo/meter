@@ -37,7 +37,7 @@ pub async fn test_get_role_permission_list(ctx: &mut SeedDbTestContext) {
 #[test_context(SeedDbTestContext)]
 #[tokio::test]
 pub async fn test_admin_role_permission_list(ctx: &mut SeedDbTestContext) {
-    let admin = ctx.users.get(&Role::Admin).unwrap();
+    let _admin = ctx.users.get(&Role::Admin).unwrap();
 }
 
 #[test_context(SeedDbTestContext)]

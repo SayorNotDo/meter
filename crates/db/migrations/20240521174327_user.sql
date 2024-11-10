@@ -58,7 +58,7 @@ DROP TABLE IF EXISTS user_role;
 CREATE TABLE user_role
 (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR   NOT NULL,
+    name        VARCHAR   NOT NULL UNIQUE,
     type        VARCHAR   NOT NULL,
     internal    BOOLEAN   NOT NULL DEFAULT FALSE,
     description VARCHAR,

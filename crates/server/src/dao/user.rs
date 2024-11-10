@@ -183,6 +183,21 @@ where
         }
     }
 
+    pub async fn check_role_unique_by_name(&self, role_name: &str) -> AppResult {
+        let role = get_user_role_by_name()
+            .bind(self.executor, &role_name)
+            .opt()
+            .await?;
+
+        match role {
+            None => Ok(()),
+            Some(_) => Err(AppError::ResourceExistsError(Resource {
+                details: vec![],
+                resource_type: ResourceType::Role,
+            })),
+        }
+    }
+
     pub async fn get_user_roles_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<entity::UserRole>> {
         let mut ret = vec![];
         let user_roles = get_user_roles_by_uuid()
@@ -333,6 +348,20 @@ where
             .one()
             .await?;
         Ok(user_id)
+    }
+
+    pub async fn insert_role(
+        &self,
+        name: String,
+        role_type: String,
+        description: Option<String>,
+        created_by: Uuid,
+    ) -> AppResult<i32> {
+        let role_id = insert_user_role()
+            .bind(self.executor, &name, &role_type, &description, &created_by)
+            .one()
+            .await?;
+        Ok(role_id)
     }
 
     pub async fn insert_user_role_relation(

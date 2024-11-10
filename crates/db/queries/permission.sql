@@ -38,3 +38,8 @@ FROM role_permission_relation rpr
          LEFT JOIN user_role r ON r.id = rpr.role_id
          LEFT JOIN permission p ON p.id = rpr.permission_id
 GROUP BY r.id;
+
+--! insert_role_permission_relation
+INSERT INTO role_permission_relation (role_id, permission_id)
+VALUES (:role_id, :permission_id)
+RETURNING id;
