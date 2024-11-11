@@ -2,7 +2,7 @@ use super::result::AppResponseResult;
 use crate::unwrap;
 use log_derive::logfn;
 use reqwest::StatusCode;
-use server::dao::entity::{Permission, UserRolePermission};
+use server::dao::entity::{Permission, UserRole, UserRolePermission};
 use server::{
     configure::server::ConfigHTTP,
     constant::{HTTP, PROJECT_ID},
@@ -87,7 +87,7 @@ impl Api {
         );
         headers.append(PROJECT_ID, project_id.to_string().parse()?);
         let resp = HTTP
-            .post(format!("{}/system/role", self.addr))
+            .post(format!("{}/system/user/role", self.addr))
             .headers(headers)
             .json(req)
             .send()
@@ -97,7 +97,23 @@ impl Api {
 
     #[logfn(Info)]
     pub async fn get_user_role(
-    ) -> anyhow::Result<(StatusCode, AppResponseResult<UserRolePermission>)> {
+        &self,
+        token: &str,
+        project_id: i32,
+        role_id: i32,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<UserRole>)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .get(format!("{}/system/user/role/{}", self.addr, role_id))
+            .headers(headers)
+            .send()
+            .await?;
+        Ok((resp.status(), resp.json().await?))
     }
 
     #[logfn(Info)]
@@ -114,7 +130,10 @@ impl Api {
         );
         headers.append(PROJECT_ID, project_id.to_string().parse()?);
         let resp = HTTP
-            .get(format!("{}/system/role/permission/{}", self.addr, role_id))
+            .get(format!(
+                "{}/system/user/role/permission/{}",
+                self.addr, role_id
+            ))
             .headers(headers)
             .send()
             .await?;
@@ -134,7 +153,7 @@ impl Api {
         );
         headers.append(PROJECT_ID, project_id.to_string().parse()?);
         let resp = HTTP
-            .get(format!("{}/system/role/permission/list", self.addr))
+            .get(format!("{}/system/user/role/permission/list", self.addr))
             .headers(headers)
             .send()
             .await?;

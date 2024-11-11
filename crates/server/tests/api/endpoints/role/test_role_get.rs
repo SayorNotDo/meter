@@ -1,6 +1,6 @@
 use crate::context::seeder::SeedDbTestContext;
-use crate::helper::user::Role;
-use server::dto::request::LoginRequest;
+use crate::helper::{result::AppResponseResult, user::Role};
+use server::{dao::entity::UserRole, dto::request::LoginRequest};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]
@@ -15,5 +15,14 @@ pub async fn test_success_get_role(ctx: &mut SeedDbTestContext) {
 
     let token = ctx.app.api.get_token(&req).await.unwrap();
 
-    let (status, resp) = ctx.app.api.get_user_role().await.unwrap();
+    let role = ctx.users.get(&Role::User).unwrap();
+
+    let (status, resp) = ctx
+        .app
+        .api
+        .get_user_role(&token.access_token, ctx.project.id, role.role_id)
+        .await
+        .unwrap();
+    assert!(status.is_success(), "status: {status}");
+    assert!(matches!(resp, AppResponseResult::Ok(UserRole { .. })))
 }

@@ -1,3 +1,4 @@
+use crate::dao::entity::UserRole;
 use crate::{
     dao::entity::{Permission, UserRolePermission},
     dto::{
@@ -36,6 +37,36 @@ pub async fn create_role(
         Ok(resp) => Ok(Json(resp)),
         Err(err) => Err(err),
     }
+}
+
+#[utoipa::path(
+    get,
+    path = "/system/user/role/{role_id}",
+    params(
+        ("role_id", description = "Role id"),
+    ),
+    responses(
+        (status = 200, description = "Success find role", body = [UserRole]),
+        (status = 401, description = "UNAUTHORIZED", body = [AppResponseError]),
+        (status = 404, description = "Role not found", body = [AppResponseError]),
+        (status = 403, description = "Forbidden", body = [AppResponseError]),
+    ),
+    security(("jwt" = []))
+)]
+pub async fn get_role(
+    Extension(state): Extension<AppState>,
+    Path(role_id): Path<i32>,
+) -> AppResult<Json<UserRole>> {
+    Ok(Json(UserRole {
+        id: 0,
+        name: "".to_string(),
+        role_type: "".parse()?,
+        internal: false,
+        created_at: Default::default(),
+        created_by: "".to_string(),
+        updated_at: None,
+        description: None,
+    }))
 }
 
 #[utoipa::path(
