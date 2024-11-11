@@ -96,6 +96,11 @@ impl Api {
     }
 
     #[logfn(Info)]
+    pub async fn get_user_role(
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<UserRolePermission>)> {
+    }
+
+    #[logfn(Info)]
     pub async fn get_role_permission(
         &self,
         token: &str,

@@ -36,7 +36,7 @@ impl Display for SessionKey {
 }
 
 #[allow(dead_code)]
-pub async fn set<K>(client: &RedisClient, (key, value): (&K, &K::Value)) -> AppResult<()>
+pub async fn set<K>(client: &RedisClient, (key, value): (&K, &K::Value)) -> AppResult
 where
     K: RedisKey,
 {
@@ -46,7 +46,7 @@ where
     Ok(())
 }
 
-pub async fn lpush<K>(client: &RedisClient, (key, value): (&K, &K::Value)) -> AppResult<()>
+pub async fn lpush<K>(client: &RedisClient, (key, value): (&K, &K::Value)) -> AppResult
 where
     K: RedisKey,
 {
@@ -62,7 +62,7 @@ pub async fn lrem<K>(
     client: &RedisClient,
     (key, value): (&K, &K::Value),
     count: i32,
-) -> AppResult<()>
+) -> AppResult
 where
     K: RedisKey,
 {
