@@ -9,7 +9,8 @@ SELECT id,
        updated_at,
        last_project_id
 FROM users
-WHERE deleted_at is null AND deleted_by is null;
+WHERE deleted_at is null
+  AND deleted_by is null;
 
 --! get_idle_users_by_project_id : (updated_at?, last_project_id?)
 SELECT u.id,
@@ -22,11 +23,11 @@ SELECT u.id,
        u.updated_at,
        u.last_project_id
 FROM users u
-LEFT JOIN user_role_relation urr ON urr.user_id = u.uuid
+         LEFT JOIN user_role_relation urr ON urr.user_id = u.uuid
 WHERE deleted_at is null
-AND deleted_by is null
-AND urr.project_id != :project_id
-AND u.enable = true;
+  AND deleted_by is null
+  AND urr.project_id != :project_id
+  AND u.enable = true;
 
 --! insert_user
 INSERT INTO users (username, hashed_password, email, uuid)
@@ -36,13 +37,13 @@ RETURNING id;
 --! update_user
 UPDATE users
 SET username = :username,
-    email = :email
+    email    = :email
 WHERE id = :uid;
 
 --! update_status
 UPDATE users
 SET enable = :enable
-WHERE id = ANY(:uid);
+WHERE id = ANY (:uid);
 
 --! insert_user_role (description?) :
 INSERT INTO user_role (name, type, internal, description, created_by)
@@ -112,10 +113,10 @@ SELECT r.id,
        r.name,
        r.created_at,
        r.internal,
-       creator.username as created_by,
+       creator.username AS created_by,
        r.updated_at,
        r.description,
-       r.type           as role_type
+       r.type           AS role_type
 FROM users u
          JOIN user_role_relation urr ON u.uuid = urr.user_id
          JOIN user_role r ON urr.role_id = r.id
@@ -127,15 +128,16 @@ SELECT r.id,
        r.name,
        r.created_at,
        r.internal,
-       creator.username as created_by,
+       creator.username AS created_by,
        r.updated_at,
        r.description,
-       r.type           as role_type
+       r.type           AS role_type
 FROM users u
          JOIN user_role_relation urr ON u.uuid = urr.user_id
          JOIN user_role r ON urr.role_id = r.id
          JOIN users creator ON creator.uuid = r.created_by
-WHERE u.uuid = :uuid AND urr.project_id = :project_id;
+WHERE u.uuid = :uuid
+  AND urr.project_id = :project_id;
 
 --! get_user_role_by_name : (description?, updated_at?, updated_by?)
 SELECT id,
@@ -149,11 +151,24 @@ SELECT id,
 FROM user_role
 WHERE name = :name;
 
+--! get_role_by_id : (description?, updated_at?, updated_by?)
+SELECT id,
+       name,
+       (SELECT username FROM users u WHERE u.uuid = ur.created_by) AS created_by,
+       created_at,
+       type                                                        AS role_type,
+       internal,
+       description,
+       updated_at,
+       (SELECT username FROM users u WHERE u.uuid = ur.updated_by) AS updated_by
+FROM user_role ur
+WHERE id = :id;
+
 --! get_user_role_list_by_project_id
 SELECT urr.role_id as id,
        ur.name
 FROM user_role_relation urr
-LEFT JOIN user_role ur ON urr.role_id = ur.id
+         LEFT JOIN user_role ur ON urr.role_id = ur.id
 WHERE urr.project_id = :project_id;
 
 --! get_user_role_relations_by_uuid
@@ -186,7 +201,8 @@ SELECT u.id,
        u.updated_at,
        u.last_project_id
 FROM users u
-JOIN user_role_relation urr ON u.uuid = urr.user_id
-JOIN projects p ON urr.project_id = p.id
-JOIN user_role ur ON urr.role_id = ur.id
-WHERE p.id = :project_id AND ur.name = :role_name;
+         JOIN user_role_relation urr ON u.uuid = urr.user_id
+         JOIN projects p ON urr.project_id = p.id
+         JOIN user_role ur ON urr.role_id = ur.id
+WHERE p.id = :project_id
+  AND ur.name = :role_name;

@@ -57,16 +57,10 @@ pub async fn get_role(
     Extension(state): Extension<AppState>,
     Path(role_id): Path<i32>,
 ) -> AppResult<Json<UserRole>> {
-    Ok(Json(UserRole {
-        id: 0,
-        name: "".to_string(),
-        role_type: "".parse()?,
-        internal: false,
-        created_at: Default::default(),
-        created_by: "".to_string(),
-        updated_at: None,
-        description: None,
-    }))
+    match service::user::get_role(&state, role_id).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(err) => Err(err),
+    }
 }
 
 #[utoipa::path(

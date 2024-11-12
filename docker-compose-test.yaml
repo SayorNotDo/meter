@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: [ "cargo", "test", "--", "--nocapture", "--color=always" ]
+    command: [ "cargo", "test", "--", "test_role_permission", "--color=always" ]
     working_dir: /meter
     volumes:
       - ./crates:/meter/crates

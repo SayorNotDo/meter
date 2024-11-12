@@ -292,6 +292,30 @@ where
         Ok(users)
     }
 
+    pub async fn get_role_by_id(&self, role_id: i32) -> AppResult<entity::UserRole> {
+        let ret = get_role_by_id().bind(self.executor, &role_id).opt().await?;
+        match ret {
+            Some(role) => {
+                let created_at = time::to_utc(role.created_at);
+                let updated_at = time::to_utc_or_default(role.updated_at);
+                Ok(entity::UserRole {
+                    id: role.id,
+                    name: role.name,
+                    role_type: role.role_type,
+                    internal: role.internal,
+                    created_at,
+                    created_by: role.created_by,
+                    updated_at,
+                    description: None,
+                })
+            }
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::Role,
+            })),
+        }
+    }
+
     pub async fn get_user_role_relations_by_uuid(
         &self,
         uuid: &Uuid,

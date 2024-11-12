@@ -1,18 +1,17 @@
 use tracing::info;
 use uuid::Uuid;
 
-use crate::dao::permission::PermissionDao;
-use crate::dto::response::CreateEntityResponse;
 use crate::{
     constant::REGISTER_EMAIL_SUBJECT,
     dao::{
         self,
-        entity::{User, UserRoleOption, UserRolePermission},
+        entity::{User, UserRole, UserRoleOption, UserRolePermission},
+        permission::PermissionDao,
         user::UserDao,
     },
     dto::{
         request::*,
-        response::{LoginResponse, MessageResponse, UserInfoResponse},
+        response::{CreateEntityResponse, LoginResponse, MessageResponse, UserInfoResponse},
         EmailTemplate,
     },
     errors::{AppError, AppResult},
@@ -197,6 +196,14 @@ pub async fn create_role(
         .await?;
     transaction.commit().await?;
     Ok(CreateEntityResponse { id: role_id })
+}
+
+pub async fn get_role(state: &AppState, role_id: i32) -> AppResult<UserRole> {
+    let client = state.pool.get().await?;
+    let user_dao = UserDao::new(&client);
+
+    let role = user_dao.get_role_by_id(role_id).await?;
+    Ok(role)
 }
 
 pub async fn role_list(state: &AppState, project_id: i32) -> AppResult<Vec<UserRoleOption>> {

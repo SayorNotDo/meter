@@ -75,9 +75,13 @@ impl TestUser {
                     let email = FreeEmail().fake::<String>();
                     let user = User::new(&username, &hashed_password, &email, true);
                     let id = user_dao.insert(&user).await?;
+                    let system = user_dao.find_by_username("__system__".to_string()).await?;
+                    let role_id = user_dao
+                        .insert_role(Faker.fake::<String>(), "PROJECT".into(), None, system.uuid)
+                        .await?;
                     TestUser {
                         id,
-                        role_id: 0,
+                        role_id,
                         uuid: user.uuid,
                         email,
                         username,
