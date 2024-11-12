@@ -96,6 +96,28 @@ impl Api {
     }
 
     #[logfn(Info)]
+    pub async fn delete_role(
+        &self,
+        token: &str,
+        project_id: i32,
+        role_id: i32,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .post(format!("{}/system/user/role/{}", self.addr, role_id))
+            .headers(headers)
+            .send()
+            .await?;
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
     pub async fn get_user_role(
         &self,
         token: &str,
