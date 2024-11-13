@@ -22,7 +22,8 @@ pub(crate) static INIT_SUBSCRIBER: Lazy<()> = Lazy::new(|| {
                     .with_thread_names(true)
                     .with_file(true)
                     .with_line_number(true)
-                    .with_span_events(FmtSpan::FULL),
+                    .with_span_events(FmtSpan::FULL)
+                    .without_time(),
             ),
     )
     .unwrap()

@@ -98,7 +98,7 @@ impl TestUser {
                     let id = user_dao.insert(&user).await?;
                     let system = user_dao.find_by_username("__system__".to_string()).await?;
                     user_dao
-                        .insert_user_role_relation(user.uuid, 1, 1, system.uuid)
+                        .insert_user_role_relation(user.uuid, 2, 1, system.uuid)
                         .await?;
                     let permission = perm_dao.get_permission_by_role_id(2).await?;
                     TestUser {

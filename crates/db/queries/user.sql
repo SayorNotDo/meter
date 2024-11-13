@@ -61,6 +61,12 @@ SET deleted_at = NOW(),
     deleted_by = :deleted_by
 WHERE id = :uid;
 
+--! soft_delete_role
+UPDATE user_role
+SET deleted_at = NOW(),
+    deleted_by = :deleted_by
+WHERE id = :id;
+
 --! get_user_by_username : (updated_at?, last_project_id?)
 SELECT id,
        uuid,
@@ -162,7 +168,9 @@ SELECT id,
        updated_at,
        (SELECT username FROM users u WHERE u.uuid = ur.updated_by) AS updated_by
 FROM user_role ur
-WHERE id = :id;
+WHERE id = :id
+  AND deleted_at IS NULL
+  AND deleted_by IS NULL;
 
 --! get_user_role_list_by_project_id
 SELECT urr.role_id as id,

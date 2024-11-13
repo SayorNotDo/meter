@@ -100,8 +100,8 @@ impl Api {
         &self,
         token: &str,
         project_id: i32,
-        role_id: i32,
-    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        req: &RoleDeleteRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<MessageResponse>)> {
         let mut headers = reqwest::header::HeaderMap::new();
 
         headers.append(
@@ -110,8 +110,9 @@ impl Api {
         );
         headers.append(PROJECT_ID, project_id.to_string().parse()?);
         let resp = HTTP
-            .post(format!("{}/system/user/role/{}", self.addr, role_id))
+            .delete(format!("{}/system/user/role", self.addr))
             .headers(headers)
+            .json(req)
             .send()
             .await?;
         Ok((resp.status(), resp.json().await?))

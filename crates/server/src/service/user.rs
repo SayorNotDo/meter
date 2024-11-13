@@ -84,7 +84,6 @@ pub async fn update_status(state: &AppState, request: UserStatusRequest) -> AppR
 
 /* 用户登录 */
 pub async fn login(state: &AppState, request: LoginRequest) -> AppResult<LoginResponse> {
-    info!("User login request: {request:?}.");
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
     let username = request.username.to_lowercase();
@@ -204,6 +203,29 @@ pub async fn get_role(state: &AppState, role_id: i32) -> AppResult<UserRole> {
 
     let role = user_dao.get_role_by_id(role_id).await?;
     Ok(role)
+}
+
+pub async fn delete_role(state: &AppState, ids: Vec<i32>, deleted_by: Uuid) -> AppResult {
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let user_dao = UserDao::new(&transaction);
+    for role_id in ids.into_iter() {
+        /* Check role whether is still exist or not */
+        match user_dao.get_role_by_id(role_id).await {
+            Ok(user) => {
+                if user.internal {
+                    return Err(AppError::ForbiddenError(
+                        "Cannot delete internal role".to_string(),
+                    ));
+                }
+                /* Soft delete */
+                user_dao.soft_delete_role_by_id(role_id, deleted_by).await?;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+    transaction.commit().await?;
+    Ok(())
 }
 
 pub async fn role_list(state: &AppState, project_id: i32) -> AppResult<Vec<UserRoleOption>> {

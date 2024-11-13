@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: [ "cargo", "test", "--", "test_role_permission", "--color=always" ]
+    command: [ "cargo", "test", "--", "test_role_delete", "--color=always" ]
     working_dir: /meter
     volumes:
       - ./crates:/meter/crates
@@ -64,7 +64,7 @@ services:
       mailpit:
         condition: service_started
     ports:
-      - "8081:8081"
+      - "8888:80"
     networks:
       - network
 

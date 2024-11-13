@@ -1,8 +1,10 @@
-use crate::dao::entity::UserRole;
 use crate::{
-    dao::entity::{Permission, UserRolePermission},
+    dao::entity::{Permission, UserRole, UserRolePermission},
     dto::{
-        request::{CreateRoleRequest, UserDeleteRequest, UserQueryParam, UserStatusRequest},
+        request::{
+            CreateRoleRequest, RoleDeleteRequest, UserDeleteRequest, UserQueryParam,
+            UserStatusRequest,
+        },
         response::{CreateEntityResponse, ListUserResponse, MessageResponse},
     },
     errors::{AppResponseError, AppResult},
@@ -64,26 +66,6 @@ pub async fn get_role(
 }
 
 #[utoipa::path(
-    delete,
-    path = "/system/user/{role_id",
-    params(
-        ("role_id", description = "Role id"),
-    ),
-    responses(
-        (status = 200, description = "Success delete user", body = [MessageResponse]),
-        (status = 401, description = "UNAUTHORIZED", body = [AppResponseError]),
-    ),
-    security(("jwt" = []))
-)]
-pub async fn delete_role(
-    Extension(state): Extension<AppState>,
-    user: UserClaims,
-    Path(role_id): Path<i32>,
-) -> AppResult {
-    Ok(())
-}
-
-#[utoipa::path(
     get,
     path = "/user/list/:project_id",
     responses(),
@@ -133,6 +115,29 @@ pub async fn delete(
     info!("controller layer delete user with ids: {request:?}");
     match service::user::batch_delete(&state, user.uid, request.ids).await {
         Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    delete,
+    path = "/system/user/role",
+    request_body = RoleDeleteRequest,
+    responses(
+        (status = 200, description = "Success delete role", body = [MessageResponse]),
+        (status = 400, description = "Invalid parameters", body = [AppResponseError]),
+        (status = 401, description = "UNAUTHORIZED", body = [AppResponseError]),
+    ),
+    security(("jwt" = []))
+)]
+pub async fn delete_role(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(request): Json<RoleDeleteRequest>,
+) -> AppResult<Json<MessageResponse>> {
+    request.validate()?;
+    match service::user::delete_role(&state, request.ids, user.uid).await {
+        Ok(_) => Ok(Json(MessageResponse::new("Success delete role"))),
         Err(e) => Err(e),
     }
 }

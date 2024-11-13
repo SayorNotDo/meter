@@ -316,6 +316,13 @@ where
         }
     }
 
+    pub async fn soft_delete_role_by_id(&self, role_id: i32, deleted_by: Uuid) -> AppResult {
+        soft_delete_role()
+            .bind(self.executor, &deleted_by, &role_id)
+            .await?;
+        Ok(())
+    }
+
     pub async fn get_user_role_relations_by_uuid(
         &self,
         uuid: &Uuid,

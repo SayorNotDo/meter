@@ -58,7 +58,7 @@ pub async fn login(
     request.validate()?;
     match service::user::login(&state, request).await {
         Ok(resp) => {
-            info!("Success login user: {resp:?}");
+            info!("Success login user");
             Ok(Json(resp))
         }
         Err(e) => {

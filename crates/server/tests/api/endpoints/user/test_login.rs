@@ -5,7 +5,10 @@ use crate::{
     unwrap,
 };
 use fake::{Fake, Faker};
-use server::{dto::request::LoginRequest, errors::AppResponseError};
+use server::{
+    dto::{request::LoginRequest, response::LoginResponse},
+    errors::AppResponseError,
+};
 
 use test_context::test_context;
 
@@ -18,8 +21,17 @@ pub async fn test_success_login(ctx: &mut SeedDbTestContext) {
         password: user.password.clone(),
     };
     let (status, resp) = ctx.app.api.login(&req).await.unwrap();
-    let _resp = unwrap!(resp);
+    let resp = unwrap!(resp);
     assert!(status.is_success(), "status: {status}");
+    match resp {
+        LoginResponse::Token(token) => {
+            assert!(!token.access_token.is_empty());
+            assert!(!token.refresh_token.is_empty());
+        }
+        LoginResponse::Code { .. } => {
+            panic!("not expected to receive message.");
+        }
+    }
 }
 
 #[test_context(SeedDbTestContext)]

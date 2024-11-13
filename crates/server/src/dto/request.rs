@@ -55,6 +55,12 @@ pub struct UserDeleteRequest {
     pub ids: Vec<i32>,
 }
 
+#[derive(Debug, Deserialize, Serialize, ToSchema, Clone, Validate)]
+pub struct RoleDeleteRequest {
+    #[garde(length(min = 1))]
+    pub ids: Vec<i32>,
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct RefreshTokenRequest {

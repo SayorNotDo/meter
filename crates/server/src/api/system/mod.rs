@@ -1,5 +1,7 @@
-use axum::routing::{delete, get, post, put};
-use axum::Router;
+use axum::{
+    routing::{delete, get, post, put},
+    Router,
+};
 
 mod parameter;
 mod user;
@@ -17,4 +19,5 @@ pub fn app() -> Router {
         .route("/user/role", post(user::create_role))
         .route("/user/role/:role_id", get(user::get_role))
         .route("/user/role/permission/:role_id", get(user::role_permission))
+        .route("/user/role", delete(user::delete_role))
 }

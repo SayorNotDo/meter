@@ -4,6 +4,12 @@ use std::collections::HashMap;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+use crate::errors::ResourceType;
+
+pub trait AppEntity {
+    const RESOURCE: ResourceType;
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct User {
     pub id: i32,
@@ -42,6 +48,10 @@ impl User {
     }
 }
 
+impl AppEntity for User {
+    const RESOURCE: ResourceType = ResourceType::User;
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Clone, ToSchema)]
 pub struct UserRole {
     pub id: i32,
@@ -52,6 +62,10 @@ pub struct UserRole {
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
     pub description: Option<String>,
+}
+
+impl AppEntity for UserRole {
+    const RESOURCE: ResourceType = ResourceType::Role;
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]

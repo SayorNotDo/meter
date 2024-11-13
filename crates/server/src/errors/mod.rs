@@ -14,6 +14,8 @@ use tera::Error as TeraError;
 use tokio_postgres::Error as TokioPostgresError;
 use utoipa::ToSchema;
 
+use crate::dao::entity;
+
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, ToSchema)]
@@ -366,6 +368,61 @@ impl AppResponseError {
             message: message.into(),
             code,
             details,
+        }
+    }
+}
+
+pub trait ToAppResult {
+    type Output: entity::AppEntity;
+
+    fn to_result(self) -> AppResult<Self::Output>;
+    fn check_absent(self) -> AppResult;
+    fn check_absent_details(self, details: Vec<(String, String)>) -> AppResult;
+    fn to_result_details(self, details: Vec<(String, String)>) -> AppResult<Self::Output>;
+}
+
+impl<T> ToAppResult for Option<T>
+where
+    T: entity::AppEntity,
+{
+    type Output = T;
+    fn to_result(self) -> AppResult<Self::Output> {
+        self.ok_or_else(|| {
+            AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: Self::Output::RESOURCE,
+            })
+        })
+    }
+
+    fn to_result_details(self, details: Vec<(String, String)>) -> AppResult<Self::Output> {
+        self.ok_or_else(|| {
+            AppError::NotFoundError(Resource {
+                details,
+                resource_type: Self::Output::RESOURCE,
+            })
+        })
+    }
+
+    fn check_absent(self) -> AppResult {
+        if self.is_some() {
+            Err(AppError::ResourceExistsError(Resource {
+                details: vec![],
+                resource_type: Self::Output::RESOURCE,
+            }))
+        } else {
+            Ok(())
+        }
+    }
+
+    fn check_absent_details(self, details: Vec<(String, String)>) -> AppResult {
+        if self.is_some() {
+            Err(AppError::ResourceExistsError(Resource {
+                details,
+                resource_type: Self::Output::RESOURCE,
+            }))
+        } else {
+            Ok(())
         }
     }
 }
