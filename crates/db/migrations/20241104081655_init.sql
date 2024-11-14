@@ -73,7 +73,7 @@ INSERT INTO user_role_relation
  role_id,
  project_id,
  created_by)
-VALUES ((SELECT uuid FROM users WHERE username = 'system'),
+VALUES ((SELECT uuid FROM users WHERE username = '__system__'),
         (SELECT id FROM user_role WHERE name = 'SYSTEM'),
         (SELECT id FROM projects WHERE name = '默认项目'),
         (SELECT uuid FROM users WHERE username = '__system__'));
@@ -129,4 +129,3 @@ VALUES ((SELECT id FROM user_role WHERE name = 'SYSTEM'),
         (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'WRITE'));
 
 -- migrate:down
-

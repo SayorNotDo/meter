@@ -23,6 +23,21 @@ where
         PermissionDao { executor }
     }
 
+    pub async fn get_basic_permission(&self) -> AppResult<Vec<Permission>> {
+        let permission_list = get_basic_permission()
+            .bind(self.executor)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| Permission {
+                id: item.id,
+                module: item.module,
+                scope: item.scope,
+            })
+            .collect::<Vec<_>>();
+        Ok(permission_list)
+    }
+
     pub async fn insert_role_permission_relation(
         &self,
         role_id: i32,

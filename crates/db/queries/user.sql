@@ -9,8 +9,24 @@ SELECT id,
        updated_at,
        last_project_id
 FROM users
-WHERE deleted_at is null
-  AND deleted_by is null;
+WHERE deleted_at IS NULL
+  AND deleted_by IS NULL;
+
+--! get_users_by_role_id : (updated_at?, last_project_id?)
+SELECT u.id,
+    u.uuid,
+    u.username,
+    u.hashed_password,
+    u.email,
+    u.enable,
+    u.created_at,
+    u.updated_at,
+    u.last_project_id
+FROM users u
+LEFT JOIN user_role_relation urr ON urr.user_id = u.uuid
+WHERE deleted_at IS NULL
+AND deleted_by IS NULL
+AND urr.role_id = :role_id;
 
 --! get_idle_users_by_project_id : (updated_at?, last_project_id?)
 SELECT u.id,

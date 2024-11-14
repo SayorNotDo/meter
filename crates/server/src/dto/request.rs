@@ -51,12 +51,12 @@ pub struct UserInfoUpdateRequest {
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
-pub struct UserDeleteRequest {
+pub struct DeleteUserRequest {
     pub ids: Vec<i32>,
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone, Validate)]
-pub struct RoleDeleteRequest {
+pub struct DeleteRoleRequest {
     #[garde(length(min = 1))]
     pub ids: Vec<i32>,
 }

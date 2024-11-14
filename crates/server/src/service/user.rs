@@ -212,10 +212,16 @@ pub async fn delete_role(state: &AppState, ids: Vec<i32>, deleted_by: Uuid) -> A
     for role_id in ids.into_iter() {
         /* Check role whether is still exist or not */
         match user_dao.get_role_by_id(role_id).await {
-            Ok(user) => {
-                if user.internal {
+            Ok(role) => {
+                if role.internal {
                     return Err(AppError::ForbiddenError(
                         "Cannot delete internal role".to_string(),
+                    ));
+                }
+                let user_list = user_dao.find_by_role_id(role_id).await?;
+                if !user_list.is_empty() {
+                    return Err(AppError::ForbiddenError(
+                        "Role has been already allocated".to_string(),
                     ));
                 }
                 /* Soft delete */

@@ -1,8 +1,10 @@
 use std::vec;
 
 use crate::dao::entity;
-use crate::errors::{AppError, AppResult, Resource, ResourceType};
-use crate::utils::time;
+use crate::{
+    errors::{AppError, AppResult, Resource, ResourceType},
+    utils::time,
+};
 use chrono::DateTime;
 use db::queries::user::*;
 use tracing::log::info;
@@ -48,7 +50,8 @@ impl_to_user!(
     false,
     GetUsersByRoleAndProjectId,
     GetUsers,
-    GetIdleUsersByProjectId
+    GetIdleUsersByProjectId,
+    GetUsersByRoleId
 );
 
 #[derive(Debug)]
@@ -96,6 +99,18 @@ where
                 resource_type: ResourceType::User,
             })),
         }
+    }
+
+    pub async fn find_by_role_id(&self, role_id: i32) -> AppResult<Vec<entity::User>> {
+        let users = get_users_by_role_id()
+            .bind(self.executor, &role_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| item.to_user())
+            .collect::<Vec<_>>();
+
+        Ok(users)
     }
 
     pub async fn update_user(&self, username: &str, email: &str, uid: i32) -> AppResult {

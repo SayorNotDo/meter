@@ -99,7 +99,7 @@ pub struct UserRolePermission {
     pub permission_list: Vec<Permission>,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema, Clone)]
 pub struct Permission {
     pub id: i32,
     pub module: String,

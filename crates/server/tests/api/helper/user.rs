@@ -47,7 +47,6 @@ pub enum Role {
     System,
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct TestUser {
     pub id: i32,
@@ -69,47 +68,14 @@ impl TestUser {
         for role in Role::iter() {
             let test_user = match role {
                 Role::User => {
-                    let username = Faker.fake::<String>();
-                    let password: String = utils::password::generate()?;
-                    let hashed_password = utils::password::hash(password.clone()).await?;
-                    let email = FreeEmail().fake::<String>();
-                    let user = User::new(&username, &hashed_password, &email, true);
-                    let id = user_dao.insert(&user).await?;
-                    let system = user_dao.find_by_username("__system__".to_string()).await?;
-                    let role_id = user_dao
-                        .insert_role(Faker.fake::<String>(), "PROJECT".into(), None, system.uuid)
-                        .await?;
-                    TestUser {
-                        id,
-                        role_id,
-                        uuid: user.uuid,
-                        email,
-                        username,
-                        password,
-                        permission: vec![],
-                    }
+                    let permission_list = vec![1];
+                    let role_id = create_role(permission_list, &user_dao, &perm_dao).await?;
+                    let user = create_user_with_role(role_id, &user_dao, &perm_dao).await?;
+                    user
                 }
                 Role::Admin => {
-                    let username = Faker.fake::<String>();
-                    let password: String = utils::password::generate()?;
-                    let hashed_password = utils::password::hash(password.clone()).await?;
-                    let email = FreeEmail().fake::<String>();
-                    let user = User::new(&username, &hashed_password, &email, true);
-                    let id = user_dao.insert(&user).await?;
-                    let system = user_dao.find_by_username("__system__".to_string()).await?;
-                    user_dao
-                        .insert_user_role_relation(user.uuid, 2, 1, system.uuid)
-                        .await?;
-                    let permission = perm_dao.get_permission_by_role_id(2).await?;
-                    TestUser {
-                        id,
-                        role_id: 2,
-                        uuid: user.uuid,
-                        email,
-                        username,
-                        password,
-                        permission,
-                    }
+                    let user = create_user_with_role(2, &user_dao, &perm_dao).await?;
+                    user
                 }
                 Role::System => {
                     let user = user_dao.find_by_username("__system__".to_string()).await?;
@@ -145,4 +111,57 @@ impl TestUser {
         user_dao.batch_update_user_status(true, vec![id]).await?;
         Ok(())
     }
+}
+
+async fn create_role<T>(
+    permission_list: Vec<i32>,
+    user_dao: &UserDao<'_, T>,
+    perm_dao: &PermissionDao<'_, T>,
+) -> AppResult<i32>
+where
+    T: db::GenericClient,
+{
+    let created_by = user_dao.find_by_username("__system__".to_string()).await?;
+    let role_id = user_dao
+        .insert_role(
+            Faker.fake::<String>(),
+            "PROJECT".into(),
+            None,
+            created_by.uuid,
+        )
+        .await?;
+    perm_dao
+        .insert_role_permission_relation(role_id, permission_list)
+        .await?;
+    Ok(role_id)
+}
+
+async fn create_user_with_role<T>(
+    role_id: i32,
+    user_dao: &UserDao<'_, T>,
+    perm_dao: &PermissionDao<'_, T>,
+) -> AppResult<TestUser>
+where
+    T: db::GenericClient,
+{
+    let username = Faker.fake::<String>();
+    let password: String = utils::password::generate()?;
+    let email = FreeEmail().fake::<String>();
+    let hashed_password = utils::password::hash(password.clone()).await?;
+    let user = User::new(&username, &hashed_password, &email, true);
+    let id = user_dao.insert(&user).await?;
+    let permission = perm_dao.get_permission_by_role_id(role_id).await?;
+    let created_by = user_dao.find_by_username("__system__".to_string()).await?;
+    user_dao
+        .insert_user_role_relation(user.uuid, role_id, 1, created_by.uuid)
+        .await?;
+    Ok(TestUser {
+        id,
+        role_id,
+        uuid: user.uuid,
+        username,
+        email,
+        password,
+        permission,
+    })
 }

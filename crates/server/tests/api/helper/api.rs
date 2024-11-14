@@ -1,5 +1,6 @@
 use super::result::AppResponseResult;
 use crate::unwrap;
+use anyhow::Ok;
 use log_derive::logfn;
 use reqwest::StatusCode;
 use server::dao::entity::{Permission, UserRole, UserRolePermission};
@@ -96,11 +97,33 @@ impl Api {
     }
 
     #[logfn(Info)]
+    pub async fn delete_user(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &DeleteUserRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .delete(format!("{}/system/user", self.addr))
+            .headers(headers)
+            .json(req)
+            .send()
+            .await?;
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
     pub async fn delete_role(
         &self,
         token: &str,
         project_id: i32,
-        req: &RoleDeleteRequest,
+        req: &DeleteRoleRequest,
     ) -> anyhow::Result<(StatusCode, AppResponseResult<MessageResponse>)> {
         let mut headers = reqwest::header::HeaderMap::new();
 

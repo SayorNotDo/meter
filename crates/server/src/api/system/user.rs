@@ -2,7 +2,7 @@ use crate::{
     dao::entity::{Permission, UserRole, UserRolePermission},
     dto::{
         request::{
-            CreateRoleRequest, RoleDeleteRequest, UserDeleteRequest, UserQueryParam,
+            CreateRoleRequest, DeleteRoleRequest, DeleteUserRequest, UserQueryParam,
             UserStatusRequest,
         },
         response::{CreateEntityResponse, ListUserResponse, MessageResponse},
@@ -103,14 +103,14 @@ pub async fn update_status(
 #[utoipa::path(
     delete,
     path = "/user",
-    request_body = UserDeleteRequest,
+    request_body = DeleteUserRequest,
     responses(),
     security(("jwt" = []))
 )]
 pub async fn delete(
     Extension(state): Extension<AppState>,
     user: UserClaims,
-    Json(request): Json<UserDeleteRequest>,
+    Json(request): Json<DeleteUserRequest>,
 ) -> AppResult {
     info!("controller layer delete user with ids: {request:?}");
     match service::user::batch_delete(&state, user.uid, request.ids).await {
@@ -122,7 +122,7 @@ pub async fn delete(
 #[utoipa::path(
     delete,
     path = "/system/user/role",
-    request_body = RoleDeleteRequest,
+    request_body = DeleteRoleRequest,
     responses(
         (status = 200, description = "Success delete role", body = [MessageResponse]),
         (status = 400, description = "Invalid parameters", body = [AppResponseError]),
@@ -133,7 +133,7 @@ pub async fn delete(
 pub async fn delete_role(
     Extension(state): Extension<AppState>,
     user: UserClaims,
-    Json(request): Json<RoleDeleteRequest>,
+    Json(request): Json<DeleteRoleRequest>,
 ) -> AppResult<Json<MessageResponse>> {
     request.validate()?;
     match service::user::delete_role(&state, request.ids, user.uid).await {

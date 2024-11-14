@@ -1,3 +1,12 @@
+--! get_basic_permission
+SELECT
+    id,
+    module,
+    scope,
+    created_at
+FROM permission;
+
+
 --! get_permission_by_role_id
 SELECT p.id,
        p.module,

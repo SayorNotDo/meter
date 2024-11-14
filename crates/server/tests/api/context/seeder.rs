@@ -6,6 +6,7 @@ use crate::helper::{
 use std::collections::HashMap;
 use test_context::AsyncTestContext;
 
+#[allow(dead_code)]
 pub struct SeedDbTestContext {
     pub app: TestContext,
     pub users: HashMap<Role, TestUser>,
@@ -18,12 +19,14 @@ impl AsyncTestContext for SeedDbTestContext {
         let users = TestUser::create_user(&app.state.pool)
             .await
             .expect("Failed to create test users...");
+
         let project = TestProject::get_default_project(
             &app.state.pool,
             users.get(&Role::System).unwrap().uuid,
         )
         .await
         .expect("Failed to create test project");
+
         Self {
             app,
             users,
