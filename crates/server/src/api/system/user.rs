@@ -102,19 +102,26 @@ pub async fn update_status(
 
 #[utoipa::path(
     delete,
-    path = "/user",
+    path = "/system/user",
     request_body = DeleteUserRequest,
-    responses(),
+    responses(
+        (status = 200, description = "Success delete user", body = [MessageResponse]),
+        (status = 400, description = "invalid parameters", body = [AppResponseError]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
+        (status = 403, description = "Forbidden", body = [AppResponseError]),
+        (status = 404, description = "User not found", body = [AppResponseError]),
+        (status = 500, description = "Internal server error", body = [AppResponseError]),
+    ),
     security(("jwt" = []))
 )]
 pub async fn delete(
     Extension(state): Extension<AppState>,
     user: UserClaims,
     Json(request): Json<DeleteUserRequest>,
-) -> AppResult {
+) -> AppResult<Json<MessageResponse>> {
     info!("controller layer delete user with ids: {request:?}");
     match service::user::batch_delete(&state, user.uid, request.ids).await {
-        Ok(_) => Ok(()),
+        Ok(_) => Ok(Json(MessageResponse::new("Success delete user"))),
         Err(e) => Err(e),
     }
 }
