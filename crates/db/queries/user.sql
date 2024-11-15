@@ -59,7 +59,8 @@ WHERE id = :uid;
 --! update_status
 UPDATE users
 SET enable = :enable
-WHERE id = ANY (:uid);
+WHERE id = ANY (:uid)
+AND deleted_by IS NULL AND deleted_at IS NULL;
 
 --! insert_user_role (description?) :
 INSERT INTO user_role (name, type, internal, description, created_by)
@@ -128,7 +129,7 @@ SELECT id,
        updated_at,
        last_project_id
 FROM users
-WHERE id = :id;
+WHERE id = :id AND deleted_at IS NULL AND deleted_by IS NULL;
 
 --! get_user_roles_by_uuid : (updated_at?, description?)
 SELECT r.id,

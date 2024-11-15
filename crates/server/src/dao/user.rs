@@ -121,9 +121,9 @@ where
         Ok(())
     }
 
-    pub async fn soft_deleted_user(&self, operator: Uuid, uid: &i32) -> AppResult {
+    pub async fn soft_deleted_user(&self, created_by: Uuid, uid: &i32) -> AppResult {
         soft_delete_user()
-            .bind(self.executor, &operator, uid)
+            .bind(self.executor, &created_by, uid)
             .await?;
         Ok(())
     }

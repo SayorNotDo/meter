@@ -45,6 +45,7 @@ pub enum Role {
     Admin,
     User,
     System,
+    DeletedUser,
 }
 
 #[derive(Debug)]
@@ -71,6 +72,16 @@ impl TestUser {
                     let permission_list = vec![1];
                     let role_id = create_role(permission_list, &user_dao, &perm_dao).await?;
                     let user = create_user_with_role(role_id, &user_dao, &perm_dao).await?;
+                    user
+                }
+                Role::DeletedUser => {
+                    let permission_list = vec![1];
+                    let role_id = create_role(permission_list, &user_dao, &perm_dao).await?;
+                    let user = create_user_with_role(role_id, &user_dao, &perm_dao).await?;
+                    let deleted_by = user_dao.find_by_username("__system__".to_string()).await?;
+                    user_dao
+                        .soft_deleted_user(deleted_by.uuid, &user.id)
+                        .await?;
                     user
                 }
                 Role::Admin => {

@@ -6,7 +6,7 @@ use crate::{
 };
 use fake::{Fake, Faker};
 use server::{
-    dto::{request::LoginRequest, response::LoginResponse},
+    dto::{request::user::LoginRequest, response::LoginResponse},
     errors::AppResponseError,
 };
 

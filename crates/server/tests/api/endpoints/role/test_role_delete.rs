@@ -9,7 +9,7 @@ use reqwest::StatusCode;
 
 use server::{
     dto::{
-        request::{DeleteRoleRequest, LoginRequest},
+        request::{user::LoginRequest, DeleteRoleRequest},
         response::MessageResponse,
     },
     errors::AppResponseError,

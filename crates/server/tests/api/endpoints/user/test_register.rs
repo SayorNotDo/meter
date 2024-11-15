@@ -8,7 +8,7 @@ use crate::{
 use fake::{Fake, Faker};
 
 use server::dto::{
-    request::{LoginRequest, RegisterRequest, UserInfo},
+    request::{user::LoginRequest, RegisterRequest, UserInfo},
     response::MessageResponse,
 };
 use test_context::test_context;

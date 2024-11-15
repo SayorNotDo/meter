@@ -6,6 +6,8 @@ use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
+pub mod user;
+
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RegisterRequest {
@@ -37,22 +39,10 @@ pub struct LoginRequest {
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct UserStatusRequest {
-    pub select_ids: Vec<i32>,
-    pub enable: bool,
-}
-
-#[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct UserInfoUpdateRequest {
     pub id: i32,
     pub username: String,
     pub email: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, ToSchema)]
-pub struct DeleteUserRequest {
-    pub ids: Vec<i32>,
 }
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone, Validate)]

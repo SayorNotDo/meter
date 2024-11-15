@@ -2,8 +2,8 @@ use crate::{
     dao::entity::{Permission, UserRole, UserRolePermission},
     dto::{
         request::{
-            CreateRoleRequest, DeleteRoleRequest, DeleteUserRequest, UserQueryParam,
-            UserStatusRequest,
+            user::{DeleteUserRequest, UpdateUserStatusRequest},
+            CreateRoleRequest, DeleteRoleRequest, UserQueryParam,
         },
         response::{CreateEntityResponse, ListUserResponse, MessageResponse},
     },
@@ -49,7 +49,7 @@ pub async fn create_role(
     ),
     responses(
         (status = 200, description = "Success find role", body = [UserRole]),
-        (status = 401, description = "UNAUTHORIZED", body = [AppResponseError]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 404, description = "Role not found", body = [AppResponseError]),
         (status = 403, description = "Forbidden", body = [AppResponseError]),
     ),
@@ -85,17 +85,26 @@ pub async fn list(
 #[utoipa::path(
     put,
     path = "/user/status",
-    responses(),
+    request_body = UpdateUserStatusRequest,
+    responses(
+        (status = 200, description = "Success update user's status", body = [MessageResponse]),
+        (status = 400, description = "Invalid parameters", body = [AppResponseError]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
+        (status = 403, description = "Forbidden", body = [AppResponseError]),
+        (status = 404, description = "User not found", body = [AppResponseError]),
+        (status = 500, description = "Internal server error", body = [AppResponseError])
+    ),
     security(("jwt" = []))
 )]
 pub async fn update_status(
     Extension(state): Extension<AppState>,
     _user: UserClaims,
-    Json(request): Json<UserStatusRequest>,
-) -> AppResult {
+    Json(request): Json<UpdateUserStatusRequest>,
+) -> AppResult<Json<MessageResponse>> {
     info!("controller layer update user status with request: {request:?}");
+    request.validate()?;
     match service::user::update_status(&state, request).await {
-        Ok(_) => Ok(()),
+        Ok(_) => Ok(Json(MessageResponse::new("Success update user's status"))),
         Err(e) => Err(e),
     }
 }
@@ -120,6 +129,7 @@ pub async fn delete(
     Json(request): Json<DeleteUserRequest>,
 ) -> AppResult<Json<MessageResponse>> {
     info!("controller layer delete user with ids: {request:?}");
+    request.validate()?;
     match service::user::batch_delete(&state, user.uid, request.ids).await {
         Ok(_) => Ok(Json(MessageResponse::new("Success delete user"))),
         Err(e) => Err(e),
@@ -133,7 +143,7 @@ pub async fn delete(
     responses(
         (status = 200, description = "Success delete role", body = [MessageResponse]),
         (status = 400, description = "Invalid parameters", body = [AppResponseError]),
-        (status = 401, description = "UNAUTHORIZED", body = [AppResponseError]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
     ),
     security(("jwt" = []))
 )]

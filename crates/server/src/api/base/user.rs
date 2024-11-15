@@ -1,11 +1,15 @@
-use crate::dao::entity;
-use crate::dto::request::UserQueryParam;
-use crate::dto::response::UserInfoResponse;
-use crate::errors::{AppResult, AppResponseError};
-use crate::service;
-use crate::state::AppState;
-use crate::utils::claim::UserClaims;
-use crate::{dao::entity::UserRoleOption, dto::request::UserInfoUpdateRequest};
+use crate::{
+    dao::entity::{self, UserRoleOption},
+    dto::{
+        request::{UserInfoUpdateRequest, UserQueryParam},
+        response::UserInfoResponse,
+    },
+    errors::{AppResponseError, AppResult},
+    service,
+    state::AppState,
+    utils::claim::UserClaims,
+};
+
 use axum::{
     extract::{Path, Query},
     Extension, Json,

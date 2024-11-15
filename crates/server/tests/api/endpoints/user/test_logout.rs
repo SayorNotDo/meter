@@ -1,8 +1,10 @@
 use crate::{context::seeder::SeedDbTestContext, helper::user::Role};
 use fake::{Fake, Faker};
-use server::constant::ACCESS_TOKEN_DECODE_KEY;
-use server::dto::request::LoginRequest;
-use server::utils::claim::UserClaims;
+
+use server::{
+    utils::claim::UserClaims,
+    {constant::ACCESS_TOKEN_DECODE_KEY, dto::request::user::LoginRequest},
+};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]

@@ -10,7 +10,7 @@ use crate::{
         user::UserDao,
     },
     dto::{
-        request::*,
+        request::{user::UpdateUserStatusRequest, *},
         response::{CreateEntityResponse, LoginResponse, MessageResponse, UserInfoResponse},
         EmailTemplate,
     },
@@ -72,13 +72,18 @@ pub async fn batch_delete(state: &AppState, operator: Uuid, uids: Vec<i32>) -> A
     Ok(())
 }
 
-pub async fn update_status(state: &AppState, request: UserStatusRequest) -> AppResult {
+pub async fn update_status(state: &AppState, request: UpdateUserStatusRequest) -> AppResult {
     info!("service layer update user status by field `enable`");
-    let client = state.pool.get().await?;
-    let user_dao = UserDao::new(&client);
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let user_dao = UserDao::new(&transaction);
+    for id in request.select_ids.iter() {
+        user_dao.find_by_id(&id).await?;
+    }
     user_dao
         .batch_update_user_status(request.enable, request.select_ids)
         .await?;
+    transaction.commit().await?;
     Ok(())
 }
 

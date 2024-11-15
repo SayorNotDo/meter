@@ -3,13 +3,21 @@ use crate::unwrap;
 use anyhow::Ok;
 use log_derive::logfn;
 use reqwest::StatusCode;
-use server::dao::entity::{Permission, UserRole, UserRolePermission};
+
 use server::{
     configure::server::ConfigHTTP,
     constant::{HTTP, PROJECT_ID},
-    dto::{request::*, response::*},
+    dao::entity::{Permission, UserRole, UserRolePermission},
+    dto::{
+        request::{
+            user::{DeleteUserRequest, LoginRequest},
+            *,
+        },
+        response::*,
+    },
     utils::http::HttpClientExt,
 };
+use user::UpdateUserStatusRequest;
 
 pub struct Api {
     addr: String,
@@ -93,6 +101,30 @@ impl Api {
             .json(req)
             .send()
             .await?;
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn update_user_status(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &UpdateUserStatusRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+
+        let resp = HTTP
+            .put(format!("{}/system/user/status", self.addr))
+            .headers(headers)
+            .json(req)
+            .send()
+            .await?;
+
         Ok((resp.status(), resp.json().await?))
     }
 

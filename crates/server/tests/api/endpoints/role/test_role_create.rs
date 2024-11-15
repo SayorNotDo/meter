@@ -9,7 +9,7 @@ use server::{
     constant::ACCESS_TOKEN_ENCODE_KEY,
     dao::entity::Permission,
     dto::{
-        request::{CreateRoleRequest, LoginRequest},
+        request::{user::LoginRequest, CreateRoleRequest},
         response::CreateEntityResponse,
     },
     errors::AppResponseError,

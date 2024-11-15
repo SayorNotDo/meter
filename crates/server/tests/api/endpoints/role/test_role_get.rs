@@ -1,8 +1,12 @@
-use crate::assert_err;
-use crate::context::seeder::SeedDbTestContext;
-use crate::helper::user::TestUser;
-use crate::helper::{result::AppResponseResult, user::Role};
-use server::{dao::entity::UserRole, dto::request::LoginRequest, errors::AppResponseError};
+use crate::{
+    assert_err,
+    context::seeder::SeedDbTestContext,
+    helper::{
+        result::AppResponseResult,
+        user::{Role, TestUser},
+    },
+};
+use server::{dao::entity::UserRole, dto::request::user::LoginRequest, errors::AppResponseError};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]

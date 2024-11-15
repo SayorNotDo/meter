@@ -8,7 +8,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,7 +24,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: [ "up" ]
+    command: ["up"]
     networks:
       - network
 
@@ -33,7 +33,7 @@ services:
     restart: unless-stopped
     environment:
       REDIS_PASSWORD: testpassword
-    command: [ "redis-server", "--requirepass", "testpassword" ]
+    command: ["redis-server", "--requirepass", "testpassword"]
     ports:
       - "6379:6379"
     networks:
@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: [ "cargo", "test", "--", "test_user_delete", "--color=always" ]
+    command: ["cargo", "test", "--", "test_user_update", "--color=always"]
     working_dir: /meter
     volumes:
       - ./crates:/meter/crates
