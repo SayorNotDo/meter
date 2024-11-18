@@ -1,5 +1,7 @@
 use fake::{faker::internet::en::FreeEmail, Fake, Faker};
 use server::dao::permission::PermissionDao;
+use server::service::user::batch_delete;
+use server::state::AppState;
 use server::{
     dao::{
         entity::{Permission, User},
@@ -75,7 +77,12 @@ impl TestUser {
                     user
                 }
                 Role::DeletedUser => {
-                    let permission_list = vec![1];
+                    let permission_list = perm_dao
+                        .get_permission_by_role_id(1)
+                        .await?
+                        .into_iter()
+                        .map(|item| item.id)
+                        .collect::<_>();
                     let role_id = create_role(permission_list, &user_dao, &perm_dao).await?;
                     let user = create_user_with_role(role_id, &user_dao, &perm_dao).await?;
                     let deleted_by = user_dao.find_by_username("__system__".to_string()).await?;
@@ -120,6 +127,14 @@ impl TestUser {
         let client = pool.get().await?;
         let user_dao = UserDao::new(&client);
         user_dao.batch_update_user_status(true, vec![id]).await?;
+        Ok(())
+    }
+
+    pub async fn delete_user(state: &AppState, uids: Vec<i32>) -> AppResult {
+        let client = state.pool.get().await?;
+        let user_dao = UserDao::new(&client);
+        let created_by = user_dao.find_by_username("__system__".to_string()).await?;
+        batch_delete(state, created_by.uuid, uids).await?;
         Ok(())
     }
 }

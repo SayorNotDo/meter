@@ -120,3 +120,31 @@ pub async fn test_update_deleted_user_status(ctx: &mut SeedDbTestContext) {
 
     assert_eq!(status, reqwest::StatusCode::NOT_FOUND);
 }
+
+#[test_context(SeedDbTestContext)]
+#[tokio::test]
+pub async fn test_update_not_modified_user_status(ctx: &mut SeedDbTestContext) {
+    let admin = ctx.users.get(&Role::Admin).unwrap();
+
+    let req: LoginRequest = LoginRequest {
+        username: admin.username.clone(),
+        password: admin.password.clone(),
+    };
+
+    let token = ctx.app.api.get_token(&req).await.unwrap();
+
+    let user = ctx.users.get(&Role::User).unwrap();
+
+    let req: UpdateUserStatusRequest = UpdateUserStatusRequest {
+        select_ids: vec![user.id],
+        enable: true,
+    };
+    let (status, _resp) = ctx
+        .app
+        .api
+        .update_user_status(&token.access_token, ctx.project.id, &req)
+        .await
+        .unwrap();
+
+    assert_eq!(status, reqwest::StatusCode::NOT_MODIFIED);
+}

@@ -1,7 +1,11 @@
 use crate::errors::{AppResponseError, AppResult};
 use crate::state::AppState;
 use crate::utils::claim::UserClaims;
-use crate::{dto::request::*, dto::response::*, service};
+use crate::{
+    dto::request::{user::LoginRequest, *},
+    dto::response::*,
+    service,
+};
 use axum::extract::Extension;
 use axum::Json;
 use garde::Validate;

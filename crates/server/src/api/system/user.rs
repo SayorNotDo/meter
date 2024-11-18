@@ -67,7 +67,7 @@ pub async fn get_role(
 
 #[utoipa::path(
     get,
-    path = "/user/list/:project_id",
+    path = "/user/list",
     responses(),
     security(("jwt" = []))
 )]
@@ -88,6 +88,7 @@ pub async fn list(
     request_body = UpdateUserStatusRequest,
     responses(
         (status = 200, description = "Success update user's status", body = [MessageResponse]),
+        (status = 304, description = "User not modified", body = [AppResponseError]),
         (status = 400, description = "Invalid parameters", body = [AppResponseError]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 403, description = "Forbidden", body = [AppResponseError]),

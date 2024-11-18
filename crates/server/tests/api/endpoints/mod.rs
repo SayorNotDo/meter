@@ -1,3 +1,4 @@
+pub mod functional_case;
 pub mod permission;
-mod role;
+pub mod role;
 pub mod user;

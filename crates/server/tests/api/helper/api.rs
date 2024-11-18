@@ -124,7 +124,14 @@ impl Api {
             .json(req)
             .send()
             .await?;
-
+        let status = resp.status();
+        if !status.is_success() {
+            let error_body = resp.text().await?;
+            return Ok((
+                status,
+                AppResponseResult::Ok(MessageResponse::new(error_body)),
+            ));
+        }
         Ok((resp.status(), resp.json().await?))
     }
 
@@ -145,6 +152,26 @@ impl Api {
             .delete(format!("{}/system/user", self.addr))
             .headers(headers)
             .json(req)
+            .send()
+            .await?;
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn get_user_list(
+        &self,
+        token: &str,
+        project_id: i32,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<ListUserResponse>)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .get(format!("{}/system/user/list", self.addr))
+            .headers(headers)
             .send()
             .await?;
         Ok((resp.status(), resp.json().await?))
@@ -235,6 +262,30 @@ impl Api {
             .headers(headers)
             .send()
             .await?;
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn create_functional_case(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &CreateFunctionalCaseRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .post(format!("{}/management/case/functional-case", self.addr))
+            .headers(headers)
+            .json(req)
+            .send()
+            .await?;
+
         Ok((resp.status(), resp.json().await?))
     }
 }

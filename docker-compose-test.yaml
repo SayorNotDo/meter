@@ -43,7 +43,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["cargo", "test", "--", "test_user_update", "--color=always"]
+    command:
+      ["cargo", "test", "--", "test_functional_case_create", "--color=always"]
     working_dir: /meter
     volumes:
       - ./crates:/meter/crates

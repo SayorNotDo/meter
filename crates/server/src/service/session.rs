@@ -33,7 +33,9 @@ pub async fn check(redis: &RedisClient, claims: &UserClaims) -> AppResult<Uuid> 
     if (claims.exp) < Utc::now().timestamp() {
         info!("access_token expired so delete it: {session_ids:?}.");
         redis::lrem(redis, (&session_key, &claims.sid), 0).await?;
-        return Err(AppError::UnauthorizedError("access_token is expired".to_string()));
+        return Err(AppError::UnauthorizedError(
+            "access_token is expired".to_string(),
+        ));
     }
     Ok(claims.uid)
 }
@@ -41,6 +43,12 @@ pub async fn check(redis: &RedisClient, claims: &UserClaims) -> AppResult<Uuid> 
 pub async fn delete(redis: &RedisClient, uid: Uuid, sid: Uuid) -> AppResult {
     let session_key = SessionKey { uuid: uid };
     redis::lrem(redis, (&session_key, &sid), 0).await?;
+    Ok(())
+}
+
+pub async fn destroy(redis: &RedisClient, uid: Uuid) -> AppResult {
+    let session_key = SessionKey { uuid: uid };
+    redis::del(redis, &session_key).await?;
     Ok(())
 }
 

@@ -106,7 +106,8 @@ INSERT INTO api_permission_relation
  permission_id)
 VALUES ('/system/role/permission/list', 'GET',
         (SELECT id FROM permission WHERE module = 'system:role' AND scope = 'READ')),
-       ('/auth/register', 'POST', (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'WRITE'));
+       ('/auth/register', 'POST', (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'WRITE')),
+       ('/system/user/list', 'GET', (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'READ'));
 
 -- init internal role permission
 INSERT INTO role_permission_relation

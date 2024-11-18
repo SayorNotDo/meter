@@ -57,7 +57,7 @@ macro_rules! impl_to_template {
     };
 }
 
-impl_to_template!(GetTemplateByProjectId);
+impl_to_template!(GetTemplateByProjectId, GetTemplateById);
 
 impl<'a, T> CaseDao<'a, T>
 where
@@ -90,6 +90,21 @@ where
             }
             None => Err(AppError::NotFoundError(Resource {
                 details: vec![],
+                resource_type: ResourceType::File,
+            })),
+        }
+    }
+
+    pub async fn get_template_by_id(&self, template_id: i32) -> AppResult<entity::Template> {
+        let ret = get_template_by_id()
+            .bind(self.executor, &template_id)
+            .opt()
+            .await?;
+
+        match ret {
+            Some(t) => Ok(t.to_template()),
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![("file_type: template".into(), "not found".into())],
                 resource_type: ResourceType::File,
             })),
         }

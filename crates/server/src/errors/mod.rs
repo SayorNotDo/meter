@@ -55,6 +55,8 @@ pub enum AppError {
     NotFoundError(Resource),
     #[error("{0} not available")]
     NotAvailableError(Resource),
+    #[error("{0} not modified")]
+    NotModifiedError(Resource),
     #[error("{0} already exists")]
     ResourceExistsError(Resource),
     #[error("bad request: {0}")]
@@ -137,6 +139,12 @@ impl AppError {
                 Some(resource.resource_type as i32),
                 resource.details.clone(),
                 StatusCode::NOT_FOUND,
+            ),
+            NotModifiedError(resource) => (
+                format!("{resource}_NOT_MODIFIED_ERROR"),
+                Some(resource.resource_type as i32),
+                resource.details.clone(),
+                StatusCode::NOT_MODIFIED,
             ),
             ForbiddenError(_err) => (
                 "FORBIDDEN_ERROR".to_string(),

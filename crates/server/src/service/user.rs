@@ -1,4 +1,4 @@
-use tracing::info;
+use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::{
@@ -10,11 +10,14 @@ use crate::{
         user::UserDao,
     },
     dto::{
-        request::{user::UpdateUserStatusRequest, *},
+        request::{
+            user::{LoginRequest, UpdateUserStatusRequest},
+            *,
+        },
         response::{CreateEntityResponse, LoginResponse, MessageResponse, UserInfoResponse},
         EmailTemplate,
     },
-    errors::{AppError, AppResult},
+    errors::{AppError, AppResult, Resource, ResourceType},
     service::{redis::SessionKey, session, token},
     state::AppState,
     utils::{self, smtp},
@@ -63,9 +66,13 @@ pub async fn batch_delete(state: &AppState, operator: Uuid, uids: Vec<i32>) -> A
         /* 查询用户是否处于启用状态，此时不可进行删除操作 */
         let user = user_dao.find_by_id(&id).await?;
         if user.enable {
+            error!("Can not delete, reason: enabled user exists.");
             return Err(AppError::BadRequestError("enabled user exists".into()));
         }
         /* TODO: 用户相关资源处理 */
+        /* 会话记录删除 */
+        session::destroy(&state.redis, user.uuid).await?;
+        /* 数据库软删除 */
         user_dao.soft_deleted_user(operator, &id).await?;
     }
     transaction.commit().await?;
@@ -78,7 +85,13 @@ pub async fn update_status(state: &AppState, request: UpdateUserStatusRequest) -
     let transaction = client.transaction().await?;
     let user_dao = UserDao::new(&transaction);
     for id in request.select_ids.iter() {
-        user_dao.find_by_id(&id).await?;
+        let user = user_dao.find_by_id(&id).await?;
+        if user.enable == request.enable {
+            return Err(AppError::NotModifiedError(Resource {
+                details: vec![],
+                resource_type: ResourceType::User,
+            }));
+        };
     }
     user_dao
         .batch_update_user_status(request.enable, request.select_ids)
@@ -92,17 +105,21 @@ pub async fn login(state: &AppState, request: LoginRequest) -> AppResult<LoginRe
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
     let username = request.username.to_lowercase();
-    let user = user_dao.find_by_username(username).await?;
-    /* 校验用户密码 */
-    utils::password::verify(request.password.clone(), user.hashed_password.clone()).await?;
-    /* 用户是否处于启用状态 */
-    if !user.enable {
-        Err(AppError::ForbiddenError("user is disabled".to_string()))
-    } else {
-        /* 生成token */
-        let session_id = session::set(&state.redis, user.uuid).await?;
-        let resp = token::generate_tokens(user.uuid, session_id)?;
-        Ok(LoginResponse::Token(resp))
+    match user_dao.find_by_username(username).await {
+        Ok(user) => {
+            /* 校验用户密码 */
+            utils::password::verify(request.password.clone(), user.hashed_password.clone()).await?;
+            /* 用户是否处于启用状态 */
+            if !user.enable {
+                Err(AppError::ForbiddenError("user is disabled".to_string()))
+            } else {
+                /* 生成token */
+                let session_id = session::set(&state.redis, user.uuid).await?;
+                let resp = token::generate_tokens(user.uuid, session_id)?;
+                Ok(LoginResponse::Token(resp))
+            }
+        }
+        Err(_) => Err(AppError::BadRequestError("Error username/password".into())),
     }
 }
 

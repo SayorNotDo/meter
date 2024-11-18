@@ -10,7 +10,8 @@ use crate::dto::request::{
     IssueRelationRequest,
 };
 use crate::dto::response::{
-    CaseDetailResponse, CreateScriptResponse, DiagnoseResponse, ListCaseResponse, TemplateResponse,
+    CaseDetailResponse, CreateScriptResponse, DiagnoseResponse, ListCaseResponse, MessageResponse,
+    TemplateResponse,
 };
 use crate::dto::{
     request::{CreateScriptRequest, ListQueryParam, QueryTemplateParam},
@@ -112,17 +113,23 @@ pub async fn template(
     post,
     path = "/management/case/functional_case",
     request_body = CreateFunctionalCaseRequest,
-    responses(),
+    responses(
+        (status = 200, description = "Success create functional case", body = [MessageResponse]),
+        (status = 400, description = "Invalid parameters", body = [AppResponseError]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
+        (status = 403, description = "Forbidden", body = [AppResponseError]),
+        (status = 500, description = "Internal server error", body = [AppResponseError])
+    ),
     security(("jwt" = []))
 )]
 pub async fn create_functional_case(
     Extension(state): Extension<AppState>,
     user: UserClaims,
     Json(request): Json<CreateFunctionalCaseRequest>,
-) -> AppResult<Json<()>> {
+) -> AppResult<Json<MessageResponse>> {
     info!("create functional case with request: {request:?}");
     match case::create_functional_case(&state, user.uid, request).await {
-        Ok(resp) => Ok(Json(resp)),
+        Ok(_) => Ok(Json(MessageResponse::new("Success create functional case"))),
         Err(e) => Err(e),
     }
 }

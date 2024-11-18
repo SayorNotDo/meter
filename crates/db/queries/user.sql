@@ -95,7 +95,7 @@ SELECT id,
        updated_at,
        last_project_id
 FROM users
-WHERE username = :username;
+WHERE username = :username AND deleted_at IS NULL AND deleted_by IS NULL;
 
 --! get_user_by_email (email?)
 SELECT id,

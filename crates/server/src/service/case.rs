@@ -1,4 +1,7 @@
-use crate::constant::DOCTOR_SCRIPT_PATH;
+use crate::{
+    constant::DOCTOR_SCRIPT_PATH,
+    errors::{AppError, Resource, ResourceType},
+};
 use std::{collections::HashMap, path::Path};
 use tokio::try_join;
 use tracing::info;
@@ -72,7 +75,7 @@ pub async fn create_functional_case(
     state: &AppState,
     uid: Uuid,
     request: CreateFunctionalCaseRequest,
-) -> AppResult<()> {
+) -> AppResult {
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let case_dao = CaseDao::new(&transaction);
@@ -84,6 +87,9 @@ pub async fn create_functional_case(
         request.tags,
         uid,
     );
+    /* chech whether template is exist */
+    case_dao.get_template_by_id(case.template_id).await?;
+
     let case_id = case_dao.insert_functional_case(case).await?;
     /* bind relationship between case with custom_field through table: [functional_case_custom_field]*/
     case_dao

@@ -30,14 +30,6 @@ pub struct UserInfo {
     pub email: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate, ToSchema, Dummy)]
-pub struct LoginRequest {
-    #[garde(ascii, length(min = 3, max = 25))]
-    pub username: String,
-    #[garde(length(min = 8))]
-    pub password: String,
-}
-
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct UserInfoUpdateRequest {
     pub id: i32,
