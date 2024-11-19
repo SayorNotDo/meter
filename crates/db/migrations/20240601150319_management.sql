@@ -226,7 +226,9 @@ CREATE TABLE file_module
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by  UUID      NOT NULL,
     updated_at  TIMESTAMP,
-    updated_by  UUID
+    updated_by  UUID,
+    deleted_at  TIMESTAMP,
+    deleted_by  UUID
 );
 
 --create trigger: set updated_at field
@@ -247,6 +249,8 @@ COMMENT ON COLUMN file_module.created_at IS '创建时间';
 COMMENT ON COLUMN file_module.updated_at IS '更新时间';
 COMMENT ON COLUMN file_module.created_by IS '创建人';
 COMMENT ON COLUMN file_module.updated_by IS '更新人';
+COMMENT ON COLUMN file_module.deleted_at IS '删除操作者';
+COMMENT ON COLUMN file_module.deleted_by IS '删除时间';
 
 
 -- migrate:down

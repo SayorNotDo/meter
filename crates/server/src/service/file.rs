@@ -1,7 +1,12 @@
-use crate::dao::{self, entity::FileModule};
-use crate::dto::response::FileModuleResponse;
-use crate::errors::AppResult;
-use crate::state::AppState;
+use crate::{
+    dao::{self, entity::FileModule},
+    dto::{
+        request::file::CreateModuleRequest,
+        response::{CreateEntityResponse, FileModuleResponse},
+    },
+    errors::AppResult,
+    state::AppState,
+};
 use std::collections::HashMap;
 use tracing::info;
 use uuid::Uuid;
@@ -28,24 +33,25 @@ impl ModuleType {
 pub async fn create_file_module(
     state: &AppState,
     uid: Uuid,
-    project_id: &i32,
     module_type: &str,
-    parent_id: Option<i32>,
-    module_name: &str,
-) -> AppResult {
-    let mut client = state.pool.get().await?;
-    let file_dao = dao::file::FileDao::new(&mut client);
+    request: &CreateModuleRequest,
+) -> AppResult<CreateEntityResponse> {
+    let client = state.pool.get().await?;
+    let file_dao = dao::file::FileDao::new(&client);
+    if let Some(parent_id) = request.parent_id {
+        file_dao.get_module_by_id(parent_id).await?;
+    }
     let file_module = FileModule {
         id: 0,
-        name: module_name.into(),
+        name: request.name.clone(),
         position: 0,
         module_type: module_type.into(),
-        parent_id,
+        parent_id: request.parent_id,
     };
-    let _module_id = file_dao
-        .insert_file_module(&uid, project_id, &file_module)
+    let module_id = file_dao
+        .insert_file_module(&uid, request.project_id, &file_module)
         .await?;
-    Ok(())
+    Ok(CreateEntityResponse { id: module_id })
 }
 
 pub async fn file_module_tree(

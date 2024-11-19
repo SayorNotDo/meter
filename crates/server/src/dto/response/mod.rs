@@ -4,11 +4,13 @@ use utoipa::ToSchema;
 
 use crate::constant::BEARER;
 use crate::dao::entity::{
-    CaseDetail, CustomField, ElementDetail, PlanDetail, User, UserRole, UserRolePermission,
+    CaseDetail, ElementDetail, Field, PlanDetail, User, UserRole, UserRolePermission,
     UserRoleRelation,
 };
 use crate::dao::project::ProjectInfo;
 use crate::errors::AppResponseError;
+
+pub mod file;
 
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone)]
 pub struct MessageResponse {
@@ -155,7 +157,7 @@ pub struct TemplateResponse {
     pub created_by: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
-    pub custom_fields: Vec<CustomField>,
+    pub fields: Vec<Field>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -172,7 +174,7 @@ pub struct CaseDetailResponse {
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub attach_info: Option<String>,
-    pub custom_fields: Vec<CustomField>,
+    pub custom_fields: Vec<Field>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

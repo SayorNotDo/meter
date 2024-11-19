@@ -1,6 +1,8 @@
-use crate::dao::entity;
-use crate::dao::entity::FileModule;
-use crate::errors::AppResult;
+use crate::{
+    dao::entity::{self, FileModule},
+    errors::{AppError, AppResult, Resource, ResourceType},
+};
+
 use db::queries::file::*;
 use uuid::Uuid;
 
@@ -26,7 +28,7 @@ macro_rules! impl_to_file_module {
     };
 }
 
-impl_to_file_module!(GetFileModules);
+impl_to_file_module!(GetFileModules, GetFileModuleById);
 
 pub struct FileDao<'a, T>
 where
@@ -73,13 +75,13 @@ where
     pub async fn insert_file_module(
         &self,
         uid: &Uuid,
-        project_id: &i32,
+        project_id: i32,
         file_module: &FileModule,
     ) -> AppResult<i32> {
         let module_id = insert_file_module()
             .bind(
                 self.executor,
-                project_id,
+                &project_id,
                 &file_module.name,
                 &file_module.position,
                 &file_module.module_type,
@@ -89,5 +91,19 @@ where
             .one()
             .await?;
         Ok(module_id)
+    }
+
+    pub async fn get_module_by_id(&self, module_id: i32) -> AppResult<FileModule> {
+        let ret = get_file_module_by_id()
+            .bind(self.executor, &module_id)
+            .opt()
+            .await?;
+        match ret {
+            Some(module) => Ok(module.to_file_module()),
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::File,
+            })),
+        }
     }
 }

@@ -10,6 +10,7 @@ use server::{
     dao::entity::{Permission, UserRole, UserRolePermission},
     dto::{
         request::{
+            file::CreateModuleRequest,
             user::{DeleteUserRequest, LoginRequest},
             *,
         },
@@ -266,12 +267,36 @@ impl Api {
     }
 
     #[logfn(Info)]
+    pub async fn create_case_module(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &CreateModuleRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<CreateEntityResponse>)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+
+        let resp = HTTP
+            .post(format!("{}/management/case/module", self.addr))
+            .headers(headers)
+            .json(req)
+            .send()
+            .await?;
+
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
     pub async fn create_functional_case(
         &self,
         token: &str,
         project_id: i32,
         req: &CreateFunctionalCaseRequest,
-    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<CreateEntityResponse>)> {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.append(
             reqwest::header::AUTHORIZATION,
@@ -283,6 +308,33 @@ impl Api {
             .post(format!("{}/management/case/functional-case", self.addr))
             .headers(headers)
             .json(req)
+            .send()
+            .await?;
+
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn get_case_module_tree(
+        &self,
+        token: &str,
+        project_id: i32,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+
+        let resp = HTTP
+            .get(format!(
+                "{}/mangement/case/module/{}",
+                self.addr, project_id
+            ))
+            .headers(headers)
             .send()
             .await?;
 

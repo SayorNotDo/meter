@@ -1,4 +1,4 @@
-use crate::dao::entity::{CustomField, Step};
+use crate::dao::entity::{Field, Step};
 use chrono::{DateTime, Utc};
 use fake::faker::internet::en::{SafeEmail, Username};
 use fake::Dummy;
@@ -6,6 +6,7 @@ use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
+pub mod file;
 pub mod user;
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
@@ -110,14 +111,6 @@ pub struct ElementQueryParam {
     pub is_deleted: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
-#[serde(rename_all = "camelCase")]
-pub struct CreateModuleRequest {
-    pub name: String,
-    pub project_id: i32,
-    pub parent_id: Option<i32>,
-}
-
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateElementRequest {
@@ -134,7 +127,7 @@ pub struct CreateFunctionalCaseRequest {
     pub module_id: i32,
     pub template_id: i32,
     pub tags: Option<String>,
-    pub custom_fields: Vec<CustomField>,
+    pub custom_fields: Vec<Field>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -175,19 +168,4 @@ pub struct DiagnoseRequest {
 pub struct AddMemberRequest {
     pub uid: i32,
     pub role: String,
-}
-
-#[cfg(test)]
-mod tests {
-    // use super::*;
-
-    // #[test]
-    // pub fn test_invalid_email_register_request() {
-    //     let req = RegisterRequest {
-    //         username: "username".into(),
-    //         email: "email".into(),
-    //         // password: "password".into(),
-    //     };
-    //     assert!(req.validate(&()).is_err());
-    // }
 }

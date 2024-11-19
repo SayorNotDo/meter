@@ -1,14 +1,10 @@
-use crate::{
-    constant::DOCTOR_SCRIPT_PATH,
-    errors::{AppError, Resource, ResourceType},
-};
 use std::{collections::HashMap, path::Path};
 use tokio::try_join;
 use tracing::info;
 use uuid::Uuid;
 
 use crate::{
-    constant::PAGE_DECODE_KEY,
+    constant::{DOCTOR_SCRIPT_PATH, PAGE_DECODE_KEY},
     dto::{
         request::{
             CaseQueryParam, CreateFunctionalCaseRequest, CreateScriptRequest, DiagnoseRequest,
@@ -31,7 +27,7 @@ use crate::{
     dao::{
         case::CaseDao,
         element::ElementDao,
-        entity::{CustomField, FunctionalCase, Step},
+        entity::{Field, FunctionalCase, Step},
         file::FileDao,
     },
     dto::request::IssueRelationRequest,
@@ -55,7 +51,7 @@ pub async fn template(
         created_by: template.created_by,
         created_at: template.created_at,
         updated_at: template.updated_at,
-        custom_fields: template.custom_fields,
+        fields: template.fields,
     })
 }
 
@@ -63,7 +59,7 @@ pub async fn field(
     state: &AppState,
     project_id: &i32,
     param: &QueryTemplateParam,
-) -> AppResult<Vec<CustomField>> {
+) -> AppResult<Vec<Field>> {
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
     /* Fields with options */
@@ -75,7 +71,7 @@ pub async fn create_functional_case(
     state: &AppState,
     uid: Uuid,
     request: CreateFunctionalCaseRequest,
-) -> AppResult {
+) -> AppResult<i32> {
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let case_dao = CaseDao::new(&transaction);
@@ -96,10 +92,9 @@ pub async fn create_functional_case(
         .insert_case_field_relation(case_id, request.custom_fields)
         .await?;
     transaction.commit().await?;
-    Ok(())
+    Ok(case_id)
 }
 
-#[allow(dead_code)]
 pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) -> AppResult {
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
@@ -141,7 +136,7 @@ pub async fn create_issue_relation(
     state: &AppState,
     uid: Uuid,
     request: IssueRelationRequest,
-) -> AppResult<()> {
+) -> AppResult {
     info!("service layer create issue relation with request: {request:?}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
@@ -336,6 +331,6 @@ pub async fn env_diagnose(
 }
 
 #[allow(dead_code)]
-pub async fn exec_case(_state: &AppState) -> AppResult<()> {
+pub async fn exec_case(_state: &AppState) -> AppResult {
     Ok(())
 }

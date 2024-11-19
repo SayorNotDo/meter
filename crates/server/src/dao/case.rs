@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    dao::entity::{CustomField, FieldOption, Script},
+    dao::entity::{Field, FieldOption, Script},
     dto::request::Issue,
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
@@ -34,8 +34,8 @@ macro_rules! impl_to_template {
                 fn to_template(&self) -> entity::Template {
                     let updated_at = utils::time::to_utc_or_default(self.updated_at);
                     let created_at = utils::time::to_utc(self.created_at);
-                    /* construct customs fields array */
-                    let custom_fields: Vec<entity::CustomField> = match from_value(self.custom_fields.clone()) {
+                    /* construct fields array */
+                    let fields: Vec<entity::Field> = match from_value(self.fields.clone()) {
                         Ok(fields) => fields,
                         Err(_) => {
                             vec![]
@@ -49,7 +49,7 @@ macro_rules! impl_to_template {
                         created_by: self.created_by.clone(),
                         created_at,
                         updated_at,
-                        custom_fields,
+                        fields,
                     }
                 }
             }
@@ -114,7 +114,7 @@ where
         &self,
         project_id: &i32,
         internal: bool,
-    ) -> AppResult<Vec<entity::CustomField>> {
+    ) -> AppResult<Vec<entity::Field>> {
         let fields = get_fields()
             .bind(self.executor, project_id, &internal)
             .all()
@@ -122,7 +122,7 @@ where
             .into_iter()
             .map(|item| {
                 let options: Vec<FieldOption> = from_value(item.options).unwrap_or_else(|_| vec![]);
-                entity::CustomField {
+                entity::Field {
                     id: item.id,
                     name: item.name.clone(),
                     internal: item.internal,
@@ -150,8 +150,8 @@ where
             .map(|item| {
                 let created_at = utils::time::to_utc(item.created_at);
                 let updated_at = utils::time::to_utc_or_default(item.updated_at);
-                let custom_fields: Vec<entity::CustomField> =
-                    from_value(item.custom_fields.clone()).unwrap_or_else(|_| vec![]);
+                let custom_fields: Vec<entity::Field> =
+                    from_value(item.fields.clone()).unwrap_or_else(|_| vec![]);
                 CaseDetail {
                     id: item.id,
                     name: item.name,
@@ -219,7 +219,7 @@ where
                     created_by: u.created_by,
                     updated_at,
                     updated_by: u.updated_by,
-                    custom_fields: from_value::<Vec<entity::CustomField>>(u.custom_fields)?,
+                    custom_fields: from_value::<Vec<entity::Field>>(u.fields)?,
                 };
                 Ok(case)
             }
@@ -249,7 +249,7 @@ where
     pub async fn insert_case_field_relation(
         &self,
         case_id: i32,
-        fields: Vec<CustomField>,
+        fields: Vec<Field>,
     ) -> AppResult<()> {
         for item in fields.iter() {
             insert_case_field_relation()

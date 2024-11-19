@@ -124,11 +124,11 @@ pub struct Template {
     pub created_by: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
-    pub custom_fields: Vec<CustomField>,
+    pub fields: Vec<Field>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
-pub struct CustomField {
+pub struct Field {
     pub id: i32,
     pub name: String,
     pub required: bool,
@@ -211,7 +211,7 @@ pub struct FunctionalCase {
     pub status: String,
     pub created_at: DateTime<Utc>,
     pub created_by: Uuid,
-    pub custom_fields: Vec<CustomField>,
+    pub custom_fields: Vec<Field>,
 }
 
 impl FunctionalCase {
@@ -248,7 +248,7 @@ pub struct CaseDetail {
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
-    pub custom_fields: Vec<CustomField>,
+    pub custom_fields: Vec<Field>,
     pub attach_info: Option<String>,
 }
 

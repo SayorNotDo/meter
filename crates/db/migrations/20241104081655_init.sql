@@ -5,11 +5,13 @@ INSERT INTO users
 (username,
  uuid,
  hashed_password,
- email)
+ email,
+ created_by)
 VALUES ('__system__',
-        gen_random_uuid(),
+        '24578899-b163-48fe-8594-1fa60134ed2d',
         '$argon2id$v=19$m=19456,t=2,p=1$NskOoxLFUtTPzhT4UyNCSw$u1FSg95/l5fQ5EzyQWod7aknDyitqhAcUjePnLH/pBg',
-        'system@test.io');
+        'system@test.io',
+        '24578899-b163-48fe-8594-1fa60134ed2d');
 
 -- init admin user
 INSERT INTO users
@@ -20,7 +22,7 @@ INSERT INTO users
  email,
  created_by)
 VALUES ('admin',
-        '24578899-b163-48fe-8594-1fa60134ed2d',
+        gen_random_uuid(),
         '$argon2id$v=19$m=19456,t=2,p=1$NskOoxLFUtTPzhT4UyNCSw$u1FSg95/l5fQ5EzyQWod7aknDyitqhAcUjePnLH/pBg',
         1,
         'admin@test.io',
@@ -128,5 +130,16 @@ VALUES ((SELECT id FROM user_role WHERE name = 'SYSTEM'),
         (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'READ')),
        ((SELECT id FROM user_role WHERE name = 'ADMIN'),
         (SELECT id FROM permission WHERE module = 'system:user' AND scope = 'WRITE'));
+
+
+-- init internal template
+INSERT INTO template
+    (name, project_id, description, internal, created_by)
+VALUES ('功能测试用例模版',
+        (SELECT id FROM projects WHERE name = '默认项目'),
+        '功能测试用例模版，用于规范化测试用例',
+        true,
+        (SELECT uuid FROM users WHERE username = '__system__')
+);
 
 -- migrate:down

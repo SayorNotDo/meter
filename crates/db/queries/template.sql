@@ -11,26 +11,27 @@ SELECT
     COALESCE(
         (SELECT JSON_AGG(
                     JSON_BUILD_OBJECT(
-                        'id', tcf.id,
-                        'name', tcf.name,
-                        'field_type', tcf.field_type,
-                        'internal', tcf.internal,
-                        'required', tcf.required,
-                        'default_value', tcf.default_value,
+                        'id', tfr.id,
+                        'name', f.name,
+                        'field_type', f.field_type,
+                        'internal', f.internal,
+                        'required', tfr.required,
+                        'default_value', tfr.default_value,
                         'options', COALESCE(
                                     (SELECT JSON_AGG(
                                         JSON_BUILD_OBJECT(
-                                            'id', cfo.id,
-                                            'value', cfo.value,
-                                            'position', cfo.position
+                                            'id', fo.id,
+                                            'value', fo.value,
+                                            'position', fo.position
                                         )
-                                    ) FROM custom_field_option cfo
-                                    WHERE cfo.field_id = tcf.id), '[]'
+                                    ) FROM field_option fo
+                                    WHERE fo.field_id = tfr.id), '[]'
                     )
                     )
-        ) FROM template_custom_field tcf
-        WHERE tcf.template_id = t.id), '[]'
-    ) AS custom_fields
+        ) FROM template_field_relation tfr
+        LEFT JOIN field f ON tfr.field_id = f.id
+        WHERE tfr.template_id = t.id), '[]'
+    ) AS fields
 FROM template t
 WHERE t.id = :template_id;
 
@@ -47,57 +48,58 @@ SELECT t.id,
        COALESCE(
                (SELECT JSON_AGG(
                                JSON_BUILD_OBJECT(
-                                       'id', tcf.id,
-                                       'name', tcf.name,
-                                       'field_type' , tcf.field_type,
-                                       'internal', tcf.internal,
-                                       'required', tcf.required,
-                                       'default_value', tcf.default_value,
+                                       'id', tfr.id,
+                                       'name', f.name,
+                                       'field_type' , f.field_type,
+                                       'internal', f.internal,
+                                       'required', tfr.required,
+                                       'default_value', tfr.default_value,
                                        'options', COALESCE(
                                                     (SELECT JSON_AGG(
                                                     JSON_BUILD_OBJECT(
-                                                            'id', cfo.id,
-                                                            'value', cfo.value,
-                                                            'position', cfo.position
+                                                            'id', fo.id,
+                                                            'value', fo.value,
+                                                            'position', fo.position
                                                             )
                                                         )
-                                                FROM custom_field_option cfo
-                                                WHERE cfo.field_id = tcf.id), '[]'
+                                                FROM field_option fo
+                                                WHERE fo.field_id = tfr.id), '[]'
                                     )
                                )
                        )
-                FROM template_custom_field tcf
-                WHERE tcf.template_id = t.id), '[]'
-       )                                                        as custom_fields
+                FROM template_field_relation tfr
+                LEFT JOIN field f ON f.id = tfr.field_id
+                WHERE tfr.template_id = t.id), '[]'
+       )                                                        as fields
 FROM template t
 WHERE t.project_id = :project_id
   AND t.internal = :internal;
 
 
 --! get_fields
-SELECT cf.id,
-       cf.name,
-       cf.field_type,
-       cf.internal,
+SELECT f.id,
+       f.name,
+       f.field_type,
+       f.internal,
        COALESCE(
                (SELECT JSON_AGG(
                                JSON_BUILD_OBJECT(
-                                       'id', cfo.id,
-                                       'value', cfo.value,
-                                       'position', cfo.position
+                                       'id', fo.id,
+                                       'value', fo.value,
+                                       'position', fo.position
                                )
                        )
-                FROM custom_field_option cfo
-                WHERE cfo.field_id = cf.id), '[]'
+                FROM field_option fo
+                WHERE fo.field_id = f.id), '[]'
        ) AS options
-FROM custom_field cf
-WHERE cf.project_id = :project_id
-AND cf.internal = :internal;
+FROM field f
+WHERE f.project_id = :project_id
+AND f.internal = :internal;
 
 
 --! get_field_option_by_id
 SELECT id,
        value,
        position
-FROM custom_field_option
+FROM field_option
 WHERE field_id = :field_id;

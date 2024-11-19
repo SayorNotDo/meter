@@ -1,11 +1,17 @@
-use crate::{context::seeder::SeedDbTestContext, helper::user::Role};
+use crate::{
+    context::seeder::SeedDbTestContext,
+    helper::{result::AppResponseResult, user::Role},
+};
 use fake::{Fake, Faker};
-use server::dto::request::{user::LoginRequest, CreateFunctionalCaseRequest};
+use server::dto::{
+    request::{user::LoginRequest, CreateFunctionalCaseRequest},
+    response::CreateEntityResponse,
+};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]
 #[tokio::test]
-pub async fn test_success_create(ctx: &mut SeedDbTestContext) {
+pub async fn test_success_create_functional_case(ctx: &mut SeedDbTestContext) {
     let admin = ctx.users.get(&Role::Admin).unwrap();
 
     let req: LoginRequest = LoginRequest {
@@ -23,7 +29,7 @@ pub async fn test_success_create(ctx: &mut SeedDbTestContext) {
         custom_fields: vec![],
     };
 
-    let (status, _resp) = ctx
+    let (status, resp) = ctx
         .app
         .api
         .create_functional_case(&token.access_token, ctx.project.id, &req)
@@ -31,4 +37,8 @@ pub async fn test_success_create(ctx: &mut SeedDbTestContext) {
         .unwrap();
 
     assert!(status.is_success(), "status: {status}");
+    assert!(matches!(
+        resp,
+        AppResponseResult::Ok(CreateEntityResponse { .. })
+    ))
 }

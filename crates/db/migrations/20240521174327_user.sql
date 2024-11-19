@@ -14,7 +14,7 @@ CREATE TABLE users
     enable          BOOLEAN            DEFAULT TRUE,
     last_project_id INT,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
-    created_by      UUID,
+    created_by      UUID    NOT NULL,
     updated_at      TIMESTAMP,
     deleted_at      TIMESTAMP,
     deleted_by      UUID

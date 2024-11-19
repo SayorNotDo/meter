@@ -38,3 +38,13 @@ RETURNING id;
 --! delete_file_module
 DELETE FROM file_module
 WHERE id = :module_id;
+
+--! get_file_module_by_id : (parent_id?)
+SELECT
+    id,
+    name,
+    position,
+    module_type,
+    parent_id
+FROM file_module
+WHERE id = :id AND deleted_at IS NULL AND deleted_by IS NULL;

@@ -54,28 +54,29 @@ SELECT fc.id,
        COALESCE(
                (SELECT JSON_AGG(
                                JSON_BUILD_OBJECT(
-                                       'id', tcf.id,
-                                       'name', tcf.name,
-                                       'internal', tcf.internal,
-                                       'field_type', tcf.field_type,
-                                       'required', tcf.required,
-                                       'default_value', tcf.default_value,
+                                       'id', tfr.id,
+                                       'name', f.name,
+                                       'internal', f.internal,
+                                       'field_type', f.field_type,
+                                       'required', tfr.required,
+                                       'default_value', tfr.default_value,
                                        'options', COALESCE(
                                                (SELECT JSON_AGG(
                                                                JSON_BUILD_OBJECT(
-                                                                       'id', cfo.id,
-                                                                       'value', cfo.value,
-                                                                       'position', cfo.position
+                                                                       'id', fo.id,
+                                                                       'value', fo.value,
+                                                                       'position', fo.position
                                                                )
                                                        )
-                                                FROM custom_field_option cfo
-                                                WHERE cfo.field_id = tcf.id), '[]'
+                                                FROM field_option fo
+                                                WHERE fo.field_id = f.id), '[]'
                                                   )
                                )
                        )
-                FROM template_custom_field tcf
-                WHERE tcf.template_id = fc.template_id), '[]'
-       ) AS custom_fields
+                FROM template_field_relation tfr
+                LEFT JOIN field f ON tfr.field_id = f.id
+                WHERE tfr.template_id = fc.template_id), '[]'
+       ) AS fields
 FROM functional_cases fc
 WHERE fc.module_id = ANY(SELECT fm.id FROM file_module fm WHERE fm.id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
   AND fc.deleted = FALSE
@@ -114,28 +115,29 @@ SELECT
     COALESCE(
             (SELECT JSON_AGG(
                             JSON_BUILD_OBJECT(
-                                    'id', tcf.id,
-                                    'name', tcf.name,
-                                    'internal', tcf.internal,
-                                    'field_type', tcf.field_type,
-                                    'required', tcf.required,
-                                    'default_value', tcf.default_value,
+                                    'id', tfr.id,
+                                    'name', f.name,
+                                    'internal', f.internal,
+                                    'field_type', f.field_type,
+                                    'required', tfr.required,
+                                    'default_value', tfr.default_value,
                                     'options', COALESCE(
                                             (SELECT JSON_AGG(
                                                             JSON_BUILD_OBJECT(
-                                                                    'id', cfo.id,
-                                                                    'value', cfo.value,
-                                                                    'position', cfo.position
+                                                                    'id', fo.id,
+                                                                    'value', fo.value,
+                                                                    'position', fo.position
                                                             )
                                                     )
-                                             FROM custom_field_option cfo
-                                             WHERE cfo.field_id = tcf.id), '[]'
+                                             FROM field_option fo
+                                             WHERE fo.field_id = tfr.id), '[]'
                                                )
                             )
                     )
-             FROM template_custom_field tcf
-             WHERE tcf.template_id = fc.template_id), '[]'
-    ) AS custom_fields,
+             FROM template_field_relation tfr
+             LEFT JOIN field f ON tfr.field_id = f.id
+             WHERE tfr.template_id = fc.template_id), '[]'
+    ) AS fields,
     fc.status,
     fc.created_at,
     u.username AS created_by,

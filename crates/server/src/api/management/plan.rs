@@ -1,17 +1,17 @@
-use crate::{
-    dto::{
-        request::{CreateModuleRequest, CreatePlanRequest, ListQueryParam, PlanQueryParam},
-        response::{FileModuleResponse, ListPlanResponse},
-    },
-    service::{file, plan},
-};
 use std::collections::HashMap;
 
-use axum::extract::{Path, Query};
-use axum::{Extension, Json};
+use axum::{
+    extract::{Path, Query},
+    Extension, Json,
+};
 
 use crate::{
+    dto::{
+        request::{file::CreateModuleRequest, CreatePlanRequest, ListQueryParam, PlanQueryParam},
+        response::{CreateEntityResponse, FileModuleResponse, ListPlanResponse},
+    },
     errors::{AppResponseError, AppResult},
+    service::{file, plan},
     state::AppState,
     utils::claim::UserClaims,
 };
@@ -109,19 +109,10 @@ pub async fn create_module(
     Extension(state): Extension<AppState>,
     user: UserClaims,
     Json(request): Json<CreateModuleRequest>,
-) -> AppResult {
+) -> AppResult<Json<CreateEntityResponse>> {
     info!("controller layer create module with body: {request:?}");
-    match file::create_file_module(
-        &state,
-        user.uid,
-        &request.project_id,
-        "PLAN".into(),
-        request.parent_id,
-        &request.name,
-    )
-    .await
-    {
-        Ok(resp) => Ok(resp),
+    match file::create_file_module(&state, user.uid, "PLAN".into(), &request).await {
+        Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }
 }
