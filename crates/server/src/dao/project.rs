@@ -100,13 +100,19 @@ macro_rules! impl_to_project {
 impl_to_project!(FindProjectById, FindProjectsByUid, FindProjectByName);
 
 #[derive(Debug)]
-pub struct ProjectDao<'a> {
-    client: &'a db::Client,
+pub struct ProjectDao<'a, T>
+where
+    T: db::GenericClient,
+{
+    executor: &'a T,
 }
 
-impl<'a> ProjectDao<'a> {
-    pub fn new(client: &'a db::Client) -> Self {
-        ProjectDao { client }
+impl<'a, T> ProjectDao<'a, T>
+where
+    T: db::GenericClient,
+{
+    pub fn new(executor: &'a T) -> Self {
+        ProjectDao { executor }
     }
 
     pub async fn check_permission_by_uid(&self, _project_id: i32, _uid: Uuid) -> AppResult<()> {
@@ -115,7 +121,7 @@ impl<'a> ProjectDao<'a> {
 
     pub async fn find_projects_by_uid(&self, uid: Uuid) -> AppResult<Vec<ProjectInfo>> {
         let ret = find_projects_by_uid()
-            .bind(self.client, &uid)
+            .bind(self.executor, &uid)
             .all()
             .await?
             .into_iter()
@@ -136,7 +142,7 @@ impl<'a> ProjectDao<'a> {
         };
         let project_id = insert_project()
             .bind(
-                self.client,
+                self.executor,
                 &object.name,
                 &object.created_by,
                 &description,
@@ -148,7 +154,7 @@ impl<'a> ProjectDao<'a> {
     }
 
     pub async fn find_by_id(&self, id: i32) -> AppResult<ProjectInfo> {
-        let ret = find_project_by_id().bind(self.client, &id).opt().await?;
+        let ret = find_project_by_id().bind(self.executor, &id).opt().await?;
         match ret {
             Some(project) => Ok(project.to_project()),
             None => Err(AppError::NotFoundError(Resource {
@@ -159,7 +165,10 @@ impl<'a> ProjectDao<'a> {
     }
 
     pub async fn find_by_name(&self, name: String) -> AppResult<ProjectInfo> {
-        let ret = find_project_by_name().bind(self.client, &name).opt().await?;
+        let ret = find_project_by_name()
+            .bind(self.executor, &name)
+            .opt()
+            .await?;
         match ret {
             Some(project) => Ok(project.to_project()),
             None => Err(AppError::NotFoundError(Resource {
@@ -171,7 +180,7 @@ impl<'a> ProjectDao<'a> {
 
     pub async fn get_project_members(&self, id: &i32) -> AppResult<Vec<ProjectMember>> {
         let members = get_project_members()
-            .bind(self.client, id)
+            .bind(self.executor, id)
             .all()
             .await?
             .into_iter()

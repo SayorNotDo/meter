@@ -60,6 +60,7 @@ pub async fn get(
     responses(
         (status = 200, description = "Success create case module", body = [MessageResponse]),
         (status = 400, description = "Invalid parameters", body = [AppResponseError]),
+        (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError])
     ),
     security(("jwt" = []))

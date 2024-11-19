@@ -4,7 +4,7 @@ use crate::{
         request::file::CreateModuleRequest,
         response::{CreateEntityResponse, FileModuleResponse},
     },
-    errors::AppResult,
+    errors::{AppError, AppResult},
     state::AppState,
 };
 use std::collections::HashMap;
@@ -36,11 +36,20 @@ pub async fn create_file_module(
     module_type: &str,
     request: &CreateModuleRequest,
 ) -> AppResult<CreateEntityResponse> {
-    let client = state.pool.get().await?;
-    let file_dao = dao::file::FileDao::new(&client);
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let file_dao = dao::file::FileDao::new(&transaction);
+    let project_dao = dao::project::ProjectDao::new(&transaction);
     if let Some(parent_id) = request.parent_id {
-        file_dao.get_module_by_id(parent_id).await?;
+        file_dao
+            .get_module_by_id(parent_id)
+            .await
+            .map_err(|e| AppError::BadRequestError(e.to_string()))?;
     }
+    project_dao
+        .find_by_id(request.project_id)
+        .await
+        .map_err(|e| AppError::BadRequestError(e.to_string()))?;
     let file_module = FileModule {
         id: 0,
         name: request.name.clone(),
@@ -51,6 +60,7 @@ pub async fn create_file_module(
     let module_id = file_dao
         .insert_file_module(&uid, request.project_id, &file_module)
         .await?;
+    transaction.commit().await?;
     Ok(CreateEntityResponse { id: module_id })
 }
 
