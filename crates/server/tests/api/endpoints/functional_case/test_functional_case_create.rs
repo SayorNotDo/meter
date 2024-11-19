@@ -4,7 +4,7 @@ use crate::{
 };
 use fake::{Fake, Faker};
 use server::dto::{
-    request::{user::LoginRequest, CreateFunctionalCaseRequest},
+    request::{case::CreateFunctionalCaseRequest, user::LoginRequest},
     response::CreateEntityResponse,
 };
 use test_context::test_context;
@@ -24,9 +24,9 @@ pub async fn test_success_create_functional_case(ctx: &mut SeedDbTestContext) {
     let req: CreateFunctionalCaseRequest = CreateFunctionalCaseRequest {
         name: Faker.fake::<String>(),
         module_id: 0,
-        template_id: 0,
+        template_id: 1,
         tags: Some(Faker.fake::<String>()),
-        custom_fields: vec![],
+        fields: vec![],
     };
 
     let (status, resp) = ctx
@@ -42,3 +42,7 @@ pub async fn test_success_create_functional_case(ctx: &mut SeedDbTestContext) {
         AppResponseResult::Ok(CreateEntityResponse { .. })
     ))
 }
+
+#[test_context(SeedDbTestContext)]
+#[tokio::test]
+pub async fn test_invalid_params_create_functional_case(_ctx: &mut SeedDbTestContext) {}

@@ -11,9 +11,10 @@ use crate::{
     dao::entity::Field,
     dto::{
         request::{
+            case::CreateFunctionalCaseRequest,
             file::{CreateModuleRequest, DeleteModuleRequest},
-            CaseQueryParam, CreateFunctionalCaseRequest, CreateScriptRequest, DiagnoseRequest,
-            IssueRelationRequest, ListQueryParam, QueryTemplateParam,
+            CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
+            ListQueryParam, QueryTemplateParam,
         },
         response::{
             CaseDetailResponse, CreateEntityResponse, CreateScriptResponse, DiagnoseResponse,
@@ -137,6 +138,7 @@ pub async fn create_functional_case(
     Json(request): Json<CreateFunctionalCaseRequest>,
 ) -> AppResult<Json<CreateEntityResponse>> {
     info!("create functional case with request: {request:?}");
+    request.validate()?;
     match case::create_functional_case(&state, user.uid, request).await {
         Ok(resp) => Ok(Json(CreateEntityResponse { id: resp })),
         Err(e) => Err(e),

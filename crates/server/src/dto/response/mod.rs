@@ -4,8 +4,8 @@ use utoipa::ToSchema;
 
 use crate::constant::BEARER;
 use crate::dao::entity::{
-    CaseDetail, ElementDetail, Field, PlanDetail, User, UserRole, UserRolePermission,
-    UserRoleRelation,
+    CaseDetail, ElementDetail, Field, PlanDetail, TemplateField, User, UserRole,
+    UserRolePermission, UserRoleRelation,
 };
 use crate::dao::project::ProjectInfo;
 use crate::errors::AppResponseError;
@@ -157,7 +157,7 @@ pub struct TemplateResponse {
     pub created_by: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
-    pub fields: Vec<Field>,
+    pub fields: Vec<TemplateField>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

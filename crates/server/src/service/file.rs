@@ -72,7 +72,7 @@ pub async fn file_module_tree(
             ModuleType::Case => {
                 info!("get case count by module_id: {:?}", &item.id);
                 let case_dao = dao::case::CaseDao::new(&mut client);
-                case_dao.count_by_module_id(&item.id, false).await?
+                case_dao.count_by_module_id(&item.id).await?
             }
             ModuleType::Plan => {
                 info!("get plan count by module_id: {:?}", &item.id);

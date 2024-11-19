@@ -103,3 +103,21 @@ SELECT id,
        position
 FROM field_option
 WHERE field_id = :field_id;
+
+--! get_field_by_id
+SELECT
+    f.id,
+    f.name,
+    f.field_type,
+    f.internal,
+    COALESCE(
+        (SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'id', fo.id,
+                'value', fo.value,
+                'position', fo.position
+            )
+        ) FROM field_option fo WHERE fo.field_id = f.id), '[]'
+    ) AS options
+FROM field f
+WHERE f.id = :id;

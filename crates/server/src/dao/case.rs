@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    dao::entity::{Field, FieldOption, Script},
-    dto::request::Issue,
+    dao::entity::{FieldOption, Script},
+    dto::request::{case::SelectedField, Issue},
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
 };
@@ -35,7 +35,7 @@ macro_rules! impl_to_template {
                     let updated_at = utils::time::to_utc_or_default(self.updated_at);
                     let created_at = utils::time::to_utc(self.created_at);
                     /* construct fields array */
-                    let fields: Vec<entity::Field> = match from_value(self.fields.clone()) {
+                    let fields: Vec<entity::TemplateField> = match from_value(self.fields.clone()) {
                         Ok(fields) => fields,
                         Err(_) => {
                             vec![]
@@ -110,6 +110,30 @@ where
         }
     }
 
+    pub async fn get_field_by_id(&self, field_id: i32) -> AppResult<entity::Field> {
+        let ret = get_field_by_id()
+            .bind(self.executor, &field_id)
+            .opt()
+            .await?;
+        match ret {
+            Some(field) => {
+                let options: Vec<FieldOption> =
+                    from_value(field.options).unwrap_or_else(|_| vec![]);
+                Ok(entity::Field {
+                    id: field.id,
+                    name: field.name,
+                    field_type: field.field_type,
+                    internal: field.internal,
+                    options,
+                })
+            }
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::File,
+            })),
+        }
+    }
+
     pub async fn get_fields(
         &self,
         project_id: &i32,
@@ -127,8 +151,6 @@ where
                     name: item.name.clone(),
                     internal: item.internal,
                     field_type: item.field_type,
-                    default_value: None,
-                    required: false,
                     options,
                 }
             })
@@ -171,14 +193,10 @@ where
         Ok(case_list)
     }
 
-    pub async fn count(
-        &self,
-        project_id: &i32,
-        is_deleted: &bool,
-    ) -> AppResult<HashMap<String, i64>> {
+    pub async fn count(&self, project_id: &i32) -> AppResult<HashMap<String, i64>> {
         let mut module_case_count: HashMap<String, i64> = HashMap::new();
         let _ = count()
-            .bind(self.executor, is_deleted, project_id)
+            .bind(self.executor, project_id)
             .all()
             .await?
             .into_iter()
@@ -190,9 +208,24 @@ where
         Ok(module_case_count)
     }
 
-    pub async fn count_by_module_id(&self, module_id: &i32, is_deleted: bool) -> AppResult<i32> {
+    pub async fn count_deleted_case(&self, project_id: &i32) -> AppResult<HashMap<String, i64>> {
+        let mut module_case_count: HashMap<String, i64> = HashMap::new();
+        let _ = count_deleted_case()
+            .bind(self.executor, project_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| {
+                info!("{item:?}");
+                module_case_count.insert(item.module_name.clone(), item.case_count)
+            })
+            .collect::<Vec<_>>();
+        Ok(module_case_count)
+    }
+
+    pub async fn count_by_module_id(&self, module_id: &i32) -> AppResult<i32> {
         let count = count_by_module_id()
-            .bind(self.executor, module_id, &is_deleted)
+            .bind(self.executor, module_id)
             .opt()
             .await?;
         match count {
@@ -249,14 +282,20 @@ where
     pub async fn insert_case_field_relation(
         &self,
         case_id: i32,
-        fields: Vec<Field>,
-    ) -> AppResult<()> {
-        for item in fields.iter() {
-            insert_case_field_relation()
-                .bind(self.executor, &case_id, &item.id, &item.default_value)
-                .await?;
-        }
-        Ok(())
+        field: SelectedField,
+    ) -> AppResult<i32> {
+        let id = insert_case_field_relation()
+            .bind(
+                self.executor,
+                &case_id,
+                &field.field_id,
+                &field.value,
+                &field.option_id,
+            )
+            .one()
+            .await?;
+
+        Ok(id)
     }
 
     pub async fn insert_case_issue_relation(
@@ -264,7 +303,7 @@ where
         case_id: &i32,
         issue: &Issue,
         created_by: &Uuid,
-    ) -> AppResult<()> {
+    ) -> AppResult {
         let _ = insert_case_issue_relation()
             .bind(
                 self.executor,

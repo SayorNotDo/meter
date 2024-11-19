@@ -174,10 +174,10 @@ where
     let password: String = utils::password::generate()?;
     let email = FreeEmail().fake::<String>();
     let hashed_password = utils::password::hash(password.clone()).await?;
-    let user = User::new(&username, &hashed_password, &email, true);
+    let created_by = user_dao.find_by_username("__system__".to_string()).await?;
+    let user = User::new(&username, &hashed_password, &email, created_by.uuid, true);
     let id = user_dao.insert(&user).await?;
     let permission = perm_dao.get_permission_by_role_id(role_id).await?;
-    let created_by = user_dao.find_by_username("__system__".to_string()).await?;
     user_dao
         .insert_user_role_relation(user.uuid, role_id, 1, created_by.uuid)
         .await?;

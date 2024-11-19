@@ -35,6 +35,7 @@ macro_rules! impl_to_user {
                     email: self.email.clone(),
                     enable: self.enable,
                     created_at: DateTime::from_timestamp_nanos(timestamp_created_at as i64),
+                    created_by: self.created_by,
                     updated_at: Option::from(DateTime::from_timestamp_nanos(timestamp_updated_at as i64)),
                     last_project_id: self.last_project_id
                 }
@@ -390,6 +391,7 @@ where
                 &object.hashed_password,
                 &object.email,
                 &object.uuid,
+                &object.created_by,
             )
             .one()
             .await?;

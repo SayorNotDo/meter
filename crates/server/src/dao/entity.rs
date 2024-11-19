@@ -19,12 +19,19 @@ pub struct User {
     pub email: String,
     pub enable: bool,
     pub created_at: DateTime<Utc>,
+    pub created_by: Uuid,
     pub updated_at: Option<DateTime<Utc>>,
     pub last_project_id: Option<i32>,
 }
 
 impl User {
-    pub fn new(username: &str, password: &str, email: &str, gen_uuid: bool) -> Self {
+    pub fn new(
+        username: &str,
+        password: &str,
+        email: &str,
+        created_by: Uuid,
+        gen_uuid: bool,
+    ) -> Self {
         let username = username.to_lowercase();
 
         // generate UUID
@@ -42,6 +49,7 @@ impl User {
             email: email.into(),
             enable: false,
             created_at: Utc::now(),
+            created_by,
             updated_at: None,
             last_project_id: None,
         }
@@ -124,11 +132,20 @@ pub struct Template {
     pub created_by: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
-    pub fields: Vec<Field>,
+    pub fields: Vec<TemplateField>,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct Field {
+    pub id: i32,
+    pub name: String,
+    pub field_type: String,
+    pub internal: bool,
+    pub options: Vec<FieldOption>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
+pub struct TemplateField {
     pub id: i32,
     pub name: String,
     pub required: bool,

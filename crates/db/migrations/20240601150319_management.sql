@@ -33,7 +33,7 @@ COMMENT ON COLUMN projects.description IS '项目描述';
 COMMENT ON COLUMN projects.module_setting IS '模块设置';
 
 -- create trigger: set updated_at field
-CREATE TRIGGER set_timestamp_project
+CREATE TRIGGER set_timestamp_projects
     BEFORE UPDATE
     ON projects
     FOR EACH ROW
@@ -63,7 +63,7 @@ CREATE TABLE plans
 );
 
 -- create trigger: set update_at field
-CREATE TRIGGER set_timestamp_plan
+CREATE TRIGGER set_timestamp_plans
     BEFORE UPDATE
     ON plans
     FOR EACH ROW
@@ -116,7 +116,6 @@ CREATE TABLE functional_cases
     updated_at  TIMESTAMP,
     created_by  UUID      NOT NULL,
     updated_by  UUID,
-    deleted     BOOLEAN   NOT NULL DEFAULT FALSE,
     deleted_at  TIMESTAMP,
     deleted_by  UUID
 );
@@ -139,18 +138,18 @@ COMMENT ON COLUMN functional_cases.created_at IS '创建时间';
 COMMENT ON COLUMN functional_cases.updated_at IS '更新时间';
 COMMENT ON COLUMN functional_cases.created_by IS '创建人';
 COMMENT ON COLUMN functional_cases.updated_by IS '更新人';
-COMMENT ON COLUMN functional_cases.deleted IS '是否删除';
 COMMENT ON COLUMN functional_cases.deleted_at IS '删除时间';
 COMMENT ON COLUMN functional_cases.deleted_by IS '删除人';
 
-DROP TABLE IF EXISTS functional_case_custom_field;
+DROP TABLE IF EXISTS functional_case_field_relation;
 
-CREATE TABLE functional_case_custom_field
+CREATE TABLE functional_case_field_relation
 (
-    id       SERIAL PRIMARY KEY,
-    case_id  INT     NOT NULL,
-    field_id INT     NOT NULL,
-    value    VARCHAR NOT NULL
+    id          SERIAL PRIMARY KEY,
+    case_id     INT     NOT NULL,
+    field_id    INT     NOT NULL,
+    value       VARCHAR,
+    option_id   INT
 );
 
 DROP TABLE IF EXISTS case_issue_relation;

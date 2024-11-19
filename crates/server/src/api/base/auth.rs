@@ -26,12 +26,12 @@ use tracing::{info, warn};
 )]
 pub async fn register(
     Extension(state): Extension<AppState>,
-    _user: UserClaims,
+    user: UserClaims,
     Json(request): Json<RegisterRequest>,
 ) -> AppResult<Json<MessageResponse>> {
     info!("Register new user with request: {request:?}");
     request.user_info_list.validate()?;
-    match service::user::batch_register(&state, request).await {
+    match service::user::batch_register(&state, user.uid, request).await {
         Ok(_) => Ok(Json(MessageResponse::new("Success register user"))),
         Err(e) => {
             warn!("Failed to register user: {e:?}");

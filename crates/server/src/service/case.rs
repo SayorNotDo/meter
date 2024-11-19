@@ -7,8 +7,8 @@ use crate::{
     constant::{DOCTOR_SCRIPT_PATH, PAGE_DECODE_KEY},
     dto::{
         request::{
-            CaseQueryParam, CreateFunctionalCaseRequest, CreateScriptRequest, DiagnoseRequest,
-            ListQueryParam, QueryTemplateParam,
+            case::CreateFunctionalCaseRequest, CaseQueryParam, CreateScriptRequest,
+            DiagnoseRequest, ListQueryParam, QueryTemplateParam,
         },
         response::{
             CaseDetailResponse, CreateScriptResponse, DiagnoseResponse, ListCaseResponse,
@@ -83,14 +83,16 @@ pub async fn create_functional_case(
         request.tags,
         uid,
     );
-    /* chech whether template is exist */
-    case_dao.get_template_by_id(case.template_id).await?;
+    /* get template is exist, otherwise return not found err */
+    let _template = case_dao.get_template_by_id(case.template_id).await?;
 
     let case_id = case_dao.insert_functional_case(case).await?;
-    /* bind relationship between case with custom_field through table: [functional_case_custom_field]*/
-    case_dao
-        .insert_case_field_relation(case_id, request.custom_fields)
-        .await?;
+    /* bind relationship between case with custom_field through table: [functional_case_field_relation] */
+    for item in request.fields.into_iter() {
+        /* get fielld by field_id */
+        let _field = case_dao.get_field_by_id(item.field_id).await?;
+        case_dao.insert_case_field_relation(case_id, item).await?;
+    }
     transaction.commit().await?;
     Ok(case_id)
 }
@@ -202,12 +204,10 @@ pub async fn count(
     info!("service layer for case count with project_id: {project_id:?}");
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
-    let is_deleted = if let Some(is_deleted) = param.is_deleted {
-        is_deleted
-    } else {
-        false
+    let hmap = match param.is_deleted {
+        Some(true) => case_dao.count_deleted_case(project_id).await?,
+        _ => case_dao.count(project_id).await?,
     };
-    let hmap = case_dao.count(project_id, &is_deleted).await?;
     Ok(hmap)
 }
 

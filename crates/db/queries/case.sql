@@ -14,16 +14,18 @@ INSERT INTO functional_cases
   :created_by
 ) RETURNING id;
 
---! insert_case_field_relation (value?) :
-INSERT INTO functional_case_custom_field (
+--! insert_case_field_relation (value?, option_id?) :
+INSERT INTO functional_case_field_relation (
     case_id,
     field_id,
-    value
+    value,
+    option_id
 ) VALUES (
     :case_id,
     :field_id,
-    :value
-);
+    :value,
+    :option_id
+) RETURNING id;
 
 --! insert_case_issue_relation
 INSERT INTO case_issue_relation (
@@ -79,7 +81,7 @@ SELECT fc.id,
        ) AS fields
 FROM functional_cases fc
 WHERE fc.module_id = ANY(SELECT fm.id FROM file_module fm WHERE fm.id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
-  AND fc.deleted = FALSE
+  AND fc.deleted_at IS NULL AND fc.deleted_by IS NULL
 LIMIT :page_size
 OFFSET :offset;
 
@@ -90,9 +92,20 @@ SELECT
 FROM file_module fm
 LEFT JOIN functional_cases fc
     ON fc.module_id = fm.id
-    AND fc.deleted = :is_deleted
 WHERE
     fm.project_id = :project_id
+GROUP BY fm.name;
+
+
+--! count_deleted_case
+SELECT
+    fm.name AS module_name,
+    COUNT(fc.id) AS case_count
+FROM file_module fm
+LEFT JOIN functional_cases fc
+    ON fc.module_id = fm.id
+WHERE
+    fm.project_id = :project_id AND fc.deleted_by IS NOT NULL
 GROUP BY fm.name;
 
 --! count_by_module_id
@@ -100,8 +113,7 @@ SELECT
     COUNT(fc.id) AS count
 FROM functional_cases fc
 WHERE
-    fc.module_id = :module_id
-    AND fc.deleted = :is_deleted;
+    fc.module_id = :module_id;
 
 
 --! detail : (attach_info?, tags?, updated_at?, updated_by?)
@@ -196,5 +208,5 @@ WHERE id = :id;
 
 --! delete_by_module_id
 UPDATE functional_cases
-SET deleted = true, deleted_at = NOW(), deleted_by = :deleted_by
+SET deleted_at = NOW(), deleted_by = :deleted_by
 WHERE module_id = :module_id;

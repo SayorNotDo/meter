@@ -10,6 +10,7 @@ use server::{
     dao::entity::{Permission, UserRole, UserRolePermission},
     dto::{
         request::{
+            case::CreateFunctionalCaseRequest,
             file::CreateModuleRequest,
             user::{DeleteUserRequest, LoginRequest},
             *,

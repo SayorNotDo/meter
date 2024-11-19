@@ -23,23 +23,28 @@ use crate::{
     utils::{self, smtp},
 };
 /* 用户注册 */
-pub async fn batch_register(state: &AppState, request: RegisterRequest) -> AppResult {
+pub async fn batch_register(state: &AppState, uid: Uuid, request: RegisterRequest) -> AppResult {
     info!("Register a new user request: {request:?}.");
     /* TODO: 新增逻辑批量创建用户 */
     for item in request.user_info_list {
-        register(state, item.username, item.email).await?;
+        register(state, item.username, item.email, uid).await?;
     }
     Ok(())
 }
 
 /* 单个用户注册 */
-pub async fn register(state: &AppState, username: String, email: String) -> AppResult {
+pub async fn register(
+    state: &AppState,
+    username: String,
+    email: String,
+    created_by: Uuid,
+) -> AppResult {
     info!("Register new user with username: {username}, email: {email}");
     check_unique_username_or_email(state, &username, &email).await?;
     /* 生成随机密码 */
     let password = utils::password::generate()?;
     let hashed_password = utils::password::hash(password.clone()).await?;
-    let new_user = dao::entity::User::new(&username, &hashed_password, &email, true);
+    let new_user = dao::entity::User::new(&username, &hashed_password, &email, created_by, true);
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let user_dao = UserDao::new(&transaction);
