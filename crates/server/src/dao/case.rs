@@ -67,20 +67,9 @@ where
         CaseDao { executor }
     }
 
-    pub async fn delete_by_module_id(&self, deleted_by: &Uuid, module_id: &i32) -> AppResult {
-        let _ = delete_by_module_id()
-            .bind(self.executor, deleted_by, module_id)
-            .await?;
-        Ok(())
-    }
-
-    pub async fn get_template(
-        &self,
-        project_id: &i32,
-        internal: bool,
-    ) -> AppResult<entity::Template> {
+    pub async fn get_template_project_id(&self, project_id: i32) -> AppResult<entity::Template> {
         let ret = get_template_by_project_id()
-            .bind(self.executor, project_id, &internal)
+            .bind(self.executor, &project_id)
             .opt()
             .await?;
         match ret {
@@ -93,6 +82,10 @@ where
                 resource_type: ResourceType::File,
             })),
         }
+    }
+
+    pub async fn get_templates(&self, _project_id: &i32) -> AppResult<Vec<entity::Template>> {
+        Ok(vec![])
     }
 
     pub async fn get_template_by_id(&self, template_id: i32) -> AppResult<entity::Template> {
@@ -134,13 +127,9 @@ where
         }
     }
 
-    pub async fn get_fields(
-        &self,
-        project_id: &i32,
-        internal: bool,
-    ) -> AppResult<Vec<entity::Field>> {
+    pub async fn get_fields(&self, project_id: i32) -> AppResult<Vec<entity::Field>> {
         let fields = get_fields()
-            .bind(self.executor, project_id, &internal)
+            .bind(self.executor, &project_id)
             .all()
             .await?
             .into_iter()

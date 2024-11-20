@@ -12,7 +12,7 @@ use crate::{
     dto::{
         request::{
             case::CreateFunctionalCaseRequest,
-            file::{CreateModuleRequest, DeleteModuleRequest},
+            file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
             ListQueryParam, QueryTemplateParam,
         },
@@ -32,6 +32,10 @@ use tracing::info;
 #[utoipa::path(
     get,
     path = "/case/module/{project_id}",
+    params(
+        ("project_id", description = "path parameter"),
+        ("module_id", description = "query parameter")
+    ),
     responses(
         (status = 200, description = "Success get case module tree", body = [Vec<FileModuleResponse>]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
@@ -43,9 +47,10 @@ use tracing::info;
 pub async fn get(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
+    Query(params): Query<QueryModuleParam>,
 ) -> AppResult<Json<Vec<FileModuleResponse>>> {
     info!("case module tree query param: {project_id:?}");
-    match file::file_module_tree(&state, &project_id, "CASE".into()).await {
+    match file::get_file_module(&state, &project_id, "CASE".into(), params).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             info!("Failed to get case module tree");
@@ -80,7 +85,7 @@ pub async fn create_module(
 
 #[utoipa::path(
     delete,
-    path = "/management/case/module/{module_id}",
+    path = "/management/case/module",
     responses(
         (status = 200, description = "Success delete case module", body = [MessageResponse])
     ),
@@ -114,7 +119,7 @@ pub async fn template(
     Query(param): Query<QueryTemplateParam>,
 ) -> AppResult<Json<TemplateResponse>> {
     info!("case template query param: {param:?}, project_id: {project_id:?}");
-    match case::template(&state, &project_id, &param).await {
+    match case::template(&state, project_id).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }
@@ -184,18 +189,18 @@ pub async fn create_issue_relation(
 
 #[utoipa::path(
     get,
-    path = "/case/field/:project_id",
-    params(QueryTemplateParam),
-    responses(),
+    path = "/case/field/{project_id}",
+    responses(
+        (status = 200, description = "Success get field list", body = [Vec<Field>])
+    ),
     security(("jwt" = []))
 )]
-pub async fn field(
+pub async fn get_field_list(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
-    Query(param): Query<QueryTemplateParam>,
 ) -> AppResult<Json<Vec<Field>>> {
-    info!("case template field query param: {param:?}, project_id: {project_id:?}");
-    match case::field(&state, &project_id, &param).await {
+    info!("controller layer query field list with project_id: {project_id:?}");
+    match case::get_field_list(&state, project_id).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

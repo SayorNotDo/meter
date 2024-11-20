@@ -6,8 +6,11 @@ use crate::{
 use fake::{Fake, Faker};
 use server::{
     dto::{
-        request::{file::CreateModuleRequest, user::LoginRequest},
-        response::CreateEntityResponse,
+        request::{
+            file::{CreateModuleRequest, QueryModuleParam},
+            user::LoginRequest,
+        },
+        response::{CreateEntityResponse, FileModuleResponse},
     },
     errors::AppResponseError,
 };
@@ -42,12 +45,31 @@ pub async fn test_success_create_root_case_module(ctx: &mut SeedDbTestContext) {
     assert!(matches!(
         resp,
         AppResponseResult::Ok(CreateEntityResponse { .. })
-    ))
+    ));
+    if let AppResponseResult::Ok(entity) = resp {
+        let params = QueryModuleParam {
+            module_id: Some(entity.id),
+        };
+        let (status, resp) = ctx
+            .app
+            .api
+            .get_case_module(&token.access_token, ctx.project.id, ctx.project.id, &params)
+            .await
+            .unwrap();
+
+        assert!(status.is_success(), "status: {status}");
+        if let AppResponseResult::Ok(modules) = resp {
+            assert_eq!(modules.len(), 1);
+            assert!(modules
+                .into_iter()
+                .all(|item| matches!(item, FileModuleResponse { .. })))
+        }
+    }
 }
 
 #[test_context(SeedDbTestContext)]
 #[tokio::test]
-pub async fn test_invalid_param_create_module(ctx: &mut SeedDbTestContext) {
+pub async fn test_invalid_req_create_module(ctx: &mut SeedDbTestContext) {
     let admin = ctx.users.get(&Role::Admin).unwrap();
 
     let req: LoginRequest = LoginRequest {

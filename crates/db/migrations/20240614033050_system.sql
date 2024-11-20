@@ -92,6 +92,8 @@ EXECUTE PROCEDURE trigger_set_timestamp();
 COMMENT ON COLUMN template_field_relation.id IS '模版字段关联关系ID';
 COMMENT ON COLUMN template_field_relation.template_id IS '关联模版ID';
 COMMENT ON COLUMN template_field_relation.field_id  IS '关联字段ID';
+COMMENT ON COLUMN template_field_relation.required IS '是否为必填字段';
+COMMENT ON COLUMN template_field_relattion.default_value IS '默认值';
 COMMENT ON COLUMN template_field_relation.created_at IS '创建时间';
 COMMENT ON COLUMN template_field_relation.created_by IS '创建人';
 COMMENT ON COLUMN template_field_relation.updated_by IS '更新人';

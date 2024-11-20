@@ -8,7 +8,7 @@ use crate::{
     dto::{
         request::{
             case::CreateFunctionalCaseRequest, CaseQueryParam, CreateScriptRequest,
-            DiagnoseRequest, ListQueryParam, QueryTemplateParam,
+            DiagnoseRequest, ListQueryParam,
         },
         response::{
             CaseDetailResponse, CreateScriptResponse, DiagnoseResponse, ListCaseResponse,
@@ -33,15 +33,11 @@ use crate::{
     dto::request::IssueRelationRequest,
 };
 
-pub async fn template(
-    state: &AppState,
-    project_id: &i32,
-    param: &QueryTemplateParam,
-) -> AppResult<TemplateResponse> {
+pub async fn template(state: &AppState, project_id: i32) -> AppResult<TemplateResponse> {
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
     /* Template */
-    let template = case_dao.get_template(project_id, param.is_default).await?;
+    let template = case_dao.get_template_project_id(project_id).await?;
     /* Related Custom Fields */
     Ok(TemplateResponse {
         id: template.id,
@@ -55,15 +51,11 @@ pub async fn template(
     })
 }
 
-pub async fn field(
-    state: &AppState,
-    project_id: &i32,
-    param: &QueryTemplateParam,
-) -> AppResult<Vec<Field>> {
+pub async fn get_field_list(state: &AppState, project_id: i32) -> AppResult<Vec<Field>> {
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
     /* Fields with options */
-    let fields = case_dao.get_fields(project_id, param.is_default).await?;
+    let fields = case_dao.get_fields(project_id).await?;
     Ok(fields)
 }
 
@@ -100,9 +92,10 @@ pub async fn create_functional_case(
 pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) -> AppResult {
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
-    let case_dao = CaseDao::new(&transaction);
+    let file_dao = FileDao::new(&transaction);
 
-    let _ = case_dao.delete_by_module_id(&uid, &module_id).await?;
+    file_dao.soft_delete_by_id(uid, module_id).await?;
+    transaction.commit().await?;
 
     Ok(())
 }

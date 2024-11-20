@@ -72,8 +72,7 @@ SELECT t.id,
                 WHERE tfr.template_id = t.id), '[]'
        )                                                        as fields
 FROM template t
-WHERE t.project_id = :project_id
-  AND t.internal = :internal;
+WHERE t.project_id = :project_id;
 
 
 --! get_fields
@@ -93,8 +92,7 @@ SELECT f.id,
                 WHERE fo.field_id = f.id), '[]'
        ) AS options
 FROM field f
-WHERE f.project_id = :project_id
-AND f.internal = :internal;
+WHERE f.project_id = :project_id;
 
 
 --! get_field_option_by_id

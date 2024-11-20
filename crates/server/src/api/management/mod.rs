@@ -20,7 +20,7 @@ pub fn app() -> Router {
         .route("/case/module", delete(case::delete_module))
         .route("/case/count/:project_id", get(case::count))
         .route("/case/template/:project_id", get(case::template))
-        .route("/case/field/:project_id", get(case::field))
+        .route("/case/field/:project_id", get(case::get_field_list))
         .route("/case/functional-case", post(case::create_functional_case))
         .route(
             "/case/functional-case/:case_id",

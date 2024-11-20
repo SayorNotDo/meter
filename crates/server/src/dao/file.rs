@@ -28,7 +28,12 @@ macro_rules! impl_to_file_module {
     };
 }
 
-impl_to_file_module!(GetFileModules, GetFileModuleById);
+impl_to_file_module!(
+    GetFileModules,
+    GetFileModuleById,
+    GetDescendantById,
+    GetRootModuleById
+);
 
 pub struct FileDao<'a, T>
 where
@@ -60,6 +65,47 @@ where
         Ok(file_modules)
     }
 
+    pub async fn get_module_by_id(&self, module_id: i32) -> AppResult<FileModule> {
+        let ret = get_file_module_by_id()
+            .bind(self.executor, &module_id)
+            .opt()
+            .await?;
+        match ret {
+            Some(module) => Ok(module.to_file_module()),
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::File,
+            })),
+        }
+    }
+
+    pub async fn get_root_module_by_id(
+        &self,
+        project_id: i32,
+        module_type: &str,
+    ) -> AppResult<Vec<FileModule>> {
+        let file_modules = get_root_module_by_id()
+            .bind(self.executor, &project_id, &module_type)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| item.to_file_module())
+            .collect::<Vec<_>>();
+
+        Ok(file_modules)
+    }
+
+    pub async fn get_descendant_by_id(&self, parent_id: i32) -> AppResult<Vec<FileModule>> {
+        let file_modules = get_descendant_by_id()
+            .bind(self.executor, &parent_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| item.to_file_module())
+            .collect::<Vec<_>>();
+        Ok(file_modules)
+    }
+
     pub async fn get_root_module_id(
         &self,
         project_id: &i32,
@@ -70,6 +116,13 @@ where
             .all()
             .await?;
         Ok(module_id_list)
+    }
+
+    pub async fn soft_delete_by_id(&self, deleted_by: Uuid, module_id: i32) -> AppResult {
+        soft_delete_by_id()
+            .bind(self.executor, &deleted_by, &module_id)
+            .await?;
+        Ok(())
     }
 
     pub async fn insert_file_module(
@@ -91,19 +144,5 @@ where
             .one()
             .await?;
         Ok(module_id)
-    }
-
-    pub async fn get_module_by_id(&self, module_id: i32) -> AppResult<FileModule> {
-        let ret = get_file_module_by_id()
-            .bind(self.executor, &module_id)
-            .opt()
-            .await?;
-        match ret {
-            Some(module) => Ok(module.to_file_module()),
-            None => Err(AppError::NotFoundError(Resource {
-                details: vec![],
-                resource_type: ResourceType::File,
-            })),
-        }
     }
 }

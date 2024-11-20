@@ -1,7 +1,7 @@
 use crate::{
     dao::{self, entity::FileModule},
     dto::{
-        request::file::CreateModuleRequest,
+        request::file::{CreateModuleRequest, QueryModuleParam},
         response::{CreateEntityResponse, FileModuleResponse},
     },
     errors::{AppError, AppResult},
@@ -40,12 +40,27 @@ pub async fn create_file_module(
     let transaction = client.transaction().await?;
     let file_dao = dao::file::FileDao::new(&transaction);
     let project_dao = dao::project::ProjectDao::new(&transaction);
-    if let Some(parent_id) = request.parent_id {
+    let descendant = if let Some(parent_id) = request.parent_id {
         file_dao
             .get_module_by_id(parent_id)
             .await
             .map_err(|e| AppError::BadRequestError(e.to_string()))?;
-    }
+        file_dao
+            .get_descendant_by_id(parent_id)
+            .await
+            .map_err(|e| AppError::BadRequestError(e.to_string()))?
+    } else {
+        file_dao
+            .get_root_module_by_id(request.project_id, module_type)
+            .await
+            .map_err(|e| AppError::BadRequestError(e.to_string()))?
+    };
+    let position = if let Some(max_num) = descendant.into_iter().map(|item| item.position).max() {
+        max_num + 1
+    } else {
+        0
+    };
+
     project_dao
         .find_by_id(request.project_id)
         .await
@@ -53,7 +68,7 @@ pub async fn create_file_module(
     let file_module = FileModule {
         id: 0,
         name: request.name.clone(),
-        position: 0,
+        position,
         module_type: module_type.into(),
         parent_id: request.parent_id,
     };
@@ -64,15 +79,24 @@ pub async fn create_file_module(
     Ok(CreateEntityResponse { id: module_id })
 }
 
-pub async fn file_module_tree(
+pub async fn get_file_module(
     state: &AppState,
     project_id: &i32,
     module_type: &str,
+    params: QueryModuleParam,
 ) -> AppResult<Vec<FileModuleResponse>> {
     let mut file_module_tree = Vec::new();
     let mut client = state.pool.get().await?;
-    let file_dao = dao::file::FileDao::new(&mut client);
-    let file_modules = file_dao.get_file_modules(project_id, module_type).await?;
+    let transaction = client.transaction().await?;
+    let file_dao = dao::file::FileDao::new(&transaction);
+    let project_dao = dao::project::ProjectDao::new(&transaction);
+    project_dao.find_by_id(project_id.clone()).await?;
+    let file_modules: Vec<FileModule> = if let Some(module_id) = params.module_id {
+        let module = file_dao.get_module_by_id(module_id).await?;
+        vec![module]
+    } else {
+        file_dao.get_file_modules(project_id, module_type).await?
+    };
     /* 创建HashMap 用于快速查找父节点 */
     let mut module_map: HashMap<i32, FileModuleResponse> = HashMap::new();
     /* 初始化节点 */
@@ -80,18 +104,15 @@ pub async fn file_module_tree(
         let item_type = ModuleType::from_str(&item.module_type);
         let count = match item_type {
             ModuleType::Case => {
-                info!("get case count by module_id: {:?}", &item.id);
-                let case_dao = dao::case::CaseDao::new(&mut client);
+                let case_dao = dao::case::CaseDao::new(&transaction);
                 case_dao.count_by_module_id(&item.id).await?
             }
             ModuleType::Plan => {
-                info!("get plan count by module_id: {:?}", &item.id);
-                let plan_dao = dao::plan::PlanDao::new(&mut client);
+                let plan_dao = dao::plan::PlanDao::new(&transaction);
                 plan_dao.count_by_module_id(&item.id, false).await?
             }
             ModuleType::Element => {
-                info!("get element count by module_id: {:?}", &item.id);
-                let element_dao = dao::element::ElementDao::new(&mut client);
+                let element_dao = dao::element::ElementDao::new(&transaction);
                 element_dao.count_by_module_id(&item.id, false).await?
             }
             ModuleType::Unknown => {
@@ -126,6 +147,7 @@ pub async fn file_module_tree(
     for root in file_module_tree.iter_mut() {
         update_path(root, "".to_string())
     }
+    transaction.commit().await?;
     info!("finish construct module tree: {file_module_tree:?}");
     Ok(file_module_tree)
 }

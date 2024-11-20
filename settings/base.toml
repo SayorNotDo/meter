@@ -28,3 +28,4 @@ port = 587
 username = "chenwentao@datatower.ai"
 password = "vvth rzea cmvg tqyg"
 tls_off = true
+protocol = "starttls"

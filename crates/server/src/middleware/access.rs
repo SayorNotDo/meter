@@ -5,6 +5,7 @@ use axum::{
 };
 
 use tower::{Layer, Service};
+use tracing::warn;
 use uuid::Uuid;
 
 use crate::{constant, errors::AppResponseError, service::permission, state::AppState};
@@ -41,7 +42,7 @@ where
         self.inner.poll_ready(cx)
     }
 
-    fn call(&mut self, req: Request<Body>) -> Self::Future {
+    fn call(&mut self, mut req: Request<Body>) -> Self::Future {
         let uri = req.uri().clone();
         let method = req.method().clone();
         let headers = req.headers().clone();
@@ -55,20 +56,25 @@ where
             None => Uuid::nil(),
         };
         let mut err_msg = String::new();
-        let future = self.inner.call(req);
+        let clone = self.inner.clone();
+        let mut inner = std::mem::replace(&mut self.inner, clone);
         Box::pin(async move {
             /* Bypass api which is in WHITE_LIST */
             if constant::ACCESS_WHITE_LIST
                 .iter()
                 .any(|route| uri.path().starts_with(route))
             {
-                return future.await;
+                return inner.call(req).await;
             }
             /* access check main logic */
             if let Some(param) = headers.get(constant::PROJECT_ID) {
                 if let Ok(parma_str) = param.to_str() {
                     if let Ok(project_id) = parma_str.parse::<i32>() {
-                        /* 检查当前请求用户是否拥有对应接口所需要的权限 */
+                        /* 检查当前请求用户是否拥有对应接口所需要的权限
+                           权限校验校验提供参数：
+                           1.用户ID 通过Token解析获得
+                           2.项目ID 请求头参数
+                        */
                         match permission::check_user_permission(
                             &state,
                             &uid,
@@ -79,7 +85,8 @@ where
                         .await
                         {
                             Ok(access) if access => {
-                                return future.await;
+                                req.extensions_mut().insert(project_id);
+                                return inner.call(req).await;
                             }
                             Ok(_) => err_msg = "Access denied".to_string(),
                             Err(e) => err_msg = e.to_string(),

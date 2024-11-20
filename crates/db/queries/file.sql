@@ -18,6 +18,25 @@ WITH RECURSIVE file_module_tree AS (SELECT id,
 SELECT DISTINCT *
 FROM file_module_tree;
 
+--! get_descendant_by_id : (parent_id?)
+SELECT  id,
+        name,
+        module_type,
+        position,
+        parent_id
+FROM file_module
+WHERE parent_id = :parent_id;
+
+--! get_root_module_by_id : (parent_id?)
+SELECT  id,
+        name,
+        module_type,
+        position,
+        parent_id
+FROM file_module
+WHERE parent_id IS NULL AND project_id = :project_id AND module_type = :module_type;
+
+
 --! get_root_module
 SELECT
     id
@@ -35,8 +54,10 @@ INSERT INTO
     VALUES (:project_id, :name, :position, :module_type, :parent_id, :created_by)
 RETURNING id;
 
---! delete_file_module
-DELETE FROM file_module
+--! soft_delete_by_id
+UPDATE file_module
+SET deleted_at = NOW(),
+    deleted_by = :deleted_by
 WHERE id = :module_id;
 
 --! get_file_module_by_id : (parent_id?)

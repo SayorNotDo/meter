@@ -7,11 +7,11 @@ use reqwest::StatusCode;
 use server::{
     configure::server::ConfigHTTP,
     constant::{HTTP, PROJECT_ID},
-    dao::entity::{Permission, UserRole, UserRolePermission},
+    dao::entity::{Field, Permission, UserRole, UserRolePermission},
     dto::{
         request::{
             case::CreateFunctionalCaseRequest,
-            file::CreateModuleRequest,
+            file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
             user::{DeleteUserRequest, LoginRequest},
             *,
         },
@@ -316,10 +316,39 @@ impl Api {
     }
 
     #[logfn(Info)]
-    pub async fn get_case_module_tree(
+    pub async fn get_case_module(
         &self,
         token: &str,
         project_id: i32,
+        query_project_id: i32,
+        query: &QueryModuleParam,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<Vec<FileModuleResponse>>)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .get(format!(
+                "{}/management/case/module/{}",
+                self.addr, query_project_id
+            ))
+            .query(query)
+            .headers(headers)
+            .send()
+            .await?;
+
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn delete_case_module(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &DeleteModuleRequest,
     ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
         let mut headers = reqwest::header::HeaderMap::new();
 
@@ -331,9 +360,31 @@ impl Api {
         headers.append(PROJECT_ID, project_id.to_string().parse()?);
 
         let resp = HTTP
+            .delete(format!("{}/management/case/module", self.addr))
+            .headers(headers)
+            .json(req)
+            .send()
+            .await?;
+
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    pub async fn get_field_list(
+        &self,
+        token: &str,
+        project_id: i32,
+        query_project_id: i32,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<Vec<Field>>)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
             .get(format!(
-                "{}/mangement/case/module/{}",
-                self.addr, project_id
+                "{}/management/case/field/{}",
+                self.addr, query_project_id
             ))
             .headers(headers)
             .send()

@@ -7,7 +7,10 @@ use axum::{
 
 use crate::{
     dto::{
-        request::{file::CreateModuleRequest, CreatePlanRequest, ListQueryParam, PlanQueryParam},
+        request::{
+            file::{CreateModuleRequest, QueryModuleParam},
+            CreatePlanRequest, ListQueryParam, PlanQueryParam,
+        },
         response::{CreateEntityResponse, FileModuleResponse, ListPlanResponse},
     },
     errors::{AppResponseError, AppResult},
@@ -44,9 +47,10 @@ pub async fn create(
 pub async fn tree(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
+    Query(params): Query<QueryModuleParam>,
 ) -> AppResult<Json<Vec<FileModuleResponse>>> {
     info!("controller layer query with param: {project_id:?}");
-    match file::file_module_tree(&state, &project_id, "PLAN".into()).await {
+    match file::get_file_module(&state, &project_id, "PLAN".into(), params).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             info!("Failed to get plan module tree");

@@ -13,7 +13,7 @@ pub const EXPIRE_SESSION_CODE_SECS: Duration = Duration::from_secs(604800);
 pub const EXPIRE_REFRESH_TOKEN_SECS: Duration = Duration::from_secs(604800);
 pub const BEARER: &str = "Bearer";
 pub const AUTHORIZATION: &str = "Authorization";
-pub const PROJECT_ID: &str = "projectId";
+pub const PROJECT_ID: &str = "ProjectId";
 
 pub const WHITE_LIST: [&str; 1] = ["/auth/login"];
 pub const ALLOW_METHOD: [Method; 6] = [

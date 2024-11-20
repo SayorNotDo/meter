@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use crate::{
     dto::{
-        request::{CreateElementRequest, ElementQueryParam, ListQueryParam},
+        request::{
+            file::QueryModuleParam, CreateElementRequest, ElementQueryParam, ListQueryParam,
+        },
         response::{FileModuleResponse, ListElementResponse},
     },
     errors::AppResult,
@@ -44,19 +46,20 @@ pub async fn info(Extension(_state): Extension<AppState>) -> AppResult<Json<()>>
 
 #[utoipa::path(
     get,
-    path = "/element/module/tree/:project_id",
+    path = "/element/module/tree/{project_id}",
     responses(),
     security(("jwt" = []))
 )]
 pub async fn tree(
     Extension(state): Extension<AppState>,
     Path(project_id): Path<i32>,
+    Query(params): Query<QueryModuleParam>,
 ) -> AppResult<Json<Vec<FileModuleResponse>>> {
     info!(
         "controller layer query element list with params: {}",
         project_id
     );
-    match file::file_module_tree(&state, &project_id, "ELEMENT".into()).await {
+    match file::get_file_module(&state, &project_id, "ELEMENT".into(), params).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             warn!("Failed to get element module tree");

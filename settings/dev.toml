@@ -19,7 +19,7 @@ expires = 24
 
 [storage]
 database_url = "postgresql://postgres:testpassword@localhost:5432/test_postgres?sslmode=disable"
-redis_url = "redis://localhost:6379/"
+redis_url = "redis://:testpassword@localhost:6379/"
 script_path = "./static/scripts/gen"
 template_path = "./static/templates"
 
@@ -30,3 +30,4 @@ port = 587
 username = "chenwentao@datatower.ai"
 password = "vvth rzea cmvg tqyg"
 tls_off = true
+protocol = "local"
