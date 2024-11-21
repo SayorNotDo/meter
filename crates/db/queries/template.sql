@@ -74,11 +74,26 @@ SELECT t.id,
 FROM template t
 WHERE t.project_id = :project_id;
 
+--! create_field (remark?) :
+INSERT INTO field
+(name, project_id, field_type, internal, remark, created_by)
+VALUES (:name, :project_id, :field_type, :internal, :remark, :created_by)
+RETURNING id;
 
---! get_fields
+--! update_field (remark?) :
+UPDATE field
+SET name = :name,
+    field_type = :field_type,
+    remark = :remark,
+    updated_by = :updated_by
+WHERE id = :field_id;
+
+--! get_fields : (remark?)
 SELECT f.id,
        f.name,
        f.field_type,
+       f.project_id,
+       f.remark,
        f.internal,
        COALESCE(
                (SELECT JSON_AGG(
@@ -94,6 +109,30 @@ SELECT f.id,
 FROM field f
 WHERE f.project_id = :project_id;
 
+--! insert_field_option
+INSERT INTO field_option
+(field_id, value, position, created_by)
+VALUES(:field_id, :value, :position, :created_by)
+RETURNING id;
+
+--! update_field_option
+UPDATE field_option
+SET value = :value,
+    position = :position,
+    updated_by = :updated_by
+WHERE id = :option_id;
+
+--! soft_delete_field_option
+UPDATE field_option
+SET deleted_at = NOW(),
+    deleted_by = :deleted_by
+WHERE id = :id;
+
+--! soft_delete_field_option_by_field_id
+UPDATE field_option
+SET deleted_at = NOW(),
+    deleted_by = :deleted_by
+WHERE field_id = :field_id;
 
 --! get_field_option_by_id
 SELECT id,
@@ -102,12 +141,14 @@ SELECT id,
 FROM field_option
 WHERE field_id = :field_id;
 
---! get_field_by_id
+--! get_field_by_id : (remark?)
 SELECT
     f.id,
     f.name,
     f.field_type,
     f.internal,
+    f.remark,
+    f.project_id,
     COALESCE(
         (SELECT JSON_AGG(
             JSON_BUILD_OBJECT(

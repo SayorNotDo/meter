@@ -14,7 +14,7 @@ name = "server"
 path = "src/main.rs"
 
 [dependencies]
-axum = "0.7.7"
+axum = "0.7.9"
 db = { path = "../db" }
 tokio = { version = "1.41.0", features = ["full"] }
 serde = { version = "1.0.215", features = ["derive"] }

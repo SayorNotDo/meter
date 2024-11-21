@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use axum::{
     extract::{Path, Query},
+    http::HeaderMap,
     Extension, Json,
 };
 use axum_extra::extract::WithRejection;
@@ -11,7 +12,10 @@ use crate::{
     dao::entity::Field,
     dto::{
         request::{
-            case::CreateFunctionalCaseRequest,
+            case::{
+                CreateFieldRequest, CreateFunctionalCaseRequest, QueryFieldParam,
+                UpdateFieldRequest,
+            },
             file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
             ListQueryParam, QueryTemplateParam,
@@ -25,7 +29,7 @@ use crate::{
     errors::{AppError, AppResponseError, AppResult},
     service::{self, case, file},
     state::AppState,
-    utils::claim::UserClaims,
+    utils::{claim::UserClaims, header::validate_project_id},
 };
 use tracing::info;
 
@@ -73,10 +77,12 @@ pub async fn get(
 pub async fn create_module(
     Extension(state): Extension<AppState>,
     user: UserClaims,
+    headers: HeaderMap,
     Json(request): Json<CreateModuleRequest>,
 ) -> AppResult<Json<CreateEntityResponse>> {
     info!("case module create with request: {request:?}");
     request.validate()?;
+    validate_project_id(&headers, request.project_id)?;
     match file::create_file_module(&state, user.uid, "CASE".into(), &request).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
@@ -188,6 +194,52 @@ pub async fn create_issue_relation(
 }
 
 #[utoipa::path(
+    post,
+    path = "/management/case/field",
+    responses(
+        (status = 200, description = "Success create field", body = [CreateEntityResponse]),
+    ),
+)]
+pub async fn create_field(
+    Extension(state): Extension<AppState>,
+    headers: HeaderMap,
+    user: UserClaims,
+    Json(request): Json<CreateFieldRequest>,
+) -> AppResult<Json<CreateEntityResponse>> {
+    info!("case controller layer create field with {request:?}");
+    request.validate()?;
+    validate_project_id(&headers, request.project_id)?;
+    match case::create_field(&state, user.uid, request).await {
+        Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    put,
+    path = "/management/case/field",
+    responses(
+        (status = 200, description = "Success update field", body = [MessageResponse]),
+        (status = 400, description = "Invalid parameters", body = [AppResponseError])
+    ),
+    security(("jwt" =[]))
+)]
+pub async fn update_field(
+    Extension(state): Extension<AppState>,
+    headers: HeaderMap,
+    user: UserClaims,
+    Json(request): Json<UpdateFieldRequest>,
+) -> AppResult<Json<MessageResponse>> {
+    info!("case controller layer update field with {request:?}");
+    request.validate()?;
+    validate_project_id(&headers, request.project_id)?;
+    match case::update_field(&state, user.uid, request).await {
+        Ok(_) => Ok(Json(MessageResponse::new("Success update"))),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
     get,
     path = "/case/field/{project_id}",
     responses(
@@ -197,10 +249,13 @@ pub async fn create_issue_relation(
 )]
 pub async fn get_field_list(
     Extension(state): Extension<AppState>,
+    headers: HeaderMap,
     Path(project_id): Path<i32>,
+    Query(params): Query<QueryFieldParam>,
 ) -> AppResult<Json<Vec<Field>>> {
     info!("controller layer query field list with project_id: {project_id:?}");
-    match case::get_field_list(&state, project_id).await {
+    validate_project_id(&headers, project_id)?;
+    match case::get_field_list(&state, project_id, params).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

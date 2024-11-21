@@ -139,9 +139,41 @@ pub struct Template {
 pub struct Field {
     pub id: i32,
     pub name: String,
+    pub project_id: i32,
     pub field_type: String,
+    pub remark: Option<String>,
     pub internal: bool,
     pub options: Vec<FieldOption>,
+}
+
+impl Field {
+    pub fn new(name: &str, field_type: &str, remark: Option<String>, project_id: i32) -> Self {
+        Self {
+            id: 0,
+            name: name.to_string(),
+            project_id,
+            field_type: field_type.to_string(),
+            remark,
+            internal: false,
+            options: vec![],
+        }
+    }
+}
+
+pub enum FieldType {
+    Text,
+    Select,
+    Unknown,
+}
+
+impl FieldType {
+    pub fn from_str(field_type: &str) -> Self {
+        match field_type {
+            "TEXT" => FieldType::Text,
+            "SELECT" => FieldType::Select,
+            _ => FieldType::Unknown,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]

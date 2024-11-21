@@ -5,7 +5,6 @@ use axum::{
 };
 
 use tower::{Layer, Service};
-use tracing::warn;
 use uuid::Uuid;
 
 use crate::{constant, errors::AppResponseError, service::permission, state::AppState};
@@ -42,7 +41,7 @@ where
         self.inner.poll_ready(cx)
     }
 
-    fn call(&mut self, mut req: Request<Body>) -> Self::Future {
+    fn call(&mut self, req: Request<Body>) -> Self::Future {
         let uri = req.uri().clone();
         let method = req.method().clone();
         let headers = req.headers().clone();
@@ -55,61 +54,76 @@ where
             Some(i) => i.clone(),
             None => Uuid::nil(),
         };
-        let mut err_msg = String::new();
-        let clone = self.inner.clone();
-        let mut inner = std::mem::replace(&mut self.inner, clone);
+        let future = self.inner.call(req);
         Box::pin(async move {
             /* Bypass api which is in WHITE_LIST */
             if constant::ACCESS_WHITE_LIST
                 .iter()
                 .any(|route| uri.path().starts_with(route))
             {
-                return inner.call(req).await;
+                return future.await;
             }
             /* access check main logic */
-            if let Some(param) = headers.get(constant::PROJECT_ID) {
-                if let Ok(parma_str) = param.to_str() {
-                    if let Ok(project_id) = parma_str.parse::<i32>() {
-                        /* 检查当前请求用户是否拥有对应接口所需要的权限
-                           权限校验校验提供参数：
-                           1.用户ID 通过Token解析获得
-                           2.项目ID 请求头参数
-                        */
-                        match permission::check_user_permission(
-                            &state,
-                            &uid,
-                            &project_id,
-                            uri.path(),
-                            method.as_str(),
-                        )
-                        .await
-                        {
-                            Ok(access) if access => {
-                                req.extensions_mut().insert(project_id);
-                                return inner.call(req).await;
-                            }
-                            Ok(_) => err_msg = "Access denied".to_string(),
-                            Err(e) => err_msg = e.to_string(),
-                        }
+
+            let project_id = match headers.get(constant::PROJECT_ID) {
+                Some(value) => match value.to_str().ok().and_then(|s| s.parse::<i32>().ok()) {
+                    Some(id) => id,
+                    None => {
+                        let resp = build_error_response(
+                            StatusCode::BAD_REQUEST,
+                            "Missing or Invalid ProjectId header",
+                        );
+                        return Ok(resp);
                     }
+                },
+                None => {
+                    let resp =
+                        build_error_response(StatusCode::BAD_REQUEST, "Missing ProjectId header");
+                    return Ok(resp);
                 }
-            } else {
-                err_msg = "projectId is required".to_string();
+            };
+
+            match permission::check_user_permission(
+                &state,
+                &uid,
+                &project_id,
+                uri.path(),
+                method.as_str(),
+            )
+            .await
+            {
+                Ok(true) => {
+                    return future.await;
+                }
+                Ok(false) => {
+                    let resp = build_error_response(StatusCode::FORBIDDEN, "Access denied");
+                    Ok(resp)
+                }
+                Err(e) => {
+                    let resp = build_error_response(
+                        StatusCode::FORBIDDEN,
+                        &format!("Permission check failed: {e}"),
+                    );
+                    Ok(resp)
+                }
             }
-            /* Access denied */
-            let resp = Response::builder()
-                .status(StatusCode::FORBIDDEN)
-                .body(Body::from(
-                    serde_json::to_string(&AppResponseError::new(
-                        "FORBIDDEN_ERROR".to_string(),
-                        err_msg,
-                        None,
-                        vec![],
-                    ))
-                    .expect("Parse failure..."),
-                ))
-                .expect("Build response body failure...");
-            Ok(resp)
         })
     }
+}
+
+fn build_error_response(status: StatusCode, message: &str) -> Response {
+    let err_body = Body::from(
+        serde_json::to_string(&AppResponseError::new(
+            "FORBIDDEN_ERROR".to_string(),
+            message,
+            None,
+            vec![],
+        ))
+        .expect("Parse failure..."),
+    );
+
+    Response::builder()
+        .status(status)
+        .body(err_body)
+        .expect("Build error response failure...")
 }

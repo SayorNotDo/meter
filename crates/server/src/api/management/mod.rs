@@ -1,4 +1,4 @@
-use axum::routing::{delete, get, post};
+use axum::routing::{delete, get, post, put};
 use axum::Router;
 
 mod case;
@@ -21,6 +21,8 @@ pub fn app() -> Router {
         .route("/case/count/:project_id", get(case::count))
         .route("/case/template/:project_id", get(case::template))
         .route("/case/field/:project_id", get(case::get_field_list))
+        .route("/case/field", post(case::create_field))
+        .route("/case/field", put(case::update_field))
         .route("/case/functional-case", post(case::create_functional_case))
         .route(
             "/case/functional-case/:case_id",

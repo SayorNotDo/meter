@@ -106,8 +106,8 @@ pub async fn test_invalid_req_create_module(ctx: &mut SeedDbTestContext) {
         .create_case_module(&token.access_token, ctx.project.id, &req)
         .await
         .unwrap();
-    assert_eq!(status, reqwest::StatusCode::BAD_REQUEST);
-    assert_err!(resp, |e: &AppResponseError| e.kind == "BAD_REQUEST_ERROR");
+    assert_eq!(status, reqwest::StatusCode::FORBIDDEN);
+    assert_err!(resp, |e: &AppResponseError| e.kind == "FORBIDDEN_ERROR");
 }
 
 #[test_context(SeedDbTestContext)]

@@ -3,6 +3,7 @@ use crate::{configure::Config, errors::AppResult};
 pub mod claim;
 pub mod dir;
 pub mod hash;
+pub mod header;
 pub mod http;
 pub mod password;
 pub mod smtp;

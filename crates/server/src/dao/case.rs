@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
 use crate::{
-    dao::entity::{FieldOption, Script},
+    dao::entity::{Field, FieldOption, Script},
     dto::request::{case::SelectedField, Issue},
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
 };
+
 use db::queries::{case::*, template::*};
 use serde_json::from_value;
 use tracing::info;
@@ -115,7 +116,9 @@ where
                 Ok(entity::Field {
                     id: field.id,
                     name: field.name,
+                    project_id: field.project_id,
                     field_type: field.field_type,
+                    remark: field.remark,
                     internal: field.internal,
                     options,
                 })
@@ -125,6 +128,37 @@ where
                 resource_type: ResourceType::File,
             })),
         }
+    }
+
+    pub async fn create_field(&self, field: Field, created_by: Uuid) -> AppResult<i32> {
+        let id = create_field()
+            .bind(
+                self.executor,
+                &field.name,
+                &field.project_id,
+                &field.field_type,
+                &field.internal,
+                &field.remark,
+                &created_by,
+            )
+            .one()
+            .await?;
+
+        Ok(id)
+    }
+
+    pub async fn update_field(&self, field: Field, updated_by: Uuid) -> AppResult {
+        update_field()
+            .bind(
+                self.executor,
+                &field.name,
+                &field.field_type,
+                &field.remark,
+                &updated_by,
+                &field.id,
+            )
+            .await?;
+        Ok(())
     }
 
     pub async fn get_fields(&self, project_id: i32) -> AppResult<Vec<entity::Field>> {
@@ -138,13 +172,71 @@ where
                 entity::Field {
                     id: item.id,
                     name: item.name.clone(),
+                    project_id: item.project_id,
                     internal: item.internal,
+                    remark: item.remark,
                     field_type: item.field_type,
                     options,
                 }
             })
             .collect::<Vec<_>>();
         Ok(fields)
+    }
+
+    pub async fn insert_field_option(
+        &self,
+        field_id: i32,
+        option: FieldOption,
+        created_by: Uuid,
+    ) -> AppResult<i32> {
+        let id = insert_field_option()
+            .bind(
+                self.executor,
+                &field_id,
+                &option.value,
+                &option.position,
+                &created_by,
+            )
+            .one()
+            .await?;
+        Ok(id)
+    }
+
+    pub async fn update_field_option(
+        &self,
+        field_option: FieldOption,
+        updated_by: Uuid,
+    ) -> AppResult {
+        update_field_option()
+            .bind(
+                self.executor,
+                &field_option.value,
+                &field_option.position,
+                &updated_by,
+                &field_option.id,
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub async fn soft_delete_field_option(&self, id: i32, deleted_by: Uuid) -> AppResult {
+        soft_delete_field_option()
+            .bind(self.executor, &deleted_by, &id)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn soft_delete_field_option_by_field_id(
+        &self,
+        field_id: i32,
+        deleted_by: Uuid,
+    ) -> AppResult {
+        soft_delete_field_option_by_field_id()
+            .bind(self.executor, &deleted_by, &field_id)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn get_case_list(

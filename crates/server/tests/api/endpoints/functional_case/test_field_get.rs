@@ -3,7 +3,10 @@ use crate::{
     helper::{result::AppResponseResult, user::Role},
 };
 
-use server::{dao::entity::Field, dto::request::user::LoginRequest};
+use server::{
+    dao::entity::Field,
+    dto::request::{case::QueryFieldParam, user::LoginRequest},
+};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]
@@ -21,7 +24,12 @@ pub async fn test_success_get_field_list(ctx: &mut SeedDbTestContext) {
     let (status, resp) = ctx
         .app
         .api
-        .get_field_list(&token.access_token, ctx.project.id, ctx.project.id)
+        .get_field_list(
+            &token.access_token,
+            ctx.project.id,
+            ctx.project.id,
+            &QueryFieldParam { field_id: None },
+        )
         .await
         .unwrap();
 

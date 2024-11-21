@@ -5,17 +5,21 @@ use uuid::Uuid;
 
 use crate::{
     constant::{DOCTOR_SCRIPT_PATH, PAGE_DECODE_KEY},
+    dao::entity::FieldType,
     dto::{
         request::{
-            case::CreateFunctionalCaseRequest, CaseQueryParam, CreateScriptRequest,
-            DiagnoseRequest, ListQueryParam,
+            case::{
+                CreateFieldRequest, CreateFunctionalCaseRequest, QueryFieldParam,
+                UpdateFieldRequest,
+            },
+            CaseQueryParam, CreateScriptRequest, DiagnoseRequest, ListQueryParam,
         },
         response::{
-            CaseDetailResponse, CreateScriptResponse, DiagnoseResponse, ListCaseResponse,
-            RequirementInfoResponse, TemplateResponse,
+            CaseDetailResponse, CreateEntityResponse, CreateScriptResponse, DiagnoseResponse,
+            ListCaseResponse, RequirementInfoResponse, TemplateResponse,
         },
     },
-    errors::AppResult,
+    errors::{AppError, AppResult},
     service::{
         engine::{self, StepInfo},
         token::generate_page_token,
@@ -51,11 +55,83 @@ pub async fn template(state: &AppState, project_id: i32) -> AppResult<TemplateRe
     })
 }
 
-pub async fn get_field_list(state: &AppState, project_id: i32) -> AppResult<Vec<Field>> {
+pub async fn create_field(
+    state: &AppState,
+    uid: Uuid,
+    request: CreateFieldRequest,
+) -> AppResult<CreateEntityResponse> {
+    info!("case service layer create field with {request:?}");
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let case_dao = CaseDao::new(&transaction);
+    let field_type = FieldType::from_str(&request.field_type);
+    let field = Field::new(
+        &request.name,
+        &request.field_type,
+        request.remark,
+        request.project_id,
+    );
+    let id = case_dao.create_field(field, uid).await?;
+    /* TODO: FieldOption Relations Insert */
+    match field_type {
+        FieldType::Text => {
+            info!("fieldType `TEXT` no need to insert field option...")
+        }
+        FieldType::Select => {
+            if let Some(options) = request.options {
+                for option in options.into_iter() {
+                    case_dao.insert_field_option(id, option, uid).await?;
+                }
+            }
+        }
+        FieldType::Unknown => {
+            return Err(AppError::BadRequestError("Unknown fieldType".to_string()))
+        }
+    }
+
+    transaction.commit().await?;
+    Ok(CreateEntityResponse { id })
+}
+
+pub async fn update_field(state: &AppState, uid: Uuid, request: UpdateFieldRequest) -> AppResult {
+    info!("case service layer update field with {request:?}");
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let case_dao = CaseDao::new(&transaction);
+    let mut field = case_dao.get_field_by_id(request.id).await?;
+    field.name = request.name;
+    field.field_type = request.field_type;
+    field.remark = request.remark;
+    /* TODO: update related FieldOption */
+    match field.field_type.as_str() {
+        "TEXT" => {
+            case_dao
+                .soft_delete_field_option_by_field_id(field.id, uid)
+                .await?
+        }
+        "SELECT" => {}
+        _ => return Err(AppError::BadRequestError("Unknown field type".to_string())),
+    };
+    case_dao.update_field(field, uid).await?;
+    transaction.commit().await?;
+    Ok(())
+}
+
+pub async fn get_field_list(
+    state: &AppState,
+    project_id: i32,
+    params: QueryFieldParam,
+) -> AppResult<Vec<Field>> {
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
     /* Fields with options */
-    let fields = case_dao.get_fields(project_id).await?;
+    let fields = match params.field_id {
+        Some(field_id) => {
+            let field = case_dao.get_field_by_id(field_id).await?;
+            vec![field]
+        }
+        None => case_dao.get_fields(project_id).await?,
+    };
     Ok(fields)
 }
 
