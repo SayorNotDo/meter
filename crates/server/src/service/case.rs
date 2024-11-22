@@ -5,14 +5,20 @@ use uuid::Uuid;
 
 use crate::{
     constant::{DOCTOR_SCRIPT_PATH, PAGE_DECODE_KEY},
-    dao::entity::FieldType,
+    dao::{
+        case::CaseDao,
+        element::ElementDao,
+        entity::{Field, FieldType, FunctionalCase, Step},
+        file::FileDao,
+    },
     dto::{
         request::{
             case::{
-                CreateFieldRequest, CreateFunctionalCaseRequest, QueryFieldParam,
-                UpdateFieldRequest,
+                CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest, FieldValue,
+                QueryFieldParam, UpdateFieldRequest,
             },
-            CaseQueryParam, CreateScriptRequest, DiagnoseRequest, ListQueryParam,
+            CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
+            ListQueryParam,
         },
         response::{
             CaseDetailResponse, CreateEntityResponse, CreateScriptResponse, DiagnoseResponse,
@@ -26,15 +32,6 @@ use crate::{
     },
     state::AppState,
     utils::claim::PageClaims,
-};
-use crate::{
-    dao::{
-        case::CaseDao,
-        element::ElementDao,
-        entity::{Field, FunctionalCase, Step},
-        file::FileDao,
-    },
-    dto::request::IssueRelationRequest,
 };
 
 pub async fn template(state: &AppState, project_id: i32) -> AppResult<TemplateResponse> {
@@ -58,6 +55,7 @@ pub async fn template(state: &AppState, project_id: i32) -> AppResult<TemplateRe
 pub async fn create_field(
     state: &AppState,
     uid: Uuid,
+    project_id: i32,
     request: CreateFieldRequest,
 ) -> AppResult<CreateEntityResponse> {
     info!("case service layer create field with {request:?}");
@@ -69,9 +67,9 @@ pub async fn create_field(
         &request.name,
         &request.field_type,
         request.remark,
-        request.project_id,
+        project_id,
     );
-    let id = case_dao.create_field(field, uid).await?;
+    let field_id = case_dao.create_field(field, uid).await?;
     /* TODO: FieldOption Relations Insert */
     match field_type {
         FieldType::Text => {
@@ -80,8 +78,12 @@ pub async fn create_field(
         FieldType::Select => {
             if let Some(options) = request.options {
                 for option in options.into_iter() {
-                    case_dao.insert_field_option(id, option, uid).await?;
+                    case_dao.insert_field_option(field_id, option, uid).await?;
                 }
+            } else {
+                return Err(AppError::BadRequestError(
+                    "Field `options` required".to_string(),
+                ));
             }
         }
         FieldType::Unknown => {
@@ -90,29 +92,84 @@ pub async fn create_field(
     }
 
     transaction.commit().await?;
-    Ok(CreateEntityResponse { id })
+    Ok(CreateEntityResponse { id: field_id })
 }
 
-pub async fn update_field(state: &AppState, uid: Uuid, request: UpdateFieldRequest) -> AppResult {
+pub async fn update_field(
+    state: &AppState,
+    uid: Uuid,
+    project_id: i32,
+    request: UpdateFieldRequest,
+) -> AppResult {
     info!("case service layer update field with {request:?}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let case_dao = CaseDao::new(&transaction);
+    let change_type = FieldType::from_str(&request.field_type);
     let mut field = case_dao.get_field_by_id(request.id).await?;
+    if project_id != field.project_id {
+        return Err(AppError::ForbiddenError("Access denied".to_string()));
+    };
     field.name = request.name;
     field.field_type = request.field_type;
     field.remark = request.remark;
-    /* TODO: update related FieldOption */
-    match field.field_type.as_str() {
-        "TEXT" => {
+    /* update related FieldOption */
+    match change_type {
+        FieldType::Text => {
             case_dao
                 .soft_delete_field_option_by_field_id(field.id, uid)
                 .await?
         }
-        "SELECT" => {}
-        _ => return Err(AppError::BadRequestError("Unknown field type".to_string())),
+        FieldType::Select => {
+            if let Some(options) = request.options {
+                for option in options.into_iter() {
+                    match case_dao.get_field_option_by_id(option.id).await {
+                        Ok(mut o) => {
+                            o.value = option.value;
+                            o.position = option.position;
+                            case_dao.update_field_option(o, uid).await?;
+                        }
+                        Err(AppError::NotFoundError(_)) => {
+                            let _ = case_dao.insert_field_option(field.id, option, uid).await?;
+                        }
+                        Err(e) => return Err(e),
+                    }
+                }
+            } else {
+                return Err(AppError::BadRequestError(
+                    "Field `oprtions` required".to_string(),
+                ));
+            }
+        }
+        FieldType::Unknown => {
+            return Err(AppError::BadRequestError("Unknown field type".to_string()))
+        }
     };
     case_dao.update_field(field, uid).await?;
+    transaction.commit().await?;
+    Ok(())
+}
+
+pub async fn delete_field(
+    state: &AppState,
+    uid: Uuid,
+    project_id: i32,
+    request: DeleteFieldRequest,
+) -> AppResult {
+    info!("case service layer delete field with {request:?}, project_id: {project_id}, deleted_by: {uid}");
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let case_dao = CaseDao::new(&transaction);
+    let field = case_dao.get_field_by_id(request.id).await?;
+    if field.project_id != project_id {
+        return Err(AppError::ForbiddenError("Access denied".to_string()));
+    }
+    case_dao.soft_delete_field(request.id, uid).await?;
+    if let FieldType::Select = FieldType::from_str(&field.field_type) {
+        for option in field.options {
+            case_dao.soft_delete_field_option(option.id, uid).await?;
+        }
+    };
     transaction.commit().await?;
     Ok(())
 }
@@ -158,8 +215,27 @@ pub async fn create_functional_case(
     /* bind relationship between case with custom_field through table: [functional_case_field_relation] */
     for item in request.fields.into_iter() {
         /* get fielld by field_id */
-        let _field = case_dao.get_field_by_id(item.field_id).await?;
-        case_dao.insert_case_field_relation(case_id, item).await?;
+        let field = case_dao.get_field_by_id(item.id).await?;
+        let field_type = FieldType::from_str(&field.field_type);
+        match field_type {
+            FieldType::Text => {
+                if let FieldValue::Text(value) = item.value {
+                    case_dao
+                        .insert_case_field_relation_with_text(case_id, field.id, &value, uid)
+                        .await?;
+                }
+            }
+            FieldType::Select => {
+                if let FieldValue::Select(option) = item.value {
+                    case_dao
+                        .insert_case_field_relation_with_option(case_id, field.id, option, uid)
+                        .await?;
+                }
+            }
+            FieldType::Unknown => {
+                return Err(AppError::BadRequestError("Unknow fieldType".to_string()))
+            }
+        }
     }
     transaction.commit().await?;
     Ok(case_id)
@@ -369,7 +445,7 @@ pub async fn gen_script(
             "PRE_PROCESSOR".to_string(),
             &request.pre_processors,
         ),
-        case_dao.insert_script_element_relation(&script_id, "STEP".to_string(), &request.steps,),
+        case_dao.insert_script_element_relation(&script_id, "STEP".to_string(), &request.steps),
         case_dao.insert_script_element_relation(
             &script_id,
             "AFTER_PROCESSOR".to_string(),

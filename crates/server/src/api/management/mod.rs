@@ -23,6 +23,7 @@ pub fn app() -> Router {
         .route("/case/field/:project_id", get(case::get_field_list))
         .route("/case/field", post(case::create_field))
         .route("/case/field", put(case::update_field))
+        .route("/case/field", delete(case::delete_field))
         .route("/case/functional-case", post(case::create_functional_case))
         .route(
             "/case/functional-case/:case_id",

@@ -14,17 +14,30 @@ INSERT INTO functional_cases
   :created_by
 ) RETURNING id;
 
---! insert_case_field_relation (value?, option_id?) :
+--! insert_case_field_relation_with_text
 INSERT INTO functional_case_field_relation (
     case_id,
     field_id,
     value,
-    option_id
+    created_by
 ) VALUES (
     :case_id,
     :field_id,
     :value,
-    :option_id
+    :created_by
+) RETURNING id;
+
+--! insert_case_field_relation_with_option
+INSERT INTO functional_case_field_relation (
+    case_id,
+    field_id,
+    option_id,
+    created_by
+) VALUES (
+    :case_id,
+    :field_id,
+    :option_id,
+    :created_by
 ) RETURNING id;
 
 --! insert_case_issue_relation

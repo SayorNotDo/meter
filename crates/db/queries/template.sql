@@ -107,13 +107,21 @@ SELECT f.id,
                 WHERE fo.field_id = f.id), '[]'
        ) AS options
 FROM field f
-WHERE f.project_id = :project_id;
+WHERE f.project_id = :project_id AND deleted_at IS NULL AND deleted_by IS NULL;
 
 --! insert_field_option
 INSERT INTO field_option
 (field_id, value, position, created_by)
 VALUES(:field_id, :value, :position, :created_by)
 RETURNING id;
+
+--! get_field_option_by_id
+SELECT  id,
+        value,
+        field_id,
+        position
+FROM field_option
+WHERE id = :option_id;
 
 --! update_field_option
 UPDATE field_option
@@ -134,12 +142,12 @@ SET deleted_at = NOW(),
     deleted_by = :deleted_by
 WHERE field_id = :field_id;
 
---! get_field_option_by_id
+--! get_options_by_field_id
 SELECT id,
        value,
        position
 FROM field_option
-WHERE field_id = :field_id;
+WHERE field_id = :field_id AND deleted_at IS NULL AND deleted_by IS NULL;
 
 --! get_field_by_id : (remark?)
 SELECT
@@ -159,4 +167,10 @@ SELECT
         ) FROM field_option fo WHERE fo.field_id = f.id), '[]'
     ) AS options
 FROM field f
-WHERE f.id = :id;
+WHERE f.id = :id AND deleted_at IS NULL AND deleted_by IS NULL;
+
+--! soft_delete_field
+UPDATE field
+SET deleted_at = NOW(),
+    deleted_by = :deleted_by
+WHERE id = :field_id;

@@ -82,7 +82,7 @@ CREATE TABLE template_field_relation
 );
 
 -- create trigger: set updated_at field
-CREATE TRIGGER set_timestamp_template
+CREATE TRIGGER set_timestamp_template_field_relation
     BEFORE UPDATE
     ON template_field_relation
     FOR EACH ROW

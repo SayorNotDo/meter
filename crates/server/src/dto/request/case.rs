@@ -22,9 +22,14 @@ pub struct CreateFunctionalCaseRequest {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SelectedField {
-    pub field_id: i32,
-    pub option_id: Option<i32>,
-    pub value: Option<String>,
+    pub id: i32,
+    pub value: FieldValue,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub enum FieldValue {
+    Select(i32),
+    Text(String),
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
@@ -35,10 +40,8 @@ pub struct CreateFieldRequest {
     #[garde(skip)]
     pub field_type: String,
     #[garde(skip)]
-    pub project_id: i32,
-    #[garde(skip)]
     pub remark: Option<String>,
-    #[garde(skip)]
+    #[garde(length(min = 1))]
     pub options: Option<Vec<FieldOption>>,
 }
 
@@ -50,13 +53,17 @@ pub struct UpdateFieldRequest {
     #[garde(length(min = 1))]
     pub name: String,
     #[garde(skip)]
-    pub project_id: i32,
-    #[garde(skip)]
     pub field_type: String,
     #[garde(skip)]
     pub remark: Option<String>,
-    #[garde(skip)]
+    #[garde(length(min = 1))]
     pub options: Option<Vec<FieldOption>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteFieldRequest {
+    pub id: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

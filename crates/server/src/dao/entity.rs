@@ -190,7 +190,6 @@ pub struct TemplateField {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct FieldOption {
     pub id: i32,
-    pub name: String,
     pub value: String,
     pub position: i32,
 }

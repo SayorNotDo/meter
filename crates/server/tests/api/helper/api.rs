@@ -1,7 +1,7 @@
 use super::result::AppResponseResult;
 use crate::unwrap;
 use anyhow::Ok;
-use case::{QueryFieldParam, UpdateFieldRequest};
+
 use log_derive::logfn;
 use reqwest::StatusCode;
 
@@ -11,16 +11,15 @@ use server::{
     dao::entity::{Field, Permission, UserRole, UserRolePermission},
     dto::{
         request::{
-            case::{CreateFieldRequest, CreateFunctionalCaseRequest},
+            case::*,
             file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
-            user::{DeleteUserRequest, LoginRequest},
+            user::{DeleteUserRequest, LoginRequest, UpdateUserStatusRequest},
             *,
         },
-        response::*,
+        response::{user::*, *},
     },
     utils::http::HttpClientExt,
 };
-use user::UpdateUserStatusRequest;
 
 pub struct Api {
     addr: String,
@@ -419,6 +418,28 @@ impl Api {
                 AppResponseResult::Ok(MessageResponse::new(error_body)),
             ));
         }
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    pub async fn delete_field(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &DeleteFieldRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .delete(format!("{}/management/case/field", self.addr))
+            .headers(headers)
+            .json(req)
+            .send()
+            .await?;
+
         Ok((resp.status(), resp.json().await?))
     }
 

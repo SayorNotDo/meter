@@ -15,7 +15,7 @@ pub const BEARER: &str = "Bearer";
 pub const AUTHORIZATION: &str = "Authorization";
 pub const PROJECT_ID: &str = "ProjectId";
 
-pub const WHITE_LIST: [&str; 1] = ["/auth/login"];
+pub const WHITE_LIST: [&str; 2] = ["/auth/login", "/swagger-ui"];
 pub const ALLOW_METHOD: [Method; 6] = [
     Method::GET,
     Method::POST,
@@ -25,7 +25,7 @@ pub const ALLOW_METHOD: [Method; 6] = [
     Method::PUT,
 ];
 pub const ALLOW_ORIGIN: [HeaderValue; 1] = [HeaderValue::from_static("http://localhost:3000")];
-pub const ACCESS_WHITE_LIST: [&str; 2] = ["/auth/login", "/auth/logout"];
+pub const ACCESS_WHITE_LIST: [&str; 3] = ["/auth/login", "/auth/logout", "/swagger-ui"];
 pub const EMAIL_ADDR: &str = "chenwentao@datatower.ai";
 pub const REGISTER_EMAIL_SUBJECT: &str = "<DTest-测试平台> 注册邮件通知";
 

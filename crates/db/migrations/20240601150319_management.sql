@@ -149,8 +149,33 @@ CREATE TABLE functional_case_field_relation
     case_id     INT     NOT NULL,
     field_id    INT     NOT NULL,
     value       VARCHAR,
-    option_id   INT
+    option_id   INT,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by  UUID    NOT NULL,
+    updated_at  TIMESTAMP,
+    updated_by  UUID,
+    deleted_at  TIMESTAMP,
+    deleted_by  UUID
 );
+
+COMMENT ON COLUMN functional_case_field_relation.id IS '功能用例-字段关联关系ID';
+COMMENT ON COLUMN functional_case_field_relation.case_id IS '关联功能用例ID';
+COMMENT ON COLUMN functional_case_field_relation.field_id IS '关联字段ID';
+COMMENT ON COLUMN functional_case_field_relation.value IS '字段值';
+COMMENT ON COLUMN functional_case_field_relation.option_id IS '关联选项ID';
+COMMENT ON COLUMN functional_case_field_relation.created_at IS '创建时间';
+COMMENT ON COLUMN functional_case_field_relation.updated_at IS '更新时间';
+COMMENT ON COLUMN functional_case_field_relation.created_by IS '创建人';
+COMMENT ON COLUMN functional_case_field_relation.updated_by IS '更新人';
+COMMENT ON COLUMN functional_case_field_relation.deleted_at IS '删除时间';
+COMMENT ON COLUMN functional_case_field_relation.deleted_by IS '删除人';
+
+CREATE TRIGGER set_timestamp_functional_case_field_relation
+    BEFORE UPDATE
+    ON functional_case_field_relation
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
 
 DROP TABLE IF EXISTS case_issue_relation;
 

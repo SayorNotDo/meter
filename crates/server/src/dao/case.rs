@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     dao::entity::{Field, FieldOption, Script},
-    dto::request::{case::SelectedField, Issue},
+    dto::request::Issue,
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
 };
@@ -161,6 +161,14 @@ where
         Ok(())
     }
 
+    pub async fn soft_delete_field(&self, field_id: i32, deleted_by: Uuid) -> AppResult {
+        soft_delete_field()
+            .bind(self.executor, &deleted_by, &field_id)
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn get_fields(&self, project_id: i32) -> AppResult<Vec<entity::Field>> {
         let fields = get_fields()
             .bind(self.executor, &project_id)
@@ -200,6 +208,40 @@ where
             .one()
             .await?;
         Ok(id)
+    }
+
+    pub async fn get_field_option_by_id(&self, option_id: i32) -> AppResult<FieldOption> {
+        let field_option = get_field_option_by_id()
+            .bind(self.executor, &option_id)
+            .opt()
+            .await?;
+        match field_option {
+            Some(o) => Ok(FieldOption {
+                id: o.id,
+                value: o.value,
+                position: o.position,
+            }),
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::File,
+            })),
+        }
+    }
+
+    pub async fn get_options_by_field_id(&self, field_id: i32) -> AppResult<Vec<FieldOption>> {
+        let options = get_options_by_field_id()
+            .bind(self.executor, &field_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| FieldOption {
+                id: item.id,
+                value: item.value,
+                position: item.position,
+            })
+            .collect::<Vec<_>>();
+
+        Ok(options)
     }
 
     pub async fn update_field_option(
@@ -360,22 +402,31 @@ where
         Ok(case_id)
     }
 
-    pub async fn insert_case_field_relation(
+    pub async fn insert_case_field_relation_with_text(
         &self,
         case_id: i32,
-        field: SelectedField,
+        field_id: i32,
+        value: &str,
+        created_by: Uuid,
     ) -> AppResult<i32> {
-        let id = insert_case_field_relation()
-            .bind(
-                self.executor,
-                &case_id,
-                &field.field_id,
-                &field.value,
-                &field.option_id,
-            )
+        let id = insert_case_field_relation_with_text()
+            .bind(self.executor, &case_id, &field_id, &value, &created_by)
             .one()
             .await?;
+        Ok(id)
+    }
 
+    pub async fn insert_case_field_relation_with_option(
+        &self,
+        case_id: i32,
+        field_id: i32,
+        option_id: i32,
+        created_by: Uuid,
+    ) -> AppResult<i32> {
+        let id = insert_case_field_relation_with_option()
+            .bind(self.executor, &case_id, &field_id, &option_id, &created_by)
+            .one()
+            .await?;
         Ok(id)
     }
 

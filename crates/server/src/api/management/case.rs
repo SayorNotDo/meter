@@ -13,8 +13,8 @@ use crate::{
     dto::{
         request::{
             case::{
-                CreateFieldRequest, CreateFunctionalCaseRequest, QueryFieldParam,
-                UpdateFieldRequest,
+                CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest,
+                QueryFieldParam, UpdateFieldRequest,
             },
             file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
@@ -29,7 +29,10 @@ use crate::{
     errors::{AppError, AppResponseError, AppResult},
     service::{self, case, file},
     state::AppState,
-    utils::{claim::UserClaims, header::validate_project_id},
+    utils::{
+        claim::UserClaims,
+        header::{extract_project_id, validate_project_id},
+    },
 };
 use tracing::info;
 
@@ -186,7 +189,7 @@ pub async fn create_issue_relation(
     Extension(state): Extension<AppState>,
     user: UserClaims,
     Json(request): Json<IssueRelationRequest>,
-) -> AppResult<()> {
+) -> AppResult {
     match case::create_issue_relation(&state, user.uid, request).await {
         Ok(_) => Ok(()),
         Err(e) => Err(e),
@@ -208,8 +211,8 @@ pub async fn create_field(
 ) -> AppResult<Json<CreateEntityResponse>> {
     info!("case controller layer create field with {request:?}");
     request.validate()?;
-    validate_project_id(&headers, request.project_id)?;
-    match case::create_field(&state, user.uid, request).await {
+    let project_id = extract_project_id(&headers)?;
+    match case::create_field(&state, user.uid, project_id, request).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }
@@ -232,9 +235,31 @@ pub async fn update_field(
 ) -> AppResult<Json<MessageResponse>> {
     info!("case controller layer update field with {request:?}");
     request.validate()?;
-    validate_project_id(&headers, request.project_id)?;
-    match case::update_field(&state, user.uid, request).await {
+    let project_id = extract_project_id(&headers)?;
+    match case::update_field(&state, user.uid, project_id, request).await {
         Ok(_) => Ok(Json(MessageResponse::new("Success update"))),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    delete,
+    path = "/management/case/field",
+    responses(
+        (status = 200, description = "Success delete field", body = [MessageResponse])
+    ),
+    security(("jwt" = []))
+)]
+pub async fn delete_field(
+    Extension(state): Extension<AppState>,
+    headers: HeaderMap,
+    user: UserClaims,
+    Json(request): Json<DeleteFieldRequest>,
+) -> AppResult<Json<MessageResponse>> {
+    info!("case controller layer delete field with {request:?}");
+    let project_id = extract_project_id(&headers)?;
+    match case::delete_field(&state, user.uid, project_id, request).await {
+        Ok(_) => Ok(Json(MessageResponse::new("Success delete field"))),
         Err(e) => Err(e),
     }
 }

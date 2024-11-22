@@ -248,10 +248,10 @@ impl AppError {
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,
             ),
-            BadRequestError(err) => (
+            BadRequestError(_err) => (
                 "BAD_REQUEST_ERROR".to_string(),
                 None,
-                vec![("err_msg".to_string(), err)],
+                vec![],
                 StatusCode::BAD_REQUEST,
             ),
             InvalidInputError(err) => (

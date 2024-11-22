@@ -5,7 +5,7 @@ use crate::constant::{
 };
 use crate::dao::user;
 use crate::dto::request::RefreshTokenRequest;
-use crate::dto::response::TokenResponse;
+use crate::dto::response::user::TokenResponse;
 use crate::errors::AppResult;
 use crate::service;
 use crate::state::AppState;

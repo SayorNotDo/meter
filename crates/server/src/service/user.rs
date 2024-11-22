@@ -14,7 +14,7 @@ use crate::{
             user::{LoginRequest, UpdateUserStatusRequest},
             *,
         },
-        response::{CreateEntityResponse, LoginResponse, MessageResponse, UserInfoResponse},
+        response::{user::LoginResponse, CreateEntityResponse, MessageResponse, UserInfoResponse},
         EmailTemplate,
     },
     errors::{AppError, AppResult, Resource, ResourceType},
