@@ -9,12 +9,12 @@ use axum_extra::extract::WithRejection;
 use garde::Validate;
 
 use crate::{
-    dao::entity::Field,
+    dao::entity::{CaseDetail, Field},
     dto::{
         request::{
             case::{
                 CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest,
-                QueryFieldParam, UpdateFieldRequest,
+                QueryCaseParam, QueryFieldParam, UpdateFieldRequest,
             },
             file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
@@ -162,16 +162,19 @@ pub async fn create_functional_case(
 
 #[utoipa::path(
     get,
-    path = "case/functional-case/:case_id",
-    responses(),
+    path = "/management/case/functional-case/{project_id}",
+    responses(
+        (status = 200, description = "Success get functional-case", body = [Vec<CaseDetail>]),
+        (status = 404, description = "Case not found", body = [AppResponseError])
+    ),
     security(("jwt" = []))
 )]
 pub async fn get_functional_case(
     Extension(state): Extension<AppState>,
-    _user: UserClaims,
     Path(case_id): Path<i32>,
-) -> AppResult<Json<CaseDetailResponse>> {
-    info!("query functional case with path param: {case_id:?}");
+    _user: UserClaims,
+) -> AppResult<Json<Vec<CaseDetail>>> {
+    info!("query functional case with path case_id: {case_id:?}");
     match case::get_functional_case(&state, case_id).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
@@ -288,7 +291,7 @@ pub async fn get_field_list(
 
 #[utoipa::path(
     get,
-    path = "/case/info/requirement/:project_id",
+    path = "/case/info/requirement/{project_id}",
     responses(
         (status = 200, description = "Get related pr info"),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
@@ -310,7 +313,7 @@ pub async fn info(
 
 #[utoipa::path(
     get,
-    path = "/management/case/list/:project_id",
+    path = "/management/case/functional-case",
     params(ListQueryParam),
     responses(
         (status = 200, description = "Get case list"),
@@ -320,13 +323,14 @@ pub async fn info(
     ),
     security(("jwt" = []))
 )]
-pub async fn list(
+pub async fn get_functional_case_list(
     Extension(state): Extension<AppState>,
-    Path(project_id): Path<i32>,
+    headers: HeaderMap,
     Query(param): Query<ListQueryParam>,
 ) -> AppResult<Json<ListCaseResponse>> {
-    info!("controller layer case list proejct_id: {project_id:?} query with param: {param:?}");
-    match case::list(&state, &project_id, &param).await {
+    info!("controller layer query case list with param: {param:?}");
+    let project_id = extract_project_id(&headers)?;
+    match case::get_functional_case_list(&state, &project_id, &param).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

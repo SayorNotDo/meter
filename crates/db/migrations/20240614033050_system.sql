@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS field;
 
 CREATE TABLE field (
     id SERIAL PRIMARY KEY,
-    name VARCHAR NOT NULL,
+    name VARCHAR NOT NULL UNIQUE,
     field_type VARCHAR NOT NULL,
     project_id INT NOT NULL,
     remark VARCHAR,
@@ -30,7 +30,7 @@ DROP TABLE IF EXISTS template;
 CREATE TABLE template
 (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR   NOT NULL,
+    name        VARCHAR    NOT NULL UNIQUE,
     project_id  INT       NOT NULL,
     description VARCHAR,
     internal    BOOLEAN   NOT NULL DEFAULT FALSE,
@@ -38,7 +38,6 @@ CREATE TABLE template
     created_by  UUID      NOT NULL,
     updated_at  TIMESTAMP,
     updated_by  UUID,
-    deleted     BOOLEAN   NOT NULL DEFAULT FALSE,
     deleted_at  TIMESTAMP,
     deleted_by  UUID
 );
@@ -60,7 +59,6 @@ COMMENT ON COLUMN template.created_at IS '创建时间';
 COMMENT ON COLUMN template.updated_at IS '更新时间';
 COMMENT ON COLUMN template.created_by IS '创建人';
 COMMENT ON COLUMN template.updated_by IS '更新人';
-COMMENT ON COLUMN template.deleted IS '是否删除';
 COMMENT ON COLUMN template.deleted_at IS '删除时间';
 COMMENT ON COLUMN template.deleted_by IS '删除人';
 

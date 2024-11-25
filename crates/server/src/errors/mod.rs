@@ -47,6 +47,10 @@ pub enum ResourceType {
     Project,
     #[strum(serialize = "ROLE")]
     Role,
+    #[strum(serialize = "TEMPLATE")]
+    Template,
+    #[strum(serialize = "FiELD")]
+    Field,
 }
 
 #[derive(Debug, thiserror::Error)]

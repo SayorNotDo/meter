@@ -2,6 +2,7 @@ use super::result::AppResponseResult;
 use crate::unwrap;
 use anyhow::Ok;
 
+use axum::http::HeaderMap;
 use log_derive::logfn;
 use reqwest::StatusCode;
 
@@ -309,6 +310,28 @@ impl Api {
             .post(format!("{}/management/case/functional-case", self.addr))
             .headers(headers)
             .json(req)
+            .send()
+            .await?;
+
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn get_functional_case(
+        &self,
+        token: &str,
+        case_id: i32,
+    ) -> anyhow::Result<(StatusCode, AppResultResponse<Vec<()>>)> {
+        let mut headers = HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+
+        let resp = HTTP
+            .get(format!("{}/management/case/{}", self.addr, case_id))
+            .headers(headers)
             .send()
             .await?;
 

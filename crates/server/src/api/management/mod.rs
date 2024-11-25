@@ -25,6 +25,7 @@ pub fn app() -> Router {
         .route("/case/field", put(case::update_field))
         .route("/case/field", delete(case::delete_field))
         .route("/case/functional-case", post(case::create_functional_case))
+        .route("/case/functional-case", get(case::get_functional_case_list))
         .route(
             "/case/functional-case/:case_id",
             get(case::get_functional_case),
@@ -33,7 +34,7 @@ pub fn app() -> Router {
             "/case/functional-case/issue-relation",
             post(case::create_issue_relation),
         )
-        .route("/case/list/:project_id", get(case::list))
+        // .route("/case/list/:project_id", get(case::list))
         .route("/case/detail/:case_id", get(case::detail))
         .route("/case/script/generate", post(case::create_script))
         .route("/case/environment/diagnose", post(case::env_diagnose))

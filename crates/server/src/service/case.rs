@@ -1,4 +1,7 @@
-use std::{collections::HashMap, path::Path};
+use std::{
+    collections::{HashMap, HashSet},
+    path::Path,
+};
 use tokio::try_join;
 use tracing::info;
 use uuid::Uuid;
@@ -8,14 +11,14 @@ use crate::{
     dao::{
         case::CaseDao,
         element::ElementDao,
-        entity::{Field, FieldType, FunctionalCase, Step},
+        entity::{CaseDetail, Field, FieldType, FunctionalCase, Step},
         file::FileDao,
     },
     dto::{
         request::{
             case::{
                 CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest, FieldValue,
-                QueryFieldParam, UpdateFieldRequest,
+                QueryCaseParam, QueryFieldParam, UpdateFieldRequest,
             },
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
             ListQueryParam,
@@ -90,7 +93,6 @@ pub async fn create_field(
             return Err(AppError::BadRequestError("Unknown fieldType".to_string()))
         }
     }
-
     transaction.commit().await?;
     Ok(CreateEntityResponse { id: field_id })
 }
@@ -202,41 +204,81 @@ pub async fn create_functional_case(
     let case_dao = CaseDao::new(&transaction);
     /* insert into functional_cases */
     let case = FunctionalCase::new(
-        request.name.as_str(),
+        &request.name,
         request.module_id,
         request.template_id,
         request.tags,
         uid,
     );
-    /* get template is exist, otherwise return not found err */
-    let _template = case_dao.get_template_by_id(case.template_id).await?;
+    /* check template is exist or not, otherwise return not found err */
+    let template = case_dao.get_template_by_id(case.template_id).await?;
+    info!("===>>: {template:?}");
+    let mut template_required_field_ids: HashSet<_> = template
+        .fields
+        .iter()
+        .filter(|f| f.required)
+        .map(|f| f.id)
+        .collect();
+    info!("template_required_field_ids ===>>: {template_required_field_ids:?}");
+
+    let template_optional_field_ids: HashSet<_> = template
+        .fields
+        .iter()
+        .filter(|f| !f.required)
+        .map(|f| f.id)
+        .collect();
+    info!("template_optional_field_ids ===>>: {template_optional_field_ids:?}");
+
+    let allowed_field_ids: HashSet<_> = template_required_field_ids
+        .union(&template_optional_field_ids)
+        .cloned()
+        .collect();
+    info!("allowed_field_ids ===>>: {allowed_field_ids:?}");
 
     let case_id = case_dao.insert_functional_case(case).await?;
     /* bind relationship between case with custom_field through table: [functional_case_field_relation] */
+    info!("request fields: {:?}", request.fields);
     for item in request.fields.into_iter() {
         /* get fielld by field_id */
+        if !allowed_field_ids.contains(&item.id) {
+            return Err(AppError::BadRequestError(format!(
+                "Field id `{}` not allowed",
+                item.id
+            )));
+        }
         let field = case_dao.get_field_by_id(item.id).await?;
         let field_type = FieldType::from_str(&field.field_type);
-        match field_type {
-            FieldType::Text => {
-                if let FieldValue::Text(value) = item.value {
-                    case_dao
-                        .insert_case_field_relation_with_text(case_id, field.id, &value, uid)
-                        .await?;
-                }
+        match (field_type, item.value) {
+            (FieldType::Text, FieldValue::Text(value)) => {
+                case_dao
+                    .insert_case_field_relation_with_text(case_id, field.id, &value, uid)
+                    .await?;
             }
-            FieldType::Select => {
-                if let FieldValue::Select(option) = item.value {
-                    case_dao
-                        .insert_case_field_relation_with_option(case_id, field.id, option, uid)
-                        .await?;
-                }
+            (FieldType::Select, FieldValue::Select(option)) => {
+                case_dao
+                    .insert_case_field_relation_with_option(case_id, field.id, option, uid)
+                    .await?;
             }
-            FieldType::Unknown => {
+            (FieldType::Unknown, _) => {
                 return Err(AppError::BadRequestError("Unknow fieldType".to_string()))
             }
+            (_, FieldValue::Text(_) | FieldValue::Select(_)) => {
+                return Err(AppError::BadRequestError(
+                    "fieldType mismatch with fieldValue".to_string(),
+                ));
+            }
         }
+        info!("----------------->>> start");
+        let _ = template_required_field_ids.remove(&item.id);
+        info!("----------------->>> end");
     }
+    info!("template_required_field_ids ===>>: {template_required_field_ids:?}");
+    if !template_required_field_ids.is_empty() {
+        return Err(AppError::BadRequestError(
+            "Missing required field".to_string(),
+        ));
+    }
+
     transaction.commit().await?;
     Ok(case_id)
 }
@@ -252,31 +294,37 @@ pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) ->
     Ok(())
 }
 
-pub async fn get_functional_case(state: &AppState, case_id: i32) -> AppResult<CaseDetailResponse> {
+pub async fn get_functional_case(state: &AppState, case_id: i32) -> AppResult<Vec<CaseDetail>> {
     info!("service layer get functional case with case_id {case_id:?}");
+    let mut case_list = vec![];
     let client = state.pool.get().await?;
     let case_dao = CaseDao::new(&client);
-    let functional_case = case_dao.detail(&case_id).await?;
-    let tags: Vec<String> = if let Some(d) = functional_case.tags {
-        d.split(",")
-            .into_iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>()
-    } else {
-        Vec::new()
-    };
-    Ok(CaseDetailResponse {
-        id: functional_case.id,
-        name: functional_case.name,
-        tags,
-        template_id: functional_case.template_id,
-        module_name: functional_case.module_name,
-        status: functional_case.status,
-        created_at: functional_case.created_at,
-        created_by: functional_case.created_by,
-        attach_info: functional_case.attach_info,
-        custom_fields: functional_case.custom_fields,
-    })
+    // if let Some(case_id) = params.case_id {
+    //     let case = case_dao.detail(&case_id).await?;
+    //     case_list.push(case);
+    // }
+    // let tags: Vec<String> = if let Some(d) = functional_case.tags {
+    //     d.split(",")
+    //         .into_iter()
+    //         .map(|s| s.to_string())
+    //         .collect::<Vec<_>>()
+    // } else {
+    //     Vec::new()
+    // };
+    // Ok(CaseDetailResponse {
+    //     id: functional_case.id,
+    //     name: functional_case.name,
+    //     tags,
+    //     template_id: functional_case.template_id,
+    //     module_name: functional_case.module_name,
+    //     status: functional_case.status,
+    //     created_at: functional_case.created_at,
+    //     created_by: functional_case.created_by,
+    //     attach_info: functional_case.attach_info,
+    //     custom_fields: functional_case.custom_fields,
+    // })
+    //
+    Ok(case_list)
 }
 
 pub async fn create_issue_relation(
@@ -301,7 +349,7 @@ pub async fn info(_state: &AppState, _project_id: &i32) -> AppResult<Requirement
     Ok(RequirementInfoResponse {})
 }
 
-pub async fn list(
+pub async fn get_functional_case_list(
     state: &AppState,
     project_id: &i32,
     param: &ListQueryParam,

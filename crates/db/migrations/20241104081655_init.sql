@@ -144,10 +144,56 @@ VALUES ('功能测试用例模版',
 
 INSERT INTO field
     (name, field_type, project_id, remark, internal, created_by)
-VALUES('标题', 'TEXT', 1, '', true, (SELECT uuid FROM users WHERE username = '__system__'));
+VALUES ('用例编号', 'TEXT', 1, '', true, (SELECT uuid FROM users WHERE username = '__system__')),
+        ('等级', 'SELECT', 1, '', true, (SELECT uuid FROM users WHERE username = '__system__')),
+        ('标题', 'TEXT', 1, '', true, (SELECT uuid FROM users WHERE username = '__system__')),
+        ('前置条件', 'TEXT', 1, '', true, (SELECT uuid FROM users WHERE username = '__system__')),
+        ('测试步骤', 'TEXT', 1, '', true, (SELECT uuid FROM users WHERE username = '__system__')),
+        ('预期结果', 'TEXT', 1, '', true, (SELECT uuid FROM users WHERE username = '__system__')),
+        ('备注', 'TEXT', 1, '', true, (SELECT uuid FROM users WHERE username = '__system__'));
+
+INSERT INTO field_option
+    (field_id, value, position, created_by)
+VALUES (2, 'P0', 1, (SELECT uuid FROM users WHERE username = '__system__')), (2, 'P1', 2, (SELECT uuid FROM users WHERE username = '__system__')), (2, 'P2', 3, (SELECT uuid FROM users WHERE username = '__system__'));
+
 
 INSERT INTO template_field_relation
     (template_id, field_id, required, default_value, created_by)
-VALUES ((SELECT id FROM template WHERE name = '功能测试用例模版'), (SELECT id FROM field WHERE name = '标题'), true, '', (SELECT uuid FROM users WHERE username = '__system__'));
+VALUES  ((SELECT id FROM template WHERE name = '功能测试用例模版'),
+        (SELECT id FROM field WHERE name = '用例编号'),
+        true,
+        '',
+        (SELECT uuid FROM users WHERE username = '__system__')),
+        ((SELECT id FROM template WHERE name = '功能测试用例模版'),
+        (SELECT id FROM field WHERE name = '标题'),
+        true,
+        '',
+        (SELECT uuid FROM users WHERE username = '__system__')),
+        ((SELECT id FROM template WHERE name = '功能测试用例模版'),
+        (SELECT id FROM field WHERE name = '等级'),
+        true,
+        '',
+        (SELECT uuid FROM users WHERE username = '__system__')),
+        ((SELECT id FROM template WHERE name = '功能测试用例模版'),
+        (SELECT id FROM field WHERE name = '前置条件'),
+        true,
+        '',
+        (SELECT uuid FROM users WHERE username = '__system__')),
+        ((SELECT id FROM template WHERE name = '功能测试用例模版'),
+        (SELECT id FROM field WHERE name = '测试步骤'),
+        true,
+        '',
+        (SELECT uuid FROM users WHERE username = '__system__')),
+        ((SELECT id FROM template WHERE name = '功能测试用例模版'),
+        (SELECT id FROM field WHERE name = '预期结果'),
+        true,
+        '',
+        (SELECT uuid FROM users WHERE username = '__system__')),
+        ((SELECT id FROM template WHERE name = '功能测试用例模版'),
+        (SELECT id FROM field WHERE name = '备注'),
+        false,
+        '',
+        (SELECT uuid FROM users WHERE username = '__system__'));
+
 
 -- migrate:down

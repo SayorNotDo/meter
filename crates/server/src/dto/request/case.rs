@@ -1,13 +1,13 @@
 use garde::Validate;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::dao::entity::FieldOption;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateFunctionalCaseRequest {
-    #[garde(skip)]
+    #[garde(length(min = 1))]
     pub name: String,
     #[garde(skip)]
     pub module_id: i32,
@@ -43,6 +43,11 @@ pub struct CreateFieldRequest {
     pub remark: Option<String>,
     #[garde(length(min = 1))]
     pub options: Option<Vec<FieldOption>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
+pub struct QueryCaseParam {
+    pub case_id: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]

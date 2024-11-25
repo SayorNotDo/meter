@@ -99,7 +99,7 @@ where
             Some(t) => Ok(t.to_template()),
             None => Err(AppError::NotFoundError(Resource {
                 details: vec![("file_type: template".into(), "not found".into())],
-                resource_type: ResourceType::File,
+                resource_type: ResourceType::Template,
             })),
         }
     }
@@ -125,7 +125,7 @@ where
             }
             None => Err(AppError::NotFoundError(Resource {
                 details: vec![],
-                resource_type: ResourceType::File,
+                resource_type: ResourceType::Field,
             })),
         }
     }
