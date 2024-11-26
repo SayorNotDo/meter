@@ -1,8 +1,12 @@
 use std::collections::HashMap;
 
 use crate::{
-    dao::entity::{Field, FieldOption, Script},
+    dao::entity::Script,
     dto::request::Issue,
+    entity::{
+        case::{CaseStatus, Field, FieldOption, FunctionalCase, Template, TemplateField},
+        file::FileModule,
+    },
     errors::{AppError, AppResult, Resource, ResourceType},
     utils,
 };
@@ -12,7 +16,7 @@ use serde_json::from_value;
 use tracing::info;
 use uuid::Uuid;
 
-use crate::dao::entity::{self, CaseDetail, FunctionalCase, Step};
+use crate::dao::entity::{self, Step};
 
 use super::entity::Machine;
 
@@ -25,24 +29,24 @@ where
 }
 
 trait ToTemplate {
-    fn to_template(&self) -> entity::Template;
+    fn to_template(&self) -> Template;
 }
 
 macro_rules! impl_to_template {
     ($($t:ty),*) => {
         $(
             impl ToTemplate for $t {
-                fn to_template(&self) -> entity::Template {
+                fn to_template(&self) -> Template {
                     let updated_at = utils::time::to_utc_or_default(self.updated_at);
                     let created_at = utils::time::to_utc(self.created_at);
                     /* construct fields array */
-                    let fields: Vec<entity::TemplateField> = match from_value(self.fields.clone()) {
+                    let fields: Vec<TemplateField> = match from_value(self.fields.clone()) {
                         Ok(fields) => fields,
                         Err(_) => {
                             vec![]
                         }
                     };
-                    entity::Template {
+                    Template {
                         id: self.id,
                         name: self.name.clone(),
                         internal: self.internal,
@@ -68,7 +72,7 @@ where
         CaseDao { executor }
     }
 
-    pub async fn get_template_project_id(&self, project_id: i32) -> AppResult<entity::Template> {
+    pub async fn get_template_project_id(&self, project_id: i32) -> AppResult<Template> {
         let ret = get_template_by_project_id()
             .bind(self.executor, &project_id)
             .opt()
@@ -85,11 +89,11 @@ where
         }
     }
 
-    pub async fn get_templates(&self, _project_id: &i32) -> AppResult<Vec<entity::Template>> {
+    pub async fn get_templates(&self, _project_id: &i32) -> AppResult<Vec<Template>> {
         Ok(vec![])
     }
 
-    pub async fn get_template_by_id(&self, template_id: i32) -> AppResult<entity::Template> {
+    pub async fn get_template_by_id(&self, template_id: i32) -> AppResult<Template> {
         let ret = get_template_by_id()
             .bind(self.executor, &template_id)
             .opt()
@@ -104,7 +108,7 @@ where
         }
     }
 
-    pub async fn get_field_by_id(&self, field_id: i32) -> AppResult<entity::Field> {
+    pub async fn get_field_by_id(&self, field_id: i32) -> AppResult<Field> {
         let ret = get_field_by_id()
             .bind(self.executor, &field_id)
             .opt()
@@ -113,7 +117,7 @@ where
             Some(field) => {
                 let options: Vec<FieldOption> =
                     from_value(field.options).unwrap_or_else(|_| vec![]);
-                Ok(entity::Field {
+                Ok(Field {
                     id: field.id,
                     name: field.name,
                     project_id: field.project_id,
@@ -169,7 +173,7 @@ where
         Ok(())
     }
 
-    pub async fn get_fields(&self, project_id: i32) -> AppResult<Vec<entity::Field>> {
+    pub async fn get_fields(&self, project_id: i32) -> AppResult<Vec<Field>> {
         let fields = get_fields()
             .bind(self.executor, &project_id)
             .all()
@@ -177,7 +181,7 @@ where
             .into_iter()
             .map(|item| {
                 let options: Vec<FieldOption> = from_value(item.options).unwrap_or_else(|_| vec![]);
-                entity::Field {
+                Field {
                     id: item.id,
                     name: item.name.clone(),
                     project_id: item.project_id,
@@ -281,38 +285,38 @@ where
         Ok(())
     }
 
-    pub async fn get_case_list(
+    pub async fn get_functional_case_list(
         &self,
-        module_id: &Vec<i32>,
-        page_size: &i64,
-        offset: &i64,
-    ) -> AppResult<Vec<CaseDetail>> {
-        let case_list = get_case_list()
-            .bind(self.executor, module_id, page_size, offset)
+        module_ids: Vec<i32>,
+        page_size: i64,
+        offset: i64,
+    ) -> AppResult<Vec<FunctionalCase>> {
+        let case_list = get_functional_case_list()
+            .bind(self.executor, &module_ids, &page_size, &offset)
             .all()
             .await?
             .into_iter()
             .map(|item| {
                 let created_at = utils::time::to_utc(item.created_at);
                 let updated_at = utils::time::to_utc_or_default(item.updated_at);
-                let custom_fields: Vec<entity::Field> =
-                    from_value(item.fields.clone()).unwrap_or_else(|_| vec![]);
-                CaseDetail {
+                let custom_fields: Vec<Field> = from_value(item.fields)?;
+                let module: FileModule = from_value(item.module)?;
+                Ok(FunctionalCase {
                     id: item.id,
                     name: item.name,
-                    module_name: item.module_name,
+                    module,
                     template_id: item.template_id,
                     tags: item.tags,
-                    status: item.status,
+                    status: CaseStatus::from_str(&item.status),
                     created_at,
                     created_by: item.created_by,
                     updated_at,
                     updated_by: item.updated_by,
                     custom_fields,
                     attach_info: None,
-                }
+                })
             })
-            .collect::<Vec<_>>();
+            .collect::<AppResult<Vec<_>>>()?;
         Ok(case_list)
     }
 
@@ -357,25 +361,29 @@ where
         }
     }
 
-    pub async fn detail(&self, case_id: &i32) -> AppResult<entity::CaseDetail> {
-        let detail = detail().bind(self.executor, case_id).opt().await?;
+    pub async fn get_functional_case_by_id(&self, case_id: &i32) -> AppResult<FunctionalCase> {
+        let detail = get_functional_case_by_id()
+            .bind(self.executor, case_id)
+            .opt()
+            .await?;
         match detail {
             Some(u) => {
                 let created_at = utils::time::to_utc(u.created_at);
                 let updated_at = utils::time::to_utc_or_default(u.updated_at);
-                let case = CaseDetail {
+                let module: FileModule = from_value(u.module)?;
+                let case = FunctionalCase {
                     id: u.id,
                     name: u.name,
-                    module_name: u.module_name,
+                    module,
                     template_id: u.template_id,
-                    status: u.status,
+                    status: CaseStatus::from_str(&u.status),
                     tags: u.tags,
                     attach_info: u.attach_info,
                     created_at,
                     created_by: u.created_by,
                     updated_at,
                     updated_by: u.updated_by,
-                    custom_fields: from_value::<Vec<entity::Field>>(u.fields)?,
+                    custom_fields: from_value::<Vec<Field>>(u.fields)?,
                 };
                 Ok(case)
             }
@@ -386,15 +394,19 @@ where
         }
     }
 
-    pub async fn insert_functional_case(&self, case: FunctionalCase) -> AppResult<i32> {
+    pub async fn insert_functional_case(
+        &self,
+        case: FunctionalCase,
+        created_by: Uuid,
+    ) -> AppResult<i32> {
         let case_id = insert_functional_case()
             .bind(
                 self.executor,
                 &case.name,
-                &case.module_id,
+                &case.module.id,
                 &case.template_id,
                 &case.tags,
-                &case.created_by,
+                &created_by,
             )
             .one()
             .await?;

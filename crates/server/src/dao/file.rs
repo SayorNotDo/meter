@@ -1,5 +1,5 @@
 use crate::{
-    dao::entity::{self, FileModule},
+    entity::file::FileModule,
     errors::{AppError, AppResult, Resource, ResourceType},
 };
 
@@ -7,7 +7,7 @@ use db::queries::file::*;
 use uuid::Uuid;
 
 trait ToFileModule {
-    fn to_file_module(&self) -> entity::FileModule;
+    fn to_file_module(&self) -> FileModule;
 }
 
 macro_rules! impl_to_file_module {

@@ -1,3 +1,4 @@
+use chrono::Utc;
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
@@ -8,25 +9,25 @@ use uuid::Uuid;
 
 use crate::{
     constant::{DOCTOR_SCRIPT_PATH, PAGE_DECODE_KEY},
-    dao::{
-        case::CaseDao,
-        element::ElementDao,
-        entity::{CaseDetail, Field, FieldType, FunctionalCase, Step},
-        file::FileDao,
-    },
+    dao::{case::CaseDao, element::ElementDao, entity::Step, file::FileDao},
     dto::{
         request::{
             case::{
                 CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest, FieldValue,
-                QueryCaseParam, QueryFieldParam, UpdateFieldRequest,
+                QueryFieldParam, UpdateFieldRequest,
             },
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
             ListQueryParam,
         },
         response::{
-            CaseDetailResponse, CreateEntityResponse, CreateScriptResponse, DiagnoseResponse,
-            ListCaseResponse, RequirementInfoResponse, TemplateResponse,
+            case::FunctionalCaseResponse, CreateEntityResponse, CreateScriptResponse,
+            DiagnoseResponse, ListFunctionalCaseResponse, RequirementInfoResponse,
+            TemplateResponse,
         },
+    },
+    entity::{
+        case::{CaseStatus, Field, FieldType, FunctionalCase},
+        file::{FileModule, ModuleType},
     },
     errors::{AppError, AppResult},
     service::{
@@ -202,24 +203,19 @@ pub async fn create_functional_case(
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let case_dao = CaseDao::new(&transaction);
+    let file_dao = FileDao::new(&transaction);
+    let module = file_dao.get_module_by_id(request.module_id).await?;
     /* insert into functional_cases */
-    let case = FunctionalCase::new(
-        &request.name,
-        request.module_id,
-        request.template_id,
-        request.tags,
-        uid,
-    );
+    let case = FunctionalCase::new(&request.name, module, request.template_id, request.tags);
     /* check template is exist or not, otherwise return not found err */
     let template = case_dao.get_template_by_id(case.template_id).await?;
-    info!("===>>: {template:?}");
+
     let mut template_required_field_ids: HashSet<_> = template
         .fields
         .iter()
         .filter(|f| f.required)
         .map(|f| f.id)
         .collect();
-    info!("template_required_field_ids ===>>: {template_required_field_ids:?}");
 
     let template_optional_field_ids: HashSet<_> = template
         .fields
@@ -227,17 +223,14 @@ pub async fn create_functional_case(
         .filter(|f| !f.required)
         .map(|f| f.id)
         .collect();
-    info!("template_optional_field_ids ===>>: {template_optional_field_ids:?}");
 
     let allowed_field_ids: HashSet<_> = template_required_field_ids
         .union(&template_optional_field_ids)
         .cloned()
         .collect();
-    info!("allowed_field_ids ===>>: {allowed_field_ids:?}");
 
-    let case_id = case_dao.insert_functional_case(case).await?;
+    let case_id = case_dao.insert_functional_case(case, uid).await?;
     /* bind relationship between case with custom_field through table: [functional_case_field_relation] */
-    info!("request fields: {:?}", request.fields);
     for item in request.fields.into_iter() {
         /* get fielld by field_id */
         if !allowed_field_ids.contains(&item.id) {
@@ -268,11 +261,8 @@ pub async fn create_functional_case(
                 ));
             }
         }
-        info!("----------------->>> start");
-        let _ = template_required_field_ids.remove(&item.id);
-        info!("----------------->>> end");
+        template_required_field_ids.remove(&item.id);
     }
-    info!("template_required_field_ids ===>>: {template_required_field_ids:?}");
     if !template_required_field_ids.is_empty() {
         return Err(AppError::BadRequestError(
             "Missing required field".to_string(),
@@ -294,11 +284,13 @@ pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) ->
     Ok(())
 }
 
-pub async fn get_functional_case(state: &AppState, case_id: i32) -> AppResult<Vec<CaseDetail>> {
+pub async fn get_functional_case(
+    state: &AppState,
+    case_id: i32,
+) -> AppResult<FunctionalCaseResponse> {
     info!("service layer get functional case with case_id {case_id:?}");
-    let mut case_list = vec![];
-    let client = state.pool.get().await?;
-    let case_dao = CaseDao::new(&client);
+    // let client = state.pool.get().await?;
+    // let case_dao = CaseDao::new(&client);
     // if let Some(case_id) = params.case_id {
     //     let case = case_dao.detail(&case_id).await?;
     //     case_list.push(case);
@@ -311,20 +303,26 @@ pub async fn get_functional_case(state: &AppState, case_id: i32) -> AppResult<Ve
     // } else {
     //     Vec::new()
     // };
-    // Ok(CaseDetailResponse {
-    //     id: functional_case.id,
-    //     name: functional_case.name,
-    //     tags,
-    //     template_id: functional_case.template_id,
-    //     module_name: functional_case.module_name,
-    //     status: functional_case.status,
-    //     created_at: functional_case.created_at,
-    //     created_by: functional_case.created_by,
-    //     attach_info: functional_case.attach_info,
-    //     custom_fields: functional_case.custom_fields,
-    // })
-    //
-    Ok(case_list)
+    Ok(FunctionalCaseResponse {
+        id: 0,
+        name: "test_case".to_string(),
+        tags: vec![],
+        template_id: 0,
+        module: FileModule {
+            id: 0,
+            name: "module_name".to_string(),
+            module_type: ModuleType::Case.to_string(),
+            position: 0,
+            parent_id: None,
+        },
+        status: CaseStatus::UnReviewed.to_string(),
+        created_at: Utc::now(),
+        created_by: "tester".to_string(),
+        updated_at: None,
+        updated_by: None,
+        attach_info: None,
+        custom_fields: vec![],
+    })
 }
 
 pub async fn create_issue_relation(
@@ -353,7 +351,7 @@ pub async fn get_functional_case_list(
     state: &AppState,
     project_id: &i32,
     param: &ListQueryParam,
-) -> AppResult<ListCaseResponse> {
+) -> AppResult<ListFunctionalCaseResponse> {
     info!("service layer for list with path_param: {project_id:?}, query_param: {param:?}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
@@ -367,7 +365,7 @@ pub async fn get_functional_case_list(
             (page_size, 0)
         }
     };
-    let module_id = if let Some(id) = param.module_id {
+    let module_ids = if let Some(id) = param.module_id {
         vec![id]
     } else {
         /* get root module_id while related query param is null */
@@ -380,10 +378,10 @@ pub async fn get_functional_case_list(
     let next_page_token = generate_page_token(page_size, page_num + 1)?;
     let case_dao = CaseDao::new(&transaction);
     let list = case_dao
-        .get_case_list(&module_id, &page_size, &offset)
+        .get_functional_case_list(module_ids, page_size, offset)
         .await?;
     transaction.commit().await?;
-    Ok(ListCaseResponse {
+    Ok(ListFunctionalCaseResponse {
         next_page_token,
         list,
     })
@@ -404,12 +402,12 @@ pub async fn count(
     Ok(hmap)
 }
 
-pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<CaseDetailResponse> {
+pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<FunctionalCaseResponse> {
     info!("service layer for case detail with case id: {case_id:?}");
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
-    let detail = case_dao.detail(case_id).await?;
-    let tags: Vec<String> = if let Some(d) = detail.tags {
+    let case = case_dao.get_functional_case_by_id(case_id).await?;
+    let tags: Vec<String> = if let Some(d) = case.tags {
         d.split(",")
             .into_iter()
             .map(|s| s.to_string())
@@ -417,17 +415,19 @@ pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<CaseDetailResp
     } else {
         Vec::new()
     };
-    Ok(CaseDetailResponse {
-        id: detail.id,
-        name: detail.name,
-        template_id: detail.template_id,
-        status: detail.status,
+    Ok(FunctionalCaseResponse {
+        id: case.id,
+        name: case.name,
+        template_id: case.template_id,
+        status: case.status.to_string(),
         tags,
-        module_name: detail.module_name,
-        attach_info: detail.attach_info,
-        created_at: detail.created_at,
-        created_by: detail.created_by,
-        custom_fields: detail.custom_fields,
+        module: case.module,
+        attach_info: case.attach_info,
+        updated_at: case.updated_at,
+        updated_by: case.updated_by,
+        created_at: case.created_at,
+        created_by: case.created_by,
+        custom_fields: case.custom_fields,
     })
 }
 
@@ -479,7 +479,7 @@ pub async fn gen_script(
 
     /* insert script record into database */
     let case_dao = CaseDao::new(&transaction);
-    let related_case = case_dao.detail(&request.case_id).await?;
+    let related_case = case_dao.get_functional_case_by_id(&request.case_id).await?;
     let path = script.path.clone();
     script.case_id = related_case.id;
     script.environment = request.environment;

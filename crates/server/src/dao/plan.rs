@@ -1,12 +1,8 @@
 use std::collections::HashMap;
 
-use crate::utils;
+use crate::{entity::project::Plan, errors::AppResult, utils};
 use db::queries::plan::*;
 use tracing::info;
-
-use crate::{dao::entity::Plan, errors::AppResult};
-
-use super::entity::PlanDetail;
 
 pub struct PlanDao<'a, T>
 where
@@ -45,7 +41,7 @@ where
         module_id: &Vec<i32>,
         page_size: &i64,
         page_offset: &i64,
-    ) -> AppResult<Vec<PlanDetail>> {
+    ) -> AppResult<Vec<Plan>> {
         let plan_list = get_plan_list()
             .bind(self.executor, module_id, page_size, page_offset)
             .all()
@@ -54,19 +50,19 @@ where
             .map(|item| {
                 let created_at = utils::time::to_utc(item.created_at);
                 let updated_at = utils::time::to_utc_or_default(item.updated_at);
-                PlanDetail {
+                Plan {
                     id: item.id,
                     name: item.name,
                     status: item.status,
                     description: item.description,
-                    belong_module: item.belong_module,
-                    belong_project: item.belong_project,
+                    module_id: item.module_id,
+                    project_id: item.project_id,
                     created_at,
                     created_by: item.created_by,
                     updated_at,
                     updated_by: item.updated_by,
-                    start_date: utils::time::to_naive_date(item.start_date),
-                    end_date: utils::time::to_naive_date(item.end_date),
+                    start_date: utils::time::date_to_utc(item.start_date),
+                    end_date: utils::time::date_to_utc(item.end_date),
                 }
             })
             .collect::<Vec<_>>();

@@ -195,5 +195,8 @@ VALUES  ((SELECT id FROM template WHERE name = '功能测试用例模版'),
         '',
         (SELECT uuid FROM users WHERE username = '__system__'));
 
+INSERT INTO file_module
+    (project_id, name, module_type, created_by)
+VALUES  (1, '示例文件夹', 'CASE', (SELECT uuid FROM users WHERE username = '__system__'));
 
 -- migrate:down

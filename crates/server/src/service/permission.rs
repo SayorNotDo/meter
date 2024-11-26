@@ -1,6 +1,6 @@
-use crate::dao::entity::UserRolePermission;
 use crate::{
-    dao::{entity::Permission, permission::PermissionDao, user::UserDao},
+    dao::{permission::PermissionDao, user::UserDao},
+    entity::{permission::Permission, user::UserRolePermission},
     errors::AppResult,
     state::AppState,
 };

@@ -9,23 +9,23 @@ use axum_extra::extract::WithRejection;
 use garde::Validate;
 
 use crate::{
-    dao::entity::{CaseDetail, Field},
     dto::{
         request::{
             case::{
                 CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest,
-                QueryCaseParam, QueryFieldParam, UpdateFieldRequest,
+                QueryFieldParam, UpdateFieldRequest,
             },
             file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
             ListQueryParam, QueryTemplateParam,
         },
         response::{
-            CaseDetailResponse, CreateEntityResponse, CreateScriptResponse, DiagnoseResponse,
-            FileModuleResponse, ListCaseResponse, MessageResponse, RequirementInfoResponse,
-            TemplateResponse,
+            case::FunctionalCaseResponse, CreateEntityResponse, CreateScriptResponse,
+            DiagnoseResponse, FileModuleResponse, ListFunctionalCaseResponse, MessageResponse,
+            RequirementInfoResponse, TemplateResponse,
         },
     },
+    entity::case::Field,
     errors::{AppError, AppResponseError, AppResult},
     service::{self, case, file},
     state::AppState,
@@ -162,9 +162,9 @@ pub async fn create_functional_case(
 
 #[utoipa::path(
     get,
-    path = "/management/case/functional-case/{project_id}",
+    path = "/management/case/functional-case/{case_id}",
     responses(
-        (status = 200, description = "Success get functional-case", body = [Vec<CaseDetail>]),
+        (status = 200, description = "Success get functional-case", body = [FunctionalCaseResponse]),
         (status = 404, description = "Case not found", body = [AppResponseError])
     ),
     security(("jwt" = []))
@@ -173,7 +173,7 @@ pub async fn get_functional_case(
     Extension(state): Extension<AppState>,
     Path(case_id): Path<i32>,
     _user: UserClaims,
-) -> AppResult<Json<Vec<CaseDetail>>> {
+) -> AppResult<Json<FunctionalCaseResponse>> {
     info!("query functional case with path case_id: {case_id:?}");
     match case::get_functional_case(&state, case_id).await {
         Ok(resp) => Ok(Json(resp)),
@@ -327,7 +327,7 @@ pub async fn get_functional_case_list(
     Extension(state): Extension<AppState>,
     headers: HeaderMap,
     Query(param): Query<ListQueryParam>,
-) -> AppResult<Json<ListCaseResponse>> {
+) -> AppResult<Json<ListFunctionalCaseResponse>> {
     info!("controller layer query case list with param: {param:?}");
     let project_id = extract_project_id(&headers)?;
     match case::get_functional_case_list(&state, &project_id, &param).await {
@@ -355,27 +355,6 @@ pub async fn count(
 ) -> AppResult<Json<HashMap<String, i64>>> {
     info!("controller layer case count group by module in project: {project_id:?}");
     match case::count(&state, &project_id, &param).await {
-        Ok(resp) => Ok(Json(resp)),
-        Err(e) => Err(e),
-    }
-}
-
-#[utoipa::path(
-    get,
-    path = "/management/case/detail/:case_id",
-    params(),
-    responses(
-        (status = 200, description = "Get case details"),
-        (status = 404, description = "Case not found", body = [AppResponseError]),
-    ),
-    security(("jwt" = []))
-)]
-pub async fn detail(
-    Extension(state): Extension<AppState>,
-    Path(case_id): Path<i32>,
-) -> AppResult<Json<CaseDetailResponse>> {
-    info!("controller layer case detail with id: {case_id:?}");
-    match case::detail(&state, &case_id).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

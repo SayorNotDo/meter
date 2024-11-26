@@ -9,7 +9,6 @@ use reqwest::StatusCode;
 use server::{
     configure::server::ConfigHTTP,
     constant::{HTTP, PROJECT_ID},
-    dao::entity::{Field, Permission, UserRole, UserRolePermission},
     dto::{
         request::{
             case::*,
@@ -17,7 +16,12 @@ use server::{
             user::{DeleteUserRequest, LoginRequest, UpdateUserStatusRequest},
             *,
         },
-        response::{user::*, *},
+        response::{case::FunctionalCaseResponse, user::*, *},
+    },
+    entity::{
+        case::Field,
+        permission::Permission,
+        user::{UserRole, UserRolePermission},
     },
     utils::http::HttpClientExt,
 };
@@ -320,8 +324,9 @@ impl Api {
     pub async fn get_functional_case(
         &self,
         token: &str,
+        project_id: i32,
         case_id: i32,
-    ) -> anyhow::Result<(StatusCode, AppResultResponse<Vec<()>>)> {
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<FunctionalCaseResponse>)> {
         let mut headers = HeaderMap::new();
         headers.append(
             reqwest::header::AUTHORIZATION,
@@ -330,8 +335,34 @@ impl Api {
         headers.append(PROJECT_ID, project_id.to_string().parse()?);
 
         let resp = HTTP
-            .get(format!("{}/management/case/{}", self.addr, case_id))
+            .get(format!(
+                "{}/management/case/functional-case/{}",
+                self.addr, case_id
+            ))
             .headers(headers)
+            .send()
+            .await?;
+
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn get_functional_case_list(
+        &self,
+        token: &str,
+        project_id: i32,
+        params: &Option<ListQueryParam>,
+    ) -> anyhow::Result<(StatusCode, AppResultResponse<ListFunctionalCaseResponse>)> {
+        let mut headers = HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .get(format!("{}/management/case/functional-case", self.addr))
+            .headers(headers)
+            .query(params)
             .send()
             .await?;
 

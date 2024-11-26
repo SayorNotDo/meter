@@ -1,9 +1,10 @@
 use crate::{
-    dao::{self, entity::FileModule},
+    dao,
     dto::{
         request::file::{CreateModuleRequest, QueryModuleParam},
         response::{CreateEntityResponse, FileModuleResponse},
     },
+    entity::file::FileModule,
     errors::{AppError, AppResult},
     state::AppState,
 };

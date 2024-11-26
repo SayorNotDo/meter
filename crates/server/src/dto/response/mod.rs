@@ -2,12 +2,15 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::dao::entity::{
-    CaseDetail, ElementDetail, Field, PlanDetail, TemplateField, User, UserRole,
-    UserRolePermission, UserRoleRelation,
+use crate::{
+    dao::entity::ElementDetail,
+    entity::{
+        case::{FunctionalCase, TemplateField},
+        project::{Plan, Project},
+        user::{User, UserRole, UserRolePermission, UserRoleRelation},
+    },
+    errors::AppResponseError,
 };
-use crate::dao::project::ProjectInfo;
-use crate::errors::AppResponseError;
 
 pub mod case;
 pub mod file;
@@ -46,7 +49,7 @@ pub struct ProjectInfoResponse {
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct ProjectListResponse {
-    pub projects: Vec<ProjectInfo>,
+    pub projects: Vec<Project>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -96,9 +99,9 @@ pub struct ListUserResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct ListCaseResponse {
+pub struct ListFunctionalCaseResponse {
     pub next_page_token: String,
-    pub list: Vec<CaseDetail>,
+    pub list: Vec<FunctionalCase>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -110,7 +113,7 @@ pub struct ListElementResponse {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ListPlanResponse {
     pub next_page_token: String,
-    pub list: Vec<PlanDetail>,
+    pub list: Vec<Plan>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -127,20 +130,6 @@ pub struct TemplateResponse {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct RequirementInfoResponse {}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct CaseDetailResponse {
-    pub id: i32,
-    pub name: String,
-    pub tags: Vec<String>,
-    pub template_id: i32,
-    pub module_name: String,
-    pub status: String,
-    pub created_at: DateTime<Utc>,
-    pub created_by: String,
-    pub attach_info: Option<String>,
-    pub custom_fields: Vec<Field>,
-}
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ElementResponse {

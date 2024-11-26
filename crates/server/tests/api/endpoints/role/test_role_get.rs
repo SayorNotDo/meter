@@ -6,7 +6,7 @@ use crate::{
         user::{Role, TestUser},
     },
 };
-use server::{dao::entity::UserRole, dto::request::user::LoginRequest, errors::AppResponseError};
+use server::{dto::request::user::LoginRequest, entity::user::UserRole, errors::AppResponseError};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]

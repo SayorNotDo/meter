@@ -1,9 +1,17 @@
-use crate::{assert_err, context::seeder::SeedDbTestContext, helper::user::Role};
+use crate::{
+    assert_err,
+    context::seeder::SeedDbTestContext,
+    helper::{
+        result::AppResponseResult,
+        user::{Role, TestUser},
+    },
+};
 
-use crate::helper::result::AppResponseResult;
-use crate::helper::user::TestUser;
-use server::dao::entity::{Permission, UserRolePermission};
-use server::{dto::request::user::LoginRequest, errors::AppResponseError};
+use server::{
+    dto::request::user::LoginRequest,
+    entity::{permission::Permission, user::UserRolePermission},
+    errors::AppResponseError,
+};
 use test_context::test_context;
 
 #[test_context(SeedDbTestContext)]

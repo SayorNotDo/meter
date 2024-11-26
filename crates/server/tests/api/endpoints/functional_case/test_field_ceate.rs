@@ -5,7 +5,6 @@ use crate::{
 };
 use fake::{Fake, Faker};
 use server::{
-    dao::entity::{Field, FieldOption},
     dto::{
         request::{
             case::{CreateFieldRequest, QueryFieldParam},
@@ -13,6 +12,7 @@ use server::{
         },
         response::CreateEntityResponse,
     },
+    entity::case::{Field, FieldOption},
     errors::AppResponseError,
 };
 use test_context::test_context;

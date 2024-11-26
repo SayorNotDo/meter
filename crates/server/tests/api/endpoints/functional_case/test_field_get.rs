@@ -4,8 +4,8 @@ use crate::{
 };
 
 use server::{
-    dao::entity::Field,
     dto::request::{case::QueryFieldParam, user::LoginRequest},
+    entity::case::Field,
 };
 use test_context::test_context;
 

@@ -1,7 +1,10 @@
 use std::vec;
 
-use crate::dao::entity;
 use crate::{
+    entity::{
+        permission::Permission,
+        user::{User, UserRole, UserRoleOption, UserRoleRelation},
+    },
     errors::{AppError, AppResult, Resource, ResourceType},
     utils::time,
 };
@@ -11,14 +14,14 @@ use tracing::log::info;
 use uuid::Uuid;
 
 trait ToUser {
-    fn to_user(&self) -> entity::User;
+    fn to_user(&self) -> User;
 }
 
 macro_rules! impl_to_user {
     ($include_hashed_password:expr, $($t:ty),*) => {
         $(
         impl ToUser for $t {
-            fn to_user(&self) -> entity::User {
+            fn to_user(&self) -> User {
                 let timestamp_updated_at = match self.updated_at {
                     Some(t) => t.assume_utc().unix_timestamp_nanos(),
                     None => 0
@@ -27,7 +30,7 @@ macro_rules! impl_to_user {
                 let hashed_password = if $include_hashed_password {
                     self.hashed_password.clone()
                 } else { "".into() };
-                entity::User {
+                User {
                     id: self.id,
                     username: self.username.clone(),
                     uuid: self.uuid,
@@ -70,7 +73,7 @@ where
     pub fn new(executor: &'a T) -> Self {
         UserDao { executor }
     }
-    pub async fn find_by_uid(&self, uid: &Uuid) -> AppResult<entity::User> {
+    pub async fn find_by_uid(&self, uid: &Uuid) -> AppResult<User> {
         /* 通过uid查询用户 */
         let ret = get_user_by_uuid().bind(self.executor, uid).opt().await?;
         match ret {
@@ -86,7 +89,7 @@ where
         }
     }
 
-    pub async fn find_by_id(&self, id: &i32) -> AppResult<entity::User> {
+    pub async fn find_by_id(&self, id: &i32) -> AppResult<User> {
         /* 通过主键查询用户 */
         let ret = get_user_by_id().bind(self.executor, id).opt().await?;
         match ret {
@@ -102,7 +105,7 @@ where
         }
     }
 
-    pub async fn find_by_role_id(&self, role_id: i32) -> AppResult<Vec<entity::User>> {
+    pub async fn find_by_role_id(&self, role_id: i32) -> AppResult<Vec<User>> {
         let users = get_users_by_role_id()
             .bind(self.executor, &role_id)
             .all()
@@ -140,7 +143,7 @@ where
         &self,
         role: &str,
         project_id: i32,
-    ) -> AppResult<Vec<entity::User>> {
+    ) -> AppResult<Vec<User>> {
         /*  通过项目id和角色id查询用户 */
         let users = get_users_by_role_and_project_id()
             .bind(self.executor, &project_id, &role)
@@ -152,7 +155,7 @@ where
         Ok(users)
     }
 
-    pub async fn find_by_username(&self, username: String) -> AppResult<entity::User> {
+    pub async fn find_by_username(&self, username: String) -> AppResult<User> {
         /* 通过用户名查询用户并返回 */
         let ret = get_user_by_username()
             .bind(self.executor, &username)
@@ -214,7 +217,7 @@ where
         }
     }
 
-    pub async fn get_user_roles_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<entity::UserRole>> {
+    pub async fn get_user_roles_by_uuid(&self, uuid: &Uuid) -> AppResult<Vec<UserRole>> {
         let mut ret = vec![];
         let user_roles = get_user_roles_by_uuid()
             .bind(self.executor, uuid)
@@ -226,7 +229,7 @@ where
                 None => 0,
             };
             let timestamp_created_at = item.created_at.assume_utc().unix_timestamp_nanos();
-            let user_role = entity::UserRole {
+            let user_role = UserRole {
                 id: item.id,
                 name: item.name,
                 role_type: item.role_type,
@@ -247,7 +250,7 @@ where
         &self,
         uuid: &Uuid,
         project_id: &i32,
-    ) -> AppResult<entity::UserRole> {
+    ) -> AppResult<UserRole> {
         let ret = get_user_role_by_uuid_and_project_id()
             .bind(self.executor, uuid, project_id)
             .opt()
@@ -256,7 +259,7 @@ where
             Some(role) => {
                 let created_at = time::to_utc(role.created_at);
                 let updated_at = time::to_utc_or_default(role.updated_at);
-                Ok(entity::UserRole {
+                Ok(UserRole {
                     id: role.id,
                     name: role.name,
                     role_type: role.role_type,
@@ -277,14 +280,14 @@ where
     pub async fn get_user_role_list_by_project_id(
         &self,
         project_id: &i32,
-    ) -> AppResult<Vec<entity::UserRoleOption>> {
+    ) -> AppResult<Vec<UserRoleOption>> {
         let mut ret = vec![];
         let user_roles = get_user_role_list_by_project_id()
             .bind(self.executor, project_id)
             .all()
             .await?;
         for item in user_roles {
-            let user_role = entity::UserRoleOption {
+            let user_role = UserRoleOption {
                 id: item.id,
                 name: item.name,
             };
@@ -294,10 +297,7 @@ where
     }
 
     #[allow(dead_code)]
-    pub async fn get_idle_users_by_project_id(
-        &self,
-        project_id: &i32,
-    ) -> AppResult<Vec<entity::User>> {
+    pub async fn get_idle_users_by_project_id(&self, project_id: &i32) -> AppResult<Vec<User>> {
         let users = get_idle_users_by_project_id()
             .bind(self.executor, project_id)
             .all()
@@ -308,13 +308,13 @@ where
         Ok(users)
     }
 
-    pub async fn get_role_by_id(&self, role_id: i32) -> AppResult<entity::UserRole> {
+    pub async fn get_role_by_id(&self, role_id: i32) -> AppResult<UserRole> {
         let ret = get_role_by_id().bind(self.executor, &role_id).opt().await?;
         match ret {
             Some(role) => {
                 let created_at = time::to_utc(role.created_at);
                 let updated_at = time::to_utc_or_default(role.updated_at);
-                Ok(entity::UserRole {
+                Ok(UserRole {
                     id: role.id,
                     name: role.name,
                     role_type: role.role_type,
@@ -342,7 +342,7 @@ where
     pub async fn get_user_role_relations_by_uuid(
         &self,
         uuid: &Uuid,
-    ) -> AppResult<Vec<entity::UserRoleRelation>> {
+    ) -> AppResult<Vec<UserRoleRelation>> {
         let mut ret = vec![];
         let user_role_relations = get_user_role_relations_by_uuid()
             .bind(self.executor, uuid)
@@ -350,7 +350,7 @@ where
             .await?;
         for item in user_role_relations {
             let timestamp_created_at = item.created_at.assume_utc().unix_timestamp_nanos();
-            let user_role = entity::UserRoleRelation {
+            let user_role = UserRoleRelation {
                 id: item.id,
                 user_id: item.user_id,
                 role_id: item.role_id,
@@ -366,7 +366,7 @@ where
     pub async fn get_user_role_permissions_by_role_id(
         &self,
         _role_id: &i32,
-    ) -> AppResult<Vec<entity::Permission>> {
+    ) -> AppResult<Vec<Permission>> {
         let ret = vec![];
         // let user_role_permissions = get_user_role_permissions_by_role_id()
         //     .bind(self.executor, role_id)
@@ -383,7 +383,7 @@ where
         Ok(ret)
     }
 
-    pub async fn insert(&self, object: &entity::User) -> AppResult<i32> {
+    pub async fn insert(&self, object: &User) -> AppResult<i32> {
         let user_id = insert_user()
             .bind(
                 self.executor,
@@ -426,7 +426,7 @@ where
         Ok(relation_id)
     }
 
-    pub async fn all(&self) -> AppResult<Vec<entity::User>> {
+    pub async fn all(&self) -> AppResult<Vec<User>> {
         let users = get_users()
             .bind(self.executor)
             .all()

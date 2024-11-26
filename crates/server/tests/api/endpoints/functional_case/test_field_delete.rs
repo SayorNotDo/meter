@@ -1,6 +1,6 @@
 use fake::{Fake, Faker};
 use server::{
-    dao::{case::CaseDao, entity::FieldOption},
+    dao::case::CaseDao,
     dto::{
         request::{
             case::{CreateFieldRequest, DeleteFieldRequest, QueryFieldParam},
@@ -8,6 +8,7 @@ use server::{
         },
         response::CreateEntityResponse,
     },
+    entity::case::FieldOption,
 };
 use test_context::test_context;
 

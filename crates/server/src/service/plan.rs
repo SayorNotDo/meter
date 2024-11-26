@@ -5,11 +5,12 @@ use uuid::Uuid;
 
 use crate::{
     constant::PAGE_DECODE_KEY,
-    dao::{entity::Plan, file::FileDao, plan::PlanDao},
+    dao::{file::FileDao, plan::PlanDao},
     dto::{
         request::{CreatePlanRequest, ListQueryParam, PlanQueryParam},
         response::ListPlanResponse,
     },
+    entity::project::Plan,
     errors::AppResult,
     service::token::generate_page_token,
     state::AppState,

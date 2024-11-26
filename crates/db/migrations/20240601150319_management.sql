@@ -117,7 +117,8 @@ CREATE TABLE functional_cases
     created_by  UUID      NOT NULL,
     updated_by  UUID,
     deleted_at  TIMESTAMP,
-    deleted_by  UUID
+    deleted_by  UUID,
+    attach_info VARCHAR
 );
 
 -- create trigger: set updated_at field
@@ -140,6 +141,8 @@ COMMENT ON COLUMN functional_cases.created_by IS '创建人';
 COMMENT ON COLUMN functional_cases.updated_by IS '更新人';
 COMMENT ON COLUMN functional_cases.deleted_at IS '删除时间';
 COMMENT ON COLUMN functional_cases.deleted_by IS '删除人';
+COMMENT ON COLUMN functional_cases.attach_info IS '附加信息';
+
 
 DROP TABLE IF EXISTS functional_case_field_relation;
 
@@ -245,7 +248,6 @@ CREATE TABLE file_module
     name        VARCHAR,
     position    INT       NOT NULL DEFAULT 0,
     module_type VARCHAR   NOT NULL,
-    attach_info VARCHAR,
     parent_id   INT,
     created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
     created_by  UUID      NOT NULL,

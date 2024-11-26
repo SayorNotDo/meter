@@ -1,5 +1,8 @@
 use crate::{
-    dao::entity::{Permission, UserRole, UserRolePermission},
+    entity::{
+        permission::Permission,
+        user::{UserRole, UserRolePermission},
+    },
     errors::AppResult,
     utils::time,
 };

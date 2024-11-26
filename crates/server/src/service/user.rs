@@ -3,12 +3,7 @@ use uuid::Uuid;
 
 use crate::{
     constant::REGISTER_EMAIL_SUBJECT,
-    dao::{
-        self,
-        entity::{User, UserRole, UserRoleOption, UserRolePermission},
-        permission::PermissionDao,
-        user::UserDao,
-    },
+    dao::{permission::PermissionDao, user::UserDao},
     dto::{
         request::{
             user::{LoginRequest, UpdateUserStatusRequest},
@@ -17,6 +12,8 @@ use crate::{
         response::{user::LoginResponse, CreateEntityResponse, MessageResponse, UserInfoResponse},
         EmailTemplate,
     },
+    entity::user::{User, UserRoleOption},
+    entity::user::{UserRole, UserRolePermission},
     errors::{AppError, AppResult, Resource, ResourceType},
     service::{redis::SessionKey, session, token},
     state::AppState,
@@ -44,7 +41,7 @@ pub async fn register(
     /* 生成随机密码 */
     let password = utils::password::generate()?;
     let hashed_password = utils::password::hash(password.clone()).await?;
-    let new_user = dao::entity::User::new(&username, &hashed_password, &email, created_by, true);
+    let new_user = User::new(&username, &hashed_password, &email, created_by, true);
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let user_dao = UserDao::new(&transaction);

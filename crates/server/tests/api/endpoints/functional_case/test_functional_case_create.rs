@@ -10,7 +10,7 @@ use server::{
             case::{CreateFunctionalCaseRequest, FieldValue, SelectedField},
             user::LoginRequest,
         },
-        response::CreateEntityResponse,
+        response::{case::FunctionalCaseResponse, CreateEntityResponse},
     },
     errors::AppResponseError,
 };
@@ -30,7 +30,7 @@ pub async fn test_success_create_functional_case(ctx: &mut SeedDbTestContext) {
 
     let req: CreateFunctionalCaseRequest = CreateFunctionalCaseRequest {
         name: Faker.fake::<String>(),
-        module_id: 0,
+        module_id: 1,
         template_id: 1,
         tags: Some(Faker.fake::<String>()),
         fields: vec![
@@ -76,7 +76,22 @@ pub async fn test_success_create_functional_case(ctx: &mut SeedDbTestContext) {
     assert!(matches!(
         resp,
         AppResponseResult::Ok(CreateEntityResponse { .. })
-    ))
+    ));
+
+    if let AppResponseResult::Ok(entity) = resp {
+        let (status, resp) = ctx
+            .app
+            .api
+            .get_functional_case(&token.access_token, ctx.project.id, entity.id)
+            .await
+            .unwrap();
+
+        assert!(status.is_success(), "status: {status}");
+        assert!(matches!(
+            resp,
+            AppResponseResult::Ok(FunctionalCaseResponse { .. })
+        ))
+    }
 }
 
 #[test_context(SeedDbTestContext)]
@@ -122,7 +137,7 @@ pub async fn test_conflict_value_option_create_function_case(ctx: &mut SeedDbTes
 
     let req: CreateFunctionalCaseRequest = CreateFunctionalCaseRequest {
         name: Faker.fake::<String>(),
-        module_id: 0,
+        module_id: 1,
         template_id: 1,
         tags: Some(Faker.fake::<String>()),
         fields: vec![SelectedField {
@@ -155,7 +170,7 @@ pub async fn test_conflict_value_text_create_function_case(ctx: &mut SeedDbTestC
 
     let req: CreateFunctionalCaseRequest = CreateFunctionalCaseRequest {
         name: Faker.fake::<String>(),
-        module_id: 0,
+        module_id: 1,
         template_id: 1,
         tags: Some(Faker.fake::<String>()),
         fields: vec![SelectedField {

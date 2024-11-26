@@ -1,9 +1,9 @@
 use crate::{
-    dao::entity::{self, UserRoleOption},
     dto::{
         request::{UserInfoUpdateRequest, UserQueryParam},
         response::UserInfoResponse,
     },
+    entity::user::{User, UserRoleOption},
     errors::{AppResponseError, AppResult},
     service,
     state::AppState,
@@ -74,7 +74,7 @@ pub async fn list(
     Path(_project_id): Path<i32>,
     user: UserClaims,
     Query(params): Query<UserQueryParam>,
-) -> AppResult<Json<Vec<entity::User>>> {
+) -> AppResult<Json<Vec<User>>> {
     info!("controller layer get user list by: {user:?} with params: {params:?}");
     match service::user::list(&state, user.uid, params).await {
         Ok(resp) => Ok(Json(resp)),

@@ -1,6 +1,11 @@
-use crate::errors::{AppError, AppResult, Resource, ResourceType};
-use crate::utils;
-use crate::utils::time::{to_utc, to_utc_or_default};
+use crate::{
+    entity::project::Project,
+    errors::{AppError, AppResult, Resource, ResourceType},
+    utils::{
+        self,
+        time::{to_utc, to_utc_or_default},
+    },
+};
 use chrono::{DateTime, Utc};
 use db::queries::project::*;
 use garde::rules::AsStr;
@@ -9,20 +14,6 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::entity::ProjectMember;
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
-pub struct Project {
-    pub id: i32,
-    pub name: String,
-    pub created_at: DateTime<Utc>,
-    pub created_by: Uuid,
-    pub updated_at: Option<DateTime<Utc>>,
-    pub updated_by: Option<Uuid>,
-    pub deleted_by: Option<Uuid>,
-    pub deleted_at: Option<DateTime<Utc>>,
-    pub description: Option<String>,
-    pub module_setting: Option<String>,
-}
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct ProjectInfo {
@@ -39,29 +30,6 @@ pub struct ProjectInfo {
     pub deleted_by: Option<String>,
     pub description: Option<String>,
     pub module_setting: Option<String>,
-}
-
-impl Project {
-    #[allow(dead_code)]
-    pub fn new(
-        name: String,
-        created_by: Uuid,
-        description: Option<String>,
-        module_setting: Option<String>,
-    ) -> Self {
-        Self {
-            id: 0,
-            name,
-            created_at: Utc::now(),
-            created_by,
-            updated_at: None,
-            updated_by: None,
-            deleted_by: None,
-            deleted_at: None,
-            description,
-            module_setting,
-        }
-    }
 }
 
 trait ToProject {

@@ -7,11 +7,11 @@ use crate::{
 use fake::{Fake, Faker};
 use server::{
     constant::ACCESS_TOKEN_ENCODE_KEY,
-    dao::entity::Permission,
     dto::{
         request::{user::LoginRequest, CreateRoleRequest},
         response::CreateEntityResponse,
     },
+    entity::permission::Permission,
     errors::AppResponseError,
     service::session,
     utils::claim::UserClaims,

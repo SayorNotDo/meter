@@ -3,6 +3,7 @@ pub mod configure;
 pub mod constant;
 pub mod dao;
 pub mod dto;
+pub mod entity;
 pub mod errors;
 pub mod middleware;
 pub mod server;

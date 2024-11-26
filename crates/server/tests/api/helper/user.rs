@@ -1,13 +1,11 @@
 use fake::{faker::internet::en::FreeEmail, Fake, Faker};
-use server::dao::permission::PermissionDao;
-use server::service::user::batch_delete;
-use server::state::AppState;
+
 use server::{
-    dao::{
-        entity::{Permission, User},
-        user::UserDao,
-    },
+    dao::{permission::PermissionDao, user::UserDao},
+    entity::{permission::Permission, user::User},
     errors::AppResult,
+    service::user::batch_delete,
+    state::AppState,
     utils,
 };
 use std::collections::HashMap;

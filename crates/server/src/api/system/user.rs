@@ -1,11 +1,14 @@
 use crate::{
-    dao::entity::{Permission, UserRole, UserRolePermission},
     dto::{
         request::{
             user::{DeleteUserRequest, UpdateUserStatusRequest},
             CreateRoleRequest, DeleteRoleRequest, UserQueryParam,
         },
         response::{CreateEntityResponse, ListUserResponse, MessageResponse},
+    },
+    entity::{
+        permission::Permission,
+        user::{UserRole, UserRolePermission},
     },
     errors::{AppResponseError, AppResult},
     service,

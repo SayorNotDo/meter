@@ -55,11 +55,17 @@ INSERT INTO case_issue_relation (
     :created_by
 );
 
---! get_case_list : (updated_at?, updated_by?, tags?)
+--! get_functional_case_list : (updated_at?, updated_by?, tags?)
 SELECT fc.id,
        fc.name,
        fc.template_id,
-       (SELECT name FROM file_module WHERE file_module.id = fc.module_id) AS module_name,
+       JSON_BUILD_OBJECT(
+        'id', fm.id,
+        'name', fm.name,
+        'position', fm.position,
+        'module_type', fm.module_type,
+        'parent_id', fm.parent_id
+       ) AS module,
        fc.tags,
        fc.status,
        fc.created_at,
@@ -71,6 +77,7 @@ SELECT fc.id,
                                JSON_BUILD_OBJECT(
                                        'id', tfr.id,
                                        'name', f.name,
+                                       'project_id', f.project_id,
                                        'internal', f.internal,
                                        'field_type', f.field_type,
                                        'required', tfr.required,
@@ -93,8 +100,9 @@ SELECT fc.id,
                 WHERE tfr.template_id = fc.template_id), '[]'
        ) AS fields
 FROM functional_cases fc
-WHERE fc.module_id = ANY(SELECT fm.id FROM file_module fm WHERE fm.id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
-  AND fc.deleted_at IS NULL AND fc.deleted_by IS NULL
+LEFT JOIN file_module fm ON fc.module_id = fm.id
+WHERE
+(fc.module_id = ANY(:module_id) OR fm.parent_id = ANY(:module_id)) AND fc.deleted_at IS NULL AND fc.deleted_by IS NULL
 LIMIT :page_size
 OFFSET :offset;
 
@@ -129,14 +137,19 @@ WHERE
     fc.module_id = :module_id;
 
 
---! detail : (attach_info?, tags?, updated_at?, updated_by?)
+--! get_functional_case_by_id : (attach_info?, tags?, updated_at?, updated_by?)
 SELECT
     fc.id,
     fc.name,
     fc.tags,
     fc.template_id,
-    fm.name AS module_name,
-    fm.attach_info,
+    JSON_BUILD_OBJECT(
+        'id', fm.id,
+        'name', fm.name,
+        'position', fm.position,
+        'module_type', fm.module_type,
+        'parent_id', fm.parent_id
+    ) AS module,
     COALESCE(
             (SELECT JSON_AGG(
                             JSON_BUILD_OBJECT(
@@ -163,6 +176,7 @@ SELECT
              LEFT JOIN field f ON tfr.field_id = f.id
              WHERE tfr.template_id = fc.template_id), '[]'
     ) AS fields,
+    fc.attach_info,
     fc.status,
     fc.created_at,
     u.username AS created_by,

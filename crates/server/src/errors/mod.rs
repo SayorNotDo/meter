@@ -14,7 +14,7 @@ use tera::Error as TeraError;
 use tokio_postgres::Error as TokioPostgresError;
 use utoipa::ToSchema;
 
-use crate::dao::entity;
+use crate::entity;
 
 pub type AppResult<T = ()> = std::result::Result<T, AppError>;
 
@@ -49,7 +49,7 @@ pub enum ResourceType {
     Role,
     #[strum(serialize = "TEMPLATE")]
     Template,
-    #[strum(serialize = "FiELD")]
+    #[strum(serialize = "FIELD")]
     Field,
 }
 

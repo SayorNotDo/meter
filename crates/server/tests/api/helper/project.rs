@@ -1,7 +1,4 @@
-use server::{
-    dao::project::{Project, ProjectDao},
-    errors::AppResult,
-};
+use server::{dao::project::ProjectDao, entity::project::Project, errors::AppResult};
 use uuid::Uuid;
 
 #[allow(dead_code)]
