@@ -19,6 +19,21 @@ pub struct CreateFunctionalCaseRequest {
     pub fields: Vec<SelectedField>,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateFunctionalCaseRequest {
+    #[garde(skip)]
+    pub case_id: i32,
+    #[garde(length(min = 1))]
+    pub name: String,
+    #[garde(skip)]
+    pub module_id: i32,
+    #[garde(skip)]
+    pub tags: Option<String>,
+    #[garde(length(min = 1))]
+    pub fields: Vec<SelectedField>,
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SelectedField {

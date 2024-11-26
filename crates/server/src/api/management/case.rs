@@ -13,7 +13,7 @@ use crate::{
         request::{
             case::{
                 CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest,
-                QueryFieldParam, UpdateFieldRequest,
+                QueryFieldParam, UpdateFieldRequest, UpdateFunctionalCaseRequest,
             },
             file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
@@ -177,6 +177,30 @@ pub async fn get_functional_case(
     info!("query functional case with path case_id: {case_id:?}");
     match case::get_functional_case(&state, case_id).await {
         Ok(resp) => Ok(Json(resp)),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    put,
+    path = "/management/case/functional-case",
+    request_body = UpdateFunctionalCaseRequest,
+    responses(
+        (status = 200, description = "Success update functional case", body = [MessageResponse]),
+        (status = 400, description = "Invalid parameters", body = [AppResponseError])
+    ),
+    security(("jwt" = []))
+)]
+pub async fn update_functional_case(
+    Extension(state): Extension<AppState>,
+    headers: HeaderMap,
+    user: UserClaims,
+    Json(request): Json<UpdateFunctionalCaseRequest>,
+) -> AppResult<Json<MessageResponse>> {
+    info!("update functional case with request: {request:?}");
+    let project_id = extract_project_id(&headers)?;
+    match case::update_functional_case(&state, project_id, user.uid, request).await {
+        Ok(_) => Ok(Json(MessageResponse::new("Success update functional case"))),
         Err(e) => Err(e),
     }
 }

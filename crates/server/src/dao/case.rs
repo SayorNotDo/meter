@@ -361,9 +361,9 @@ where
         }
     }
 
-    pub async fn get_functional_case_by_id(&self, case_id: &i32) -> AppResult<FunctionalCase> {
+    pub async fn get_functional_case_by_id(&self, case_id: i32) -> AppResult<FunctionalCase> {
         let detail = get_functional_case_by_id()
-            .bind(self.executor, case_id)
+            .bind(self.executor, &case_id)
             .opt()
             .await?;
         match detail {
@@ -394,6 +394,8 @@ where
         }
     }
 
+    pub async fn get_functional_case_by_name(self, case_name: String) -> AppResult {}
+
     pub async fn insert_functional_case(
         &self,
         case: FunctionalCase,
@@ -412,6 +414,26 @@ where
             .await?;
 
         Ok(case_id)
+    }
+
+    pub async fn update_functional_case(
+        &self,
+        case: FunctionalCase,
+        updated_by: Uuid,
+    ) -> AppResult {
+        update_functional_case()
+            .bind(
+                self.executor,
+                &case.name,
+                &case.tags,
+                &case.module.id,
+                &case.status.to_string(),
+                &Some(updated_by),
+                &case.id,
+            )
+            .await?;
+
+        Ok(())
     }
 
     pub async fn insert_case_field_relation_with_text(

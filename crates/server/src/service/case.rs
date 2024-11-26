@@ -14,7 +14,7 @@ use crate::{
         request::{
             case::{
                 CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest, FieldValue,
-                QueryFieldParam, UpdateFieldRequest,
+                QueryFieldParam, UpdateFieldRequest, UpdateFunctionalCaseRequest,
             },
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
             ListQueryParam,
@@ -273,6 +273,24 @@ pub async fn create_functional_case(
     Ok(case_id)
 }
 
+pub async fn update_functional_case(
+    state: &AppState,
+    project_id: i32,
+    updated_by: Uuid,
+    request: UpdateFunctionalCaseRequest,
+) -> AppResult {
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let case_dao = CaseDao::new(&transaction);
+    let file_dao = FileDao::new(&transaction);
+    let module = file_dao.get_module_by_id(request.module_id).await?;
+    let mut case = case_dao.get_functional_case_by_id(request.case_id).await?;
+    /* Update case */
+
+    /* Update case field relation */
+    Ok(())
+}
+
 pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) -> AppResult {
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
@@ -402,7 +420,7 @@ pub async fn count(
     Ok(hmap)
 }
 
-pub async fn detail(state: &AppState, case_id: &i32) -> AppResult<FunctionalCaseResponse> {
+pub async fn detail(state: &AppState, case_id: i32) -> AppResult<FunctionalCaseResponse> {
     info!("service layer for case detail with case id: {case_id:?}");
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
@@ -479,7 +497,7 @@ pub async fn gen_script(
 
     /* insert script record into database */
     let case_dao = CaseDao::new(&transaction);
-    let related_case = case_dao.get_functional_case_by_id(&request.case_id).await?;
+    let related_case = case_dao.get_functional_case_by_id(request.case_id).await?;
     let path = script.path.clone();
     script.case_id = related_case.id;
     script.environment = request.environment;

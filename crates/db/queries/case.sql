@@ -136,6 +136,16 @@ FROM functional_cases fc
 WHERE
     fc.module_id = :module_id;
 
+--! update_functional_case (tags?, updated_by?)
+UPDATE functional_cases
+    SET name = :name,
+        tags = :tags,
+        module_id = :module_id,
+        status = :status,
+        updated_by = :updated_by,
+        updated_at = NOW()
+WHERE id = :case_id;
+
 
 --! get_functional_case_by_id : (attach_info?, tags?, updated_at?, updated_by?)
 SELECT

@@ -30,6 +30,7 @@ pub fn app() -> Router {
             "/case/functional-case/:case_id",
             get(case::get_functional_case),
         )
+        .route("/case/functional-case", put(case::update_functional_case))
         .route(
             "/case/functional-case/issue-relation",
             post(case::create_issue_relation),

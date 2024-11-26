@@ -352,7 +352,7 @@ impl Api {
         token: &str,
         project_id: i32,
         params: &Option<ListQueryParam>,
-    ) -> anyhow::Result<(StatusCode, AppResultResponse<ListFunctionalCaseResponse>)> {
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<ListFunctionalCaseResponse>)> {
         let mut headers = HeaderMap::new();
         headers.append(
             reqwest::header::AUTHORIZATION,
@@ -363,6 +363,30 @@ impl Api {
             .get(format!("{}/management/case/functional-case", self.addr))
             .headers(headers)
             .query(params)
+            .send()
+            .await?;
+
+        Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn update_functional_case(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &UpdateFunctionalCaseRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
+        let mut headers = HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+
+        let resp = HTTP
+            .put(format!("{}/management/case/functional-case", self.addr))
+            .headers(headers)
+            .json(req)
             .send()
             .await?;
 
