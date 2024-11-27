@@ -121,7 +121,9 @@ pub async fn login(state: &AppState, request: LoginRequest) -> AppResult<LoginRe
                 Ok(LoginResponse::Token(resp))
             }
         }
-        Err(_) => Err(AppError::BadRequestError("Error username/password".into())),
+        Err(_) => Err(AppError::BadRequestError(
+            "Error username/password".to_string(),
+        )),
     }
 }
 

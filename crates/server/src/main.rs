@@ -15,7 +15,7 @@ async fn main() -> AppResult<()> {
     /* Run server with graceful shutdown */
     let server = AppServer::new(config).await?;
 
-    info!("Starting the server...");
+    info!("********************* Starting the server *********************");
     task::join_all(vec![(true, server.run().boxed())]).await?;
 
     Ok(())
