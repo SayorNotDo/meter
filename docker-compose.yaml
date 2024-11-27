@@ -13,7 +13,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - network
+      - net
 
   dbmate:
     image: ghcr.io/amacneil/dbmate:latest
