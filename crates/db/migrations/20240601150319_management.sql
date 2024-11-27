@@ -72,6 +72,7 @@ EXECUTE PROCEDURE trigger_set_timestamp();
 -- comments
 COMMENT ON COLUMN plans.id IS '测试计划ID';
 COMMENT ON COLUMN plans.name IS '测试计划名称';
+COMMENT ON COLUMN plans.project_id IS '关联项目ID';
 COMMENT ON COLUMN plans.description IS '测试计划描述';
 COMMENT ON COLUMN plans.module_id IS '所属模块ID';
 COMMENT ON COLUMN plans.created_at IS '创建时间';

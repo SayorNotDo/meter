@@ -28,6 +28,43 @@ where
     executor: &'a T,
 }
 
+trait ToFunctionalCase {
+    fn to_functional_case(&self) -> AppResult<FunctionalCase>;
+}
+
+macro_rules! impl_to_functional_case {
+    ($($t:ty), *) => {
+        $(
+            impl ToFunctionalCase for $t {
+                fn to_functional_case(&self) -> AppResult<FunctionalCase> {
+                    let created_at = utils::time::to_utc(self.created_at);
+                    let updated_at = utils::time::to_utc_or_default(self.updated_at);
+                    Ok(FunctionalCase {
+                        id: self.id,
+                        name: self.name.clone(),
+                        module: from_value::<FileModule>(self.module.clone())?,
+                        status: CaseStatus::from_str(&self.status),
+                        template_id: self.template_id,
+                        tags: self.tags.clone(),
+                        attach_info: self.attach_info.clone(),
+                        created_by: self.created_by.clone(),
+                        created_at,
+                        updated_by: self.updated_by.clone(),
+                        updated_at,
+                        fields: from_value::<Vec<Field>>(self.fields.clone())?
+                    })
+                }
+            }
+        )*
+    };
+}
+
+impl_to_functional_case!(
+    GetFunctionalCaseById,
+    GetFunctionalCaseByName,
+    GetFunctionalCaseList
+);
+
 trait ToTemplate {
     fn to_template(&self) -> Template;
 }
@@ -296,26 +333,7 @@ where
             .all()
             .await?
             .into_iter()
-            .map(|item| {
-                let created_at = utils::time::to_utc(item.created_at);
-                let updated_at = utils::time::to_utc_or_default(item.updated_at);
-                let custom_fields: Vec<Field> = from_value(item.fields)?;
-                let module: FileModule = from_value(item.module)?;
-                Ok(FunctionalCase {
-                    id: item.id,
-                    name: item.name,
-                    module,
-                    template_id: item.template_id,
-                    tags: item.tags,
-                    status: CaseStatus::from_str(&item.status),
-                    created_at,
-                    created_by: item.created_by,
-                    updated_at,
-                    updated_by: item.updated_by,
-                    custom_fields,
-                    attach_info: None,
-                })
-            })
+            .map(|item| item.to_functional_case())
             .collect::<AppResult<Vec<_>>>()?;
         Ok(case_list)
     }
@@ -362,39 +380,32 @@ where
     }
 
     pub async fn get_functional_case_by_id(&self, case_id: i32) -> AppResult<FunctionalCase> {
-        let detail = get_functional_case_by_id()
+        let ret = get_functional_case_by_id()
             .bind(self.executor, &case_id)
             .opt()
             .await?;
-        match detail {
-            Some(u) => {
-                let created_at = utils::time::to_utc(u.created_at);
-                let updated_at = utils::time::to_utc_or_default(u.updated_at);
-                let module: FileModule = from_value(u.module)?;
-                let case = FunctionalCase {
-                    id: u.id,
-                    name: u.name,
-                    module,
-                    template_id: u.template_id,
-                    status: CaseStatus::from_str(&u.status),
-                    tags: u.tags,
-                    attach_info: u.attach_info,
-                    created_at,
-                    created_by: u.created_by,
-                    updated_at,
-                    updated_by: u.updated_by,
-                    custom_fields: from_value::<Vec<Field>>(u.fields)?,
-                };
-                Ok(case)
-            }
+        match ret {
+            Some(u) => u.to_functional_case(),
             None => Err(AppError::NotFoundError(Resource {
-                resource_type: ResourceType::File,
+                resource_type: ResourceType::Case,
                 details: vec![],
             })),
         }
     }
 
-    pub async fn get_functional_case_by_name(self, case_name: String) -> AppResult {}
+    pub async fn get_functional_case_by_name(self, case_name: String) -> AppResult<FunctionalCase> {
+        let ret = get_functional_case_by_name()
+            .bind(self.executor, &case_name)
+            .opt()
+            .await?;
+        match ret {
+            Some(u) => u.to_functional_case(),
+            None => Err(AppError::NotFoundError(Resource {
+                resource_type: ResourceType::Case,
+                details: vec![],
+            })),
+        }
+    }
 
     pub async fn insert_functional_case(
         &self,

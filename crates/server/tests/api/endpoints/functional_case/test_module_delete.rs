@@ -3,10 +3,14 @@ use crate::{
     context::seeder::SeedDbTestContext,
     helper::{result::AppResponseResult, user::Role},
 };
+use fake::{Fake, Faker};
 use server::{
-    dto::request::{
-        file::{DeleteModuleRequest, QueryModuleParam},
-        user::LoginRequest,
+    dto::{
+        request::{
+            file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
+            user::LoginRequest,
+        },
+        response::CreateEntityResponse,
     },
     errors::AppResponseError,
 };
@@ -24,22 +28,27 @@ pub async fn test_success_delete_case_module(ctx: &mut SeedDbTestContext) {
 
     let token = ctx.app.api.get_token(&req).await.unwrap();
 
+    let req: CreateModuleRequest = CreateModuleRequest {
+        name: Faker.fake::<String>(),
+        project_id: ctx.project.id,
+        parent_id: None,
+    };
+
     let (status, resp) = ctx
         .app
         .api
-        .get_case_module(
-            &token.access_token,
-            ctx.project.id,
-            ctx.project.id,
-            &QueryModuleParam { module_id: None },
-        )
+        .create_case_module(&token.access_token, ctx.project.id, &req)
         .await
         .unwrap();
 
     assert!(status.is_success(), "status: {status}");
-    if let AppResponseResult::Ok(m) = resp {
-        let module = m.get(0).unwrap();
-        let req: DeleteModuleRequest = DeleteModuleRequest { id: module.id };
+    assert!(matches!(
+        resp,
+        AppResponseResult::Ok(CreateEntityResponse { .. })
+    ));
+
+    if let AppResponseResult::Ok(entity) = resp {
+        let req: DeleteModuleRequest = DeleteModuleRequest { id: entity.id };
         let (status, _resp) = ctx
             .app
             .api
@@ -57,7 +66,7 @@ pub async fn test_success_delete_case_module(ctx: &mut SeedDbTestContext) {
                 ctx.project.id,
                 ctx.project.id,
                 &QueryModuleParam {
-                    module_id: Some(module.id),
+                    module_id: Some(entity.id),
                 },
             )
             .await
@@ -65,6 +74,6 @@ pub async fn test_success_delete_case_module(ctx: &mut SeedDbTestContext) {
 
         assert_eq!(status, reqwest::StatusCode::NOT_FOUND);
         assert_err!(resp, |e: &AppResponseError| e.kind
-            == "FILE_NOT_FOUND_ERROR");
+            == "MODULE_NOT_FOUND_ERROR");
     }
 }

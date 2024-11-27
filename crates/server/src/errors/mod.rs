@@ -51,6 +51,10 @@ pub enum ResourceType {
     Template,
     #[strum(serialize = "FIELD")]
     Field,
+    #[strum(serialize = "CASE")]
+    Case,
+    #[strum(serialize = "MODULE")]
+    Module,
 }
 
 #[derive(Debug, thiserror::Error)]

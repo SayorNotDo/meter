@@ -55,7 +55,7 @@ INSERT INTO case_issue_relation (
     :created_by
 );
 
---! get_functional_case_list : (updated_at?, updated_by?, tags?)
+--! get_functional_case_list : (updated_at?, updated_by?, tags?, attach_info?)
 SELECT fc.id,
        fc.name,
        fc.template_id,
@@ -67,6 +67,7 @@ SELECT fc.id,
         'parent_id', fm.parent_id
        ) AS module,
        fc.tags,
+       fc.attach_info,
        fc.status,
        fc.created_at,
        (SELECT username FROM users WHERE users.uuid = fc.created_by) AS created_by,
@@ -77,8 +78,8 @@ SELECT fc.id,
                                JSON_BUILD_OBJECT(
                                        'id', tfr.id,
                                        'name', f.name,
-                                       'project_id', f.project_id,
                                        'internal', f.internal,
+                                       'project_id', f.project_id,
                                        'field_type', f.field_type,
                                        'required', tfr.required,
                                        'default_value', tfr.default_value,
@@ -146,6 +147,55 @@ UPDATE functional_cases
         updated_at = NOW()
 WHERE id = :case_id;
 
+--! get_functional_case_by_name : (attach_info?, tags?, updated_at?, updated_by?)
+SELECT
+    fc.id,
+    fc.name,
+    fc.tags,
+    fc.template_id,
+    JSON_BUILD_OBJECT(
+        'id', fm.id,
+        'name', fm.name,
+        'position', fm.position,
+        'module_type', fm.module_type,
+        'parent_id', fm.parent_id
+    ) AS module,
+    COALESCE(
+        (SELECT JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                        'id', tfr.id,
+                        'name', f.name,
+                        'internal', f.internal,
+                        'project_id', f.project_id,
+                        'field_type', f.field_type,
+                        'default_value', tfr.default_value,
+                        'options', COALESCE(
+                                    (SELECT JSON_AGG(
+                                        JSON_BUILD_OBJECT(
+                                            'id', fo.id,
+                                            'value', fo.value,
+                                            'position', fo.position
+                                        )
+                                    ) FROM field_option fo WHERE fo.field_id =  tfr.id), '[]'
+                        )
+                    )
+        ) FROM template_field_relation tfr LEFT JOIN field f ON tfr.field_id = f.id)
+    ) AS fields,
+    fc.attach_info,
+    fc.status,
+    fc.created_at,
+    c.username AS created_by,
+    fc.updated_at,
+    u.username AS updated_by
+FROM functional_cases fc
+LEFT JOIN file_module fm
+    ON fm.id = fc.module_id
+LEFT JOIN users c
+    ON c.uuid = fc.created_by
+LEFT JOIN users u
+    ON u.uuid = fc.updated_by
+WHERE
+    fc.name = :case_name;
 
 --! get_functional_case_by_id : (attach_info?, tags?, updated_at?, updated_by?)
 SELECT
@@ -166,6 +216,7 @@ SELECT
                                     'id', tfr.id,
                                     'name', f.name,
                                     'internal', f.internal,
+                                    'project_id', f.project_id,
                                     'field_type', f.field_type,
                                     'required', tfr.required,
                                     'default_value', tfr.default_value,

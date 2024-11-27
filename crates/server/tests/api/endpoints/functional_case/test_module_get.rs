@@ -56,7 +56,7 @@ pub async fn test_invalid_params_get_module(ctx: &mut SeedDbTestContext) {
 
     assert!(status.is_client_error(), "status: {status}");
     assert_err!(resp, |e: &AppResponseError| e.kind
-        == "FILE_NOT_FOUND_ERROR");
+        == "MODULE_NOT_FOUND_ERROR");
 }
 
 #[test_context(SeedDbTestContext)]

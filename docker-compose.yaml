@@ -30,6 +30,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/meter
+    command: ["cargo build", "--release"]
     depends_on:
       - db
       - redis

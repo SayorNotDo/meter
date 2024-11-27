@@ -16,5 +16,5 @@ pub struct FunctionalCaseResponse {
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
     pub attach_info: Option<String>,
-    pub custom_fields: Vec<Field>,
+    pub fields: Vec<Field>,
 }

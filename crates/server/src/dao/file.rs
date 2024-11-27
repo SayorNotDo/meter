@@ -74,7 +74,7 @@ where
             Some(module) => Ok(module.to_file_module()),
             None => Err(AppError::NotFoundError(Resource {
                 details: vec![],
-                resource_type: ResourceType::File,
+                resource_type: ResourceType::Module,
             })),
         }
     }

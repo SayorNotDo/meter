@@ -2,7 +2,6 @@ use super::result::AppResponseResult;
 use crate::unwrap;
 use anyhow::Ok;
 
-use axum::http::HeaderMap;
 use log_derive::logfn;
 use reqwest::StatusCode;
 
@@ -327,7 +326,7 @@ impl Api {
         project_id: i32,
         case_id: i32,
     ) -> anyhow::Result<(StatusCode, AppResponseResult<FunctionalCaseResponse>)> {
-        let mut headers = HeaderMap::new();
+        let mut headers = reqwest::header::HeaderMap::new();
         headers.append(
             reqwest::header::AUTHORIZATION,
             format!("Bearer {token}").parse()?,
@@ -353,7 +352,7 @@ impl Api {
         project_id: i32,
         params: &Option<ListQueryParam>,
     ) -> anyhow::Result<(StatusCode, AppResponseResult<ListFunctionalCaseResponse>)> {
-        let mut headers = HeaderMap::new();
+        let mut headers = reqwest::header::HeaderMap::new();
         headers.append(
             reqwest::header::AUTHORIZATION,
             format!("Bearer {token}").parse()?,
@@ -376,7 +375,7 @@ impl Api {
         project_id: i32,
         req: &UpdateFunctionalCaseRequest,
     ) -> anyhow::Result<(StatusCode, AppResponseResult)> {
-        let mut headers = HeaderMap::new();
+        let mut headers = reqwest::header::HeaderMap::new();
         headers.append(
             reqwest::header::AUTHORIZATION,
             format!("Bearer {token}").parse()?,

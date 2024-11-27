@@ -90,7 +90,10 @@ pub async fn test_success_create_functional_case(ctx: &mut SeedDbTestContext) {
         assert!(matches!(
             resp,
             AppResponseResult::Ok(FunctionalCaseResponse { .. })
-        ))
+        ));
+        if let AppResponseResult::Ok(case) = resp {
+            assert_eq!(case.id, entity.id)
+        }
     }
 }
 

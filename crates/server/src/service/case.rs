@@ -1,4 +1,3 @@
-use chrono::Utc;
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
@@ -25,11 +24,8 @@ use crate::{
             TemplateResponse,
         },
     },
-    entity::{
-        case::{CaseStatus, Field, FieldType, FunctionalCase},
-        file::{FileModule, ModuleType},
-    },
-    errors::{AppError, AppResult},
+    entity::case::{Field, FieldType, FunctionalCase},
+    errors::{AppError, AppResult, Resource, ResourceType},
     service::{
         engine::{self, StepInfo},
         token::generate_page_token,
@@ -279,16 +275,35 @@ pub async fn update_functional_case(
     updated_by: Uuid,
     request: UpdateFunctionalCaseRequest,
 ) -> AppResult {
+    info!("case service layer update functional case with request: {request:?}, updated_by: {updated_by}, project_id: {project_id}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let case_dao = CaseDao::new(&transaction);
     let file_dao = FileDao::new(&transaction);
     let module = file_dao.get_module_by_id(request.module_id).await?;
     let mut case = case_dao.get_functional_case_by_id(request.case_id).await?;
+    info!("===>> : {case:?}");
+    /* Setter */
+    case.name = request.name;
+    case.module = module;
     /* Update case */
-
-    /* Update case field relation */
-    Ok(())
+    match case_dao.get_functional_case_by_name(case.name).await {
+        Ok(r) => {
+            if r.id != case.id {
+                Err(AppError::ResourceExistsError(Resource {
+                    details: vec![],
+                    resource_type: ResourceType::Case,
+                }))
+            } else {
+                Ok(())
+            }
+        }
+        Err(AppError::NotFoundError { .. }) => {
+            info!("case modify name haven't been used");
+            Ok(())
+        }
+        Err(e) => Err(e),
+    }
 }
 
 pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) -> AppResult {
@@ -307,39 +322,33 @@ pub async fn get_functional_case(
     case_id: i32,
 ) -> AppResult<FunctionalCaseResponse> {
     info!("service layer get functional case with case_id {case_id:?}");
-    // let client = state.pool.get().await?;
-    // let case_dao = CaseDao::new(&client);
-    // if let Some(case_id) = params.case_id {
-    //     let case = case_dao.detail(&case_id).await?;
-    //     case_list.push(case);
-    // }
-    // let tags: Vec<String> = if let Some(d) = functional_case.tags {
-    //     d.split(",")
-    //         .into_iter()
-    //         .map(|s| s.to_string())
-    //         .collect::<Vec<_>>()
-    // } else {
-    //     Vec::new()
-    // };
+    let client = state.pool.get().await?;
+    let case_dao = CaseDao::new(&client);
+    let case = case_dao.get_functional_case_by_id(case_id).await?;
+
+    let tags: Vec<String> = if let Some(d) = case.tags {
+        d.split(",")
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>()
+    } else {
+        return Err(AppError::BadRequestError(
+            "Invalid `field` tags".to_string(),
+        ));
+    };
     Ok(FunctionalCaseResponse {
-        id: 0,
-        name: "test_case".to_string(),
-        tags: vec![],
-        template_id: 0,
-        module: FileModule {
-            id: 0,
-            name: "module_name".to_string(),
-            module_type: ModuleType::Case.to_string(),
-            position: 0,
-            parent_id: None,
-        },
-        status: CaseStatus::UnReviewed.to_string(),
-        created_at: Utc::now(),
-        created_by: "tester".to_string(),
-        updated_at: None,
-        updated_by: None,
-        attach_info: None,
-        custom_fields: vec![],
+        id: case.id,
+        name: case.name,
+        tags,
+        template_id: case.template_id,
+        module: case.module,
+        status: case.status.to_string(),
+        created_at: case.created_at,
+        created_by: case.created_by,
+        updated_at: case.updated_at,
+        updated_by: case.updated_by,
+        attach_info: case.attach_info,
+        fields: case.fields,
     })
 }
 
@@ -445,7 +454,7 @@ pub async fn detail(state: &AppState, case_id: i32) -> AppResult<FunctionalCaseR
         updated_by: case.updated_by,
         created_at: case.created_at,
         created_by: case.created_by,
-        custom_fields: case.custom_fields,
+        fields: case.fields,
     })
 }
 
