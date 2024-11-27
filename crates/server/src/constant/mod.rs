@@ -25,7 +25,8 @@ pub const ALLOW_METHOD: [Method; 6] = [
     Method::PUT,
 ];
 pub const ALLOW_ORIGIN: [HeaderValue; 1] = [HeaderValue::from_static("http://localhost:3000")];
-pub const ACCESS_WHITE_LIST: [&str; 3] = ["/auth/login", "/auth/logout", "/swagger-ui"];
+pub const ACCESS_WHITE_LIST: [&str; 4] =
+    ["/auth/login", "/auth/logout", "/swagger-ui", "/user/info"];
 pub const EMAIL_ADDR: &str = "chenwentao@datatower.ai";
 pub const REGISTER_EMAIL_SUBJECT: &str = "<DTest-测试平台> 注册邮件通知";
 
