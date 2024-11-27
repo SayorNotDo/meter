@@ -2,8 +2,8 @@ services:
   db:
     image: postgres:14-alpine
     environment:
-      DATABASE_URL: postgresql://postgres:testpassword@db:5432/postgres?sslmode=disable
-      POSTGRES_PASSWORD: testpassword
+      DATABASE_URL: postgresql://postgres:prod_password@db:5432/postgres?sslmode=disable
+      POSTGRES_PASSWORD: prod_password
       POSTGRES_USER: postgres
     ports:
       - "5432:5432"
@@ -15,28 +15,60 @@ services:
     networks:
       - network
 
+  dbmate:
+    image: ghcr.io/amacneil/dbmate:latest
+    environment:
+      DATABASE_URL: postgresql://postgres:prod_password@db:5432/postgres?sslmode=disable
+    volumes:
+      - ./crates/db/migrations:/db/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["up"]
+    networks:
+      - net
+
   redis:
     image: redis:latest
     restart: unless-stopped
     environment:
       - REDIS_PASSWORD=testpassword
-    command: ["redis-server", "--requirepass", "testpassword"]
+    command: ["redis-server", "--requirepass", "prod_password"]
     ports:
       - "6379:6379"
+    networks:
+      - net
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile
+    working_dir: /meter
     volumes:
-      - .:/meter
-    command: ["cargo build", "--release"]
+      - ./crates:/meter/crates
+      - ./settings:/meter/settings
+      - ./static:/meter/static
+      - ./logs:/meter/logs
+    environment:
+      APP_PROFILE: prod
+      RUST_BACKTRACE: 1
+      RUST_LOG: ingo
+    command: ["./run-prod.sh"]
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      dbmate:
+        condition: service_completed_successfully
     ports:
-      - "8081:8081"
+      - "8081:80"
+    networks:
+      - net
 
 networks:
-  network:
+  net:
     driver: bridge
+
+volumes:
+  shared_data:
