@@ -80,6 +80,8 @@ pub enum AppError {
     #[error(transparent)]
     InvalidInputError(#[from] garde::Report),
     #[error(transparent)]
+    ParseUuidError(#[from] uuid::Error),
+    #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error("{0}")]
     HashError(String),
@@ -210,6 +212,12 @@ impl AppError {
             ),
             RedisError(_err) => (
                 "REDIS_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::INTERNAL_SERVER_ERROR,
+            ),
+            ParseUuidError(_err) => (
+                "PARSE_UUID_ERROR".to_string(),
                 None,
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,

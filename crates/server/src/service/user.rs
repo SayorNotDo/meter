@@ -1,3 +1,4 @@
+use chrono::Utc;
 use tracing::{error, info};
 use uuid::Uuid;
 
@@ -9,15 +10,20 @@ use crate::{
             user::{LoginRequest, UpdateUserStatusRequest},
             *,
         },
-        response::{user::LoginResponse, CreateEntityResponse, MessageResponse, UserInfoResponse},
+        response::{
+            user::{GetUserInfoResponse, LoginResponse},
+            CreateEntityResponse, MessageResponse,
+        },
         EmailTemplate,
     },
-    entity::user::{User, UserRoleOption},
-    entity::user::{UserRole, UserRolePermission},
+    entity::user::{User, UserRole, UserRoleOption, UserRolePermission},
     errors::{AppError, AppResult, Resource, ResourceType},
-    service::{redis::SessionKey, session, token},
+    service::{
+        redis::{self, SessionKey},
+        session, token,
+    },
     state::AppState,
-    utils::{self, smtp},
+    utils::{self, claim::UserClaims, smtp},
 };
 /* 用户注册 */
 pub async fn batch_register(state: &AppState, uid: Uuid, request: RegisterRequest) -> AppResult {
@@ -137,16 +143,40 @@ pub async fn logout(state: &AppState, uid: Uuid, sid: Uuid) -> AppResult<Message
 }
 
 /* 用户是否已经登录 */
-pub async fn is_login(state: &AppState, uid: Uuid) -> AppResult<LoginResponse> {
-    info!("Check whether user is login");
-    let key = SessionKey { uuid: uid };
-    crate::service::redis::get(&state.redis, &key).await?;
-    let session_id = session::set(&state.redis, uid).await?;
-    let resp = token::generate_tokens(uid, session_id)?;
+pub async fn is_login(state: &AppState, claims: UserClaims) -> AppResult<LoginResponse> {
+    info!("user service layer check whether user is login or not");
+    let session_key = SessionKey { uuid: claims.uid };
+    let session_ids = redis::lrange(&state.redis, &session_key, 0, -1)
+        .await?
+        .ok_or_else(|| {
+            AppError::NotFoundError(Resource {
+                details: vec![("session_key".to_string(), claims.sid.to_string())],
+                resource_type: ResourceType::Session,
+            })
+        })?
+        .iter()
+        .map(|item| Ok(Uuid::parse_str(item.trim_matches('"'))?))
+        .collect::<AppResult<Vec<Uuid>>>()?;
+    if !session_ids.contains(&claims.sid) {
+        info!("Session id invalid so delete it: {session_ids:?}.");
+        redis::del(&state.redis, &session_key).await?;
+        return Err(AppError::InvalidSessionError(
+            "Invalid session id".to_string(),
+        ));
+    }
+    if (claims.exp) < Utc::now().timestamp() {
+        info!("access_token expired so delete it: {session_ids:?}.");
+        redis::lrem(&state.redis, (&session_key, &claims.sid), 0).await?;
+        return Err(AppError::UnauthorizedError(
+            "access_token is expired".to_string(),
+        ));
+    }
+    let session_id = session::set(&state.redis, claims.uid).await?;
+    let resp = token::generate_tokens(claims.uid, session_id)?;
     Ok(LoginResponse::Token(resp))
 }
 
-pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
+pub async fn info(state: &AppState, uid: Uuid) -> AppResult<GetUserInfoResponse> {
     let client = state.pool.get().await?;
     let user_dao = UserDao::new(&client);
     /* 查询用户相关的信息，组装响应返回 */
@@ -167,7 +197,7 @@ pub async fn info(state: &AppState, uid: Uuid) -> AppResult<UserInfoResponse> {
         };
         permissions_list.push(user_role_permission_list);
     }
-    Ok(UserInfoResponse {
+    Ok(GetUserInfoResponse {
         username: user.username,
         email: user.email,
         created_at: user.created_at,

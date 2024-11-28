@@ -1,9 +1,9 @@
-use crate::dao::entity::ProjectMember;
 use crate::dao::project::*;
 use crate::dao::user::UserDao;
 use crate::dto::response::{MessageResponse, ProjectInfoResponse};
 use crate::errors::AppResult;
 use crate::state::AppState;
+use crate::{dao::entity::ProjectMember, entity::project::ProjectInfo};
 use uuid::Uuid;
 
 /* 获取项目信息 */
@@ -30,9 +30,6 @@ pub async fn info(state: &AppState, project_id: i32) -> AppResult<ProjectInfoRes
         creator_is_admin: true,
         updated_at: project.updated_at,
         updated_by: project.updated_by,
-        deleted: project.deleted,
-        deleted_at: project.deleted_at,
-        deleted_by: project.deleted_by,
         admin_list,
     })
 }

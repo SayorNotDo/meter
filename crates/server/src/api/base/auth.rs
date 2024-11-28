@@ -124,7 +124,7 @@ pub async fn is_login(
     /* 获取用户的access token
      * 检验成功后返回刷新的access token
      */
-    match service::user::is_login(&state, user.uid).await {
+    match service::user::is_login(&state, user).await {
         Ok(resp) => {
             info!("User is already login, refresh token: {resp:?}");
             Ok(Json(resp))

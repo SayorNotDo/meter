@@ -9,13 +9,13 @@ mod project;
 pub fn app() -> Router {
     Router::new()
         .route("/project/:project_id", get(project::info))
-        .route("/project/list", get(project::list))
+        .route("/project", get(project::get_project_list))
         .route(
             "/project/has-permission/:project_id",
             get(project::permission),
         )
         .route("/project/member/list/:project_id", get(project::members))
-        .route("/case/module/:project_id", get(case::get))
+        .route("/case/module", get(case::get_module_list))
         .route("/case/module", post(case::create_module))
         .route("/case/module", delete(case::delete_module))
         .route("/case/count/:project_id", get(case::count))

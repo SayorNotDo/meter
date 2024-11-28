@@ -1,7 +1,7 @@
 use crate::{
     dto::{
         request::{UserInfoUpdateRequest, UserQueryParam},
-        response::UserInfoResponse,
+        response::user::GetUserInfoResponse,
     },
     entity::user::{User, UserRoleOption},
     errors::{AppResponseError, AppResult},
@@ -20,7 +20,7 @@ use tracing::{info, warn};
     get,
     path = "/user/info",
     responses(
-        (status = 200, description = "Get user info", body = [UserInfoResponse]),
+        (status = 200, description = "Success get user info", body = [GetUserInfoResponse]),
         (status = 401, description = "User Unauthorized", body = [AppResponseError]),
         (status = 404, description = "User not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
@@ -30,7 +30,7 @@ use tracing::{info, warn};
 pub async fn info(
     Extension(state): Extension<AppState>,
     user: UserClaims,
-) -> AppResult<Json<UserInfoResponse>> {
+) -> AppResult<Json<GetUserInfoResponse>> {
     info!("User info with request: {:?}", user);
     match service::user::info(&state, user.uid).await {
         Ok(resp) => {

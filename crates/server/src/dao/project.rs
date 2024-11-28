@@ -1,36 +1,13 @@
 use crate::{
-    entity::project::Project,
+    entity::project::{Project, ProjectInfo},
     errors::{AppError, AppResult, Resource, ResourceType},
-    utils::{
-        self,
-        time::{to_utc, to_utc_or_default},
-    },
+    utils::time::{to_utc, to_utc_or_default},
 };
-use chrono::{DateTime, Utc};
 use db::queries::project::*;
 use garde::rules::AsStr;
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::entity::ProjectMember;
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
-pub struct ProjectInfo {
-    pub id: i32,
-    pub name: String,
-    pub member_count: i32,
-    pub created_at: DateTime<Utc>,
-    pub created_by: String,
-    pub updated_at: Option<DateTime<Utc>>,
-    pub updated_by: Option<String>,
-    pub enable: bool,
-    pub deleted: bool,
-    pub deleted_at: Option<DateTime<Utc>>,
-    pub deleted_by: Option<String>,
-    pub description: Option<String>,
-    pub module_setting: Option<String>,
-}
 
 trait ToProject {
     fn to_project(&self) -> ProjectInfo;
@@ -41,9 +18,8 @@ macro_rules! impl_to_project {
         $(
         impl ToProject for $t {
             fn to_project(&self) -> ProjectInfo {
-                let created_at = utils::time::to_utc(self.created_at);
+                let created_at = to_utc(self.created_at);
                 let updated_at = to_utc_or_default(self.updated_at);
-                let deleted_at = to_utc_or_default(self.deleted_at);
                 ProjectInfo {
                     id: self.id,
                     name: self.name.clone(),
@@ -51,11 +27,8 @@ macro_rules! impl_to_project {
                     created_at,
                     created_by: self.created_by.clone(),
                     updated_at,
-                    updated_by: Option::from(self.updated_by.clone()),
+                    updated_by: self.updated_by.clone(),
                     enable: self.enable,
-                    deleted: self.deleted,
-                    deleted_by: Option::from(self.deleted_by.clone()),
-                    deleted_at,
                     description: self.description.clone(),
                     module_setting: self.module_setting.clone(),
                 }
@@ -65,7 +38,12 @@ macro_rules! impl_to_project {
     };
 }
 
-impl_to_project!(FindProjectById, FindProjectsByUid, FindProjectByName);
+impl_to_project!(
+    FindProjectById,
+    FindProjectsByUid,
+    FindProjectByName,
+    GetProjectsByUid
+);
 
 #[derive(Debug)]
 pub struct ProjectDao<'a, T>
@@ -88,7 +66,7 @@ where
     }
 
     pub async fn find_projects_by_uid(&self, uid: Uuid) -> AppResult<Vec<ProjectInfo>> {
-        let ret = find_projects_by_uid()
+        let ret = get_projects_by_uid()
             .bind(self.executor, &uid)
             .all()
             .await?

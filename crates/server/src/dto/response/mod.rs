@@ -7,7 +7,7 @@ use crate::{
     entity::{
         case::{FunctionalCase, TemplateField},
         project::{Plan, Project},
-        user::{User, UserRole, UserRolePermission, UserRoleRelation},
+        user::User,
     },
     errors::AppResponseError,
 };
@@ -41,9 +41,6 @@ pub struct ProjectInfoResponse {
     pub created_at: DateTime<Utc>,
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
-    pub deleted: bool,
-    pub deleted_at: Option<DateTime<Utc>>,
-    pub deleted_by: Option<String>,
     pub admin_list: Vec<User>,
 }
 
@@ -68,18 +65,6 @@ pub struct UriPermission {
 pub struct UserRoleOption {
     pub id: i32,
     pub name: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct UserInfoResponse {
-    pub username: String,
-    pub email: String,
-    pub created_at: DateTime<Utc>,
-    pub last_project_id: Option<i32>,
-    pub updated_at: Option<DateTime<Utc>>,
-    pub user_role_permissions: Vec<UserRolePermission>,
-    pub user_role_relations: Vec<UserRoleRelation>,
-    pub user_roles: Vec<UserRole>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

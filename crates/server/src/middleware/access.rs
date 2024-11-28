@@ -4,6 +4,7 @@ use axum::{
     response::Response,
 };
 
+use crate::utils;
 use tower::{Layer, Service};
 use uuid::Uuid;
 
@@ -65,20 +66,10 @@ where
             }
             /* access check main logic */
 
-            let project_id = match headers.get(constant::PROJECT_ID) {
-                Some(value) => match value.to_str().ok().and_then(|s| s.parse::<i32>().ok()) {
-                    Some(id) => id,
-                    None => {
-                        let resp = build_error_response(
-                            StatusCode::BAD_REQUEST,
-                            "Missing or Invalid ProjectId header",
-                        );
-                        return Ok(resp);
-                    }
-                },
-                None => {
-                    let resp =
-                        build_error_response(StatusCode::BAD_REQUEST, "Missing ProjectId header");
+            let project_id = match utils::header::extract_project_id(&headers) {
+                Ok(id) => id,
+                Err(e) => {
+                    let resp = build_error_response(StatusCode::BAD_REQUEST, &e.to_string());
                     return Ok(resp);
                 }
             };

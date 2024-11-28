@@ -1,7 +1,10 @@
+use crate::{
+    constant::BEARER,
+    entity::user::{UserRole, UserRolePermission, UserRoleRelation},
+};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-
-use crate::constant::BEARER;
 
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct RegisterResponse {
@@ -37,4 +40,16 @@ impl TokenResponse {
             expire_in,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct GetUserInfoResponse {
+    pub username: String,
+    pub email: String,
+    pub created_at: DateTime<Utc>,
+    pub last_project_id: Option<i32>,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub user_role_permissions: Vec<UserRolePermission>,
+    pub user_role_relations: Vec<UserRoleRelation>,
+    pub user_roles: Vec<UserRole>,
 }

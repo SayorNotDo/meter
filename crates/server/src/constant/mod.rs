@@ -13,9 +13,9 @@ pub const EXPIRE_SESSION_CODE_SECS: Duration = Duration::from_secs(604800);
 pub const EXPIRE_REFRESH_TOKEN_SECS: Duration = Duration::from_secs(604800);
 pub const BEARER: &str = "Bearer";
 pub const AUTHORIZATION: &str = "Authorization";
-pub const PROJECT_ID: &str = "ProjectId";
+pub const PROJECT_ID: &str = "Project";
 
-pub const WHITE_LIST: [&str; 2] = ["/auth/login", "/swagger-ui"];
+pub const WHITE_LIST: [&str; 3] = ["/auth/login", "/swagger-ui", "/auth/is-login"];
 pub const ALLOW_METHOD: [Method; 6] = [
     Method::GET,
     Method::POST,
@@ -25,8 +25,13 @@ pub const ALLOW_METHOD: [Method; 6] = [
     Method::PUT,
 ];
 pub const ALLOW_ORIGIN: [HeaderValue; 1] = [HeaderValue::from_static("http://localhost:3000")];
-pub const ACCESS_WHITE_LIST: [&str; 4] =
-    ["/auth/login", "/auth/logout", "/swagger-ui", "/user/info"];
+pub const ACCESS_WHITE_LIST: [&str; 5] = [
+    "/auth/login",
+    "/auth/logout",
+    "/swagger-ui",
+    "/user/info",
+    "/auth/is-login",
+];
 pub const EMAIL_ADDR: &str = "chenwentao@datatower.ai";
 pub const REGISTER_EMAIL_SUBJECT: &str = "<DTest-测试平台> 注册邮件通知";
 

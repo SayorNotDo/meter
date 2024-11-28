@@ -82,3 +82,17 @@ impl Project {
         }
     }
 }
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
+pub struct ProjectInfo {
+    pub id: i32,
+    pub name: String,
+    pub member_count: i32,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+    pub enable: bool,
+    pub description: Option<String>,
+    pub module_setting: Option<String>,
+}

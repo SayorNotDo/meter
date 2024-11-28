@@ -38,7 +38,7 @@ use tracing::info;
 
 #[utoipa::path(
     get,
-    path = "/case/module/{project_id}",
+    path = "/case/module",
     params(
         ("project_id", description = "path parameter"),
         ("module_id", description = "query parameter")
@@ -51,12 +51,13 @@ use tracing::info;
     ),
     security(("jwt" = []))
 )]
-pub async fn get(
+pub async fn get_module_list(
     Extension(state): Extension<AppState>,
-    Path(project_id): Path<i32>,
+    headers: HeaderMap,
     Query(params): Query<QueryModuleParam>,
 ) -> AppResult<Json<Vec<FileModuleResponse>>> {
-    info!("case module tree query param: {project_id:?}");
+    info!("case module tree query param: {params:?}");
+    let project_id = extract_project_id(&headers)?;
     match file::get_file_module(&state, &project_id, "CASE".into(), params).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {

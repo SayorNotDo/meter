@@ -58,11 +58,7 @@ where
     Ok(())
 }
 
-pub async fn lrem<K>(
-    client: &RedisClient,
-    (key, value): (&K, &K::Value),
-    count: i32,
-) -> AppResult
+pub async fn lrem<K>(client: &RedisClient, (key, value): (&K, &K::Value), count: i32) -> AppResult
 where
     K: RedisKey,
 {
@@ -85,6 +81,7 @@ where
     Ok(client.lrange(&key.to_string(), start, stop).await?)
 }
 
+#[allow(dead_code)]
 pub async fn get<K>(client: &RedisClient, key: &K) -> AppResult<Option<K::Value>>
 where
     K: RedisKey,

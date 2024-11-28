@@ -9,7 +9,6 @@ SELECT p.id,
        p.updated_at,
        uu.username                                                                                             AS updated_by,
        ud.username                                                                                             AS deleted_by,
-       p.deleted,
        p.deleted_at,
        p.enable,
        p.description,
@@ -31,7 +30,6 @@ SELECT p.id,
        p.updated_at,
        uu.username                                                                                             AS updated_by,
        ud.username                                                                                             AS deleted_by,
-       p.deleted,
        p.deleted_at,
        p.enable,
        p.description,
@@ -55,7 +53,6 @@ SELECT p.id,
                       LEFT JOIN
                   user_role_relation urr ON
                       urr.project_id = p.id) AS INTEGER) AS member_count,
-       p.deleted,
        p.deleted_at,
        p.enable,
        p.description,
@@ -65,6 +62,24 @@ FROM projects p
          LEFT JOIN users uu ON p.updated_by = uu.uuid
          LEFT JOIN users ud ON p.deleted_by = ud.uuid
 WHERE p.created_by = :uid;
+
+--! get_projects_by_uid : (updated_at?, updated_by?, description?, module_setting?)
+SELECT p.id,
+       p.name,
+       p.created_at,
+       uc.username                                                         AS created_by,
+       p.updated_at,
+       uu.username                                                         AS updated_by,
+       CAST(COUNT(urr.user_id) AS INTEGER) AS member_count,
+       p.enable,
+       p.description,
+       p.module_setting
+FROM projects p
+    LEFT JOIN users uc ON p.created_by = uc.uuid
+    LEFT JOIN users uu ON p.updated_by = uu.uuid
+    LEFT JOIN user_role_relation urr ON urr.project_id = p.id
+WHERE urr.user_id = :uid
+GROUP BY p.id, p.name, uc.username, uu.username;
 
 
 --! get_project_members : (last_project_id?)
