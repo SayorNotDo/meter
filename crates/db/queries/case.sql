@@ -87,6 +87,7 @@ SELECT fc.id,
                                                (SELECT JSON_AGG(
                                                                JSON_BUILD_OBJECT(
                                                                        'id', fo.id,
+                                                                       'field_id', fo.field_id,
                                                                        'value', fo.value,
                                                                        'position', fo.position
                                                                )
@@ -173,6 +174,7 @@ SELECT
                                     (SELECT JSON_AGG(
                                         JSON_BUILD_OBJECT(
                                             'id', fo.id,
+                                            'field_id', fo.field_id,
                                             'value', fo.value,
                                             'position', fo.position
                                         )
@@ -224,6 +226,7 @@ SELECT
                                             (SELECT JSON_AGG(
                                                             JSON_BUILD_OBJECT(
                                                                     'id', fo.id,
+                                                                    'field_id', fo.field_id,
                                                                     'value', fo.value,
                                                                     'position', fo.position
                                                             )

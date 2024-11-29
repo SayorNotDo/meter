@@ -69,6 +69,8 @@ pub enum AppError {
     ResourceExistsError(Resource),
     #[error("bad request: {0}")]
     BadRequestError(String),
+    #[error(transparent)]
+    MultipartError(#[from] axum::extract::multipart::MultipartError),
     #[error("forbidden: {0}")]
     ForbiddenError(String),
     #[error(transparent)]
@@ -167,6 +169,12 @@ impl AppError {
                 None,
                 vec![],
                 StatusCode::NOT_FOUND,
+            ),
+            MultipartError(_err) => (
+                "MULTIPART_ERROR".to_string(),
+                None,
+                vec![],
+                StatusCode::BAD_REQUEST,
             ),
             InvalidSessionError(_err) => (
                 "INVALID_SESSION_ERROR".to_string(),

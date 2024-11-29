@@ -1,4 +1,7 @@
-use crate::entity::{case::Field, file::FileModule};
+use crate::entity::{
+    case::{Field, TemplateField},
+    file::FileModule,
+};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -17,4 +20,16 @@ pub struct FunctionalCaseResponse {
     pub updated_by: Option<String>,
     pub attach_info: Option<String>,
     pub fields: Vec<Field>,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct GetTemplateResponse {
+    pub id: i32,
+    pub name: String,
+    pub internal: bool,
+    pub description: Option<String>,
+    pub created_by: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub fields: Vec<TemplateField>,
 }

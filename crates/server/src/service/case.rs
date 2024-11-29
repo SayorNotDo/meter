@@ -19,9 +19,9 @@ use crate::{
             ListQueryParam,
         },
         response::{
-            case::FunctionalCaseResponse, CreateEntityResponse, CreateScriptResponse,
-            DiagnoseResponse, ListFunctionalCaseResponse, RequirementInfoResponse,
-            TemplateResponse,
+            case::{FunctionalCaseResponse, GetTemplateResponse},
+            CreateEntityResponse, CreateScriptResponse, DiagnoseResponse,
+            ListFunctionalCaseResponse, RequirementInfoResponse,
         },
     },
     entity::case::{Field, FieldType, FunctionalCase},
@@ -34,13 +34,12 @@ use crate::{
     utils::claim::PageClaims,
 };
 
-pub async fn template(state: &AppState, project_id: i32) -> AppResult<TemplateResponse> {
+pub async fn template(state: &AppState, project_id: i32) -> AppResult<GetTemplateResponse> {
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
     /* Template */
     let template = case_dao.get_template_project_id(project_id).await?;
-    /* Related Custom Fields */
-    Ok(TemplateResponse {
+    Ok(GetTemplateResponse {
         id: template.id,
         name: template.name,
         internal: template.internal,
@@ -422,7 +421,7 @@ pub async fn count(
     info!("service layer for case count with project_id: {project_id:?}");
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
-    let hmap = match param.is_deleted {
+    let hmap = match param.deleted {
         Some(true) => case_dao.count_deleted_case(project_id).await?,
         _ => case_dao.count(project_id).await?,
     };

@@ -40,6 +40,7 @@ impl CaseStatus {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct FieldOption {
     pub id: i32,
+    pub field_id: i32,
     pub value: String,
     pub position: i32,
 }

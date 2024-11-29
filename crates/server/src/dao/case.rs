@@ -66,24 +66,18 @@ impl_to_functional_case!(
 );
 
 trait ToTemplate {
-    fn to_template(&self) -> Template;
+    fn to_template(&self) -> AppResult<Template>;
 }
 
 macro_rules! impl_to_template {
     ($($t:ty),*) => {
         $(
             impl ToTemplate for $t {
-                fn to_template(&self) -> Template {
+                fn to_template(&self) -> AppResult<Template> {
                     let updated_at = utils::time::to_utc_or_default(self.updated_at);
                     let created_at = utils::time::to_utc(self.created_at);
-                    /* construct fields array */
-                    let fields: Vec<TemplateField> = match from_value(self.fields.clone()) {
-                        Ok(fields) => fields,
-                        Err(_) => {
-                            vec![]
-                        }
-                    };
-                    Template {
+
+                    Ok(Template {
                         id: self.id,
                         name: self.name.clone(),
                         internal: self.internal,
@@ -91,8 +85,8 @@ macro_rules! impl_to_template {
                         created_by: self.created_by.clone(),
                         created_at,
                         updated_at,
-                        fields,
-                    }
+                        fields: from_value::<Vec<TemplateField>>(self.fields.clone())?,
+                    })
                 }
             }
         )*
@@ -115,10 +109,7 @@ where
             .opt()
             .await?;
         match ret {
-            Some(t) => {
-                let template = t.to_template();
-                Ok(template)
-            }
+            Some(t) => t.to_template(),
             None => Err(AppError::NotFoundError(Resource {
                 details: vec![],
                 resource_type: ResourceType::File,
@@ -137,7 +128,7 @@ where
             .await?;
 
         match ret {
-            Some(t) => Ok(t.to_template()),
+            Some(t) => t.to_template(),
             None => Err(AppError::NotFoundError(Resource {
                 details: vec![("file_type: template".into(), "not found".into())],
                 resource_type: ResourceType::Template,
@@ -259,6 +250,7 @@ where
         match field_option {
             Some(o) => Ok(FieldOption {
                 id: o.id,
+                field_id: o.field_id,
                 value: o.value,
                 position: o.position,
             }),
@@ -277,6 +269,7 @@ where
             .into_iter()
             .map(|item| FieldOption {
                 id: item.id,
+                field_id: item.field_id,
                 value: item.value,
                 position: item.position,
             })

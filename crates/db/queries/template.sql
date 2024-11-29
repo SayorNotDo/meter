@@ -21,6 +21,7 @@ SELECT
                                     (SELECT JSON_AGG(
                                         JSON_BUILD_OBJECT(
                                             'id', fo.id,
+                                            'field_id', fo.field_id,
                                             'value', fo.value,
                                             'position', fo.position
                                         )
@@ -58,6 +59,7 @@ SELECT t.id,
                                                     (SELECT JSON_AGG(
                                                     JSON_BUILD_OBJECT(
                                                             'id', fo.id,
+                                                            'field_id', fo.field_id,
                                                             'value', fo.value,
                                                             'position', fo.position
                                                             )
@@ -145,6 +147,7 @@ WHERE field_id = :field_id;
 --! get_options_by_field_id
 SELECT id,
        value,
+       field_id,
        position
 FROM field_option
 WHERE field_id = :field_id AND deleted_at IS NULL AND deleted_by IS NULL;

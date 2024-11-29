@@ -1,7 +1,10 @@
 use crate::dao::entity::Step;
 use chrono::{DateTime, Utc};
-use fake::faker::internet::en::{SafeEmail, Username};
-use fake::Dummy;
+use fake::{
+    faker::internet::en::{SafeEmail, Username},
+    Dummy,
+};
+
 use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -81,7 +84,7 @@ pub struct ListQueryParam {
 #[derive(Debug, Serialize, Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct CaseQueryParam {
-    pub is_deleted: Option<bool>,
+    pub deleted: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Path, Query},
+    extract::{Multipart, Path, Query},
     http::HeaderMap,
     Extension, Json,
 };
@@ -20,9 +20,9 @@ use crate::{
             ListQueryParam, QueryTemplateParam,
         },
         response::{
-            case::FunctionalCaseResponse, CreateEntityResponse, CreateScriptResponse,
-            DiagnoseResponse, FileModuleResponse, ListFunctionalCaseResponse, MessageResponse,
-            RequirementInfoResponse, TemplateResponse,
+            case::{FunctionalCaseResponse, GetTemplateResponse},
+            CreateEntityResponse, CreateScriptResponse, DiagnoseResponse, FileModuleResponse,
+            ListFunctionalCaseResponse, MessageResponse, RequirementInfoResponse,
         },
     },
     entity::case::Field,
@@ -118,17 +118,20 @@ pub async fn delete_module(
 
 #[utoipa::path(
     get,
-    path = "/case/template/:project_id",
+    path = "/case/functional-case/template",
     params(QueryTemplateParam),
-    responses(),
+    responses(
+        (status = 200, description = "Success get functional-case template", body = [GetTemplateResponse])
+    ),
     security(("jwt" = []))
 )]
-pub async fn template(
+pub async fn get_template(
     Extension(state): Extension<AppState>,
-    Path(project_id): Path<i32>,
-    Query(param): Query<QueryTemplateParam>,
-) -> AppResult<Json<TemplateResponse>> {
-    info!("case template query param: {param:?}, project_id: {project_id:?}");
+    headers: HeaderMap,
+    Query(params): Query<QueryTemplateParam>,
+) -> AppResult<Json<GetTemplateResponse>> {
+    info!("case template query param: {params:?}");
+    let project_id = extract_project_id(&headers)?;
     match case::template(&state, project_id).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
@@ -149,16 +152,23 @@ pub async fn template(
     security(("jwt" = []))
 )]
 pub async fn create_functional_case(
-    Extension(state): Extension<AppState>,
-    user: UserClaims,
-    Json(request): Json<CreateFunctionalCaseRequest>,
+    Extension(_state): Extension<AppState>,
+    _user: UserClaims,
+    mut multipart: Multipart,
+    // Json(request): Json<CreateFunctionalCaseRequest>,
 ) -> AppResult<Json<CreateEntityResponse>> {
-    info!("create functional case with request: {request:?}");
-    request.validate()?;
-    match case::create_functional_case(&state, user.uid, request).await {
-        Ok(resp) => Ok(Json(CreateEntityResponse { id: resp })),
-        Err(e) => Err(e),
-    }
+    info!("create functional case with request");
+    let field = multipart.next_field().await?;
+    if let Some(f) = field {
+        let data = f.bytes().await?;
+        info!("mutiplpart data: {data:?}");
+    };
+    // request.validate()?;
+    // match case::create_functional_case(&state, user.uid, request).await {
+    //     Ok(resp) => Ok(Json(CreateEntityResponse { id: resp })),
+    //     Err(e) => Err(e),
+    // }
+    Ok(Json(CreateEntityResponse { id: 0 }))
 }
 
 #[utoipa::path(
@@ -363,24 +373,29 @@ pub async fn get_functional_case_list(
 
 #[utoipa::path(
     get,
-    path = "/management/case/count/:project_id",
+    path = "/management/case/count",
     params(CaseQueryParam),
     responses(
-        (status = 200, description = "Get case module info"),
+        (status = 200, description = "Success get case count", body = [HashMap<String, i32>]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
-        (status = 404, description = "case module info not found", body = [AppResponseError]),
+        (status = 403, description = "Forbidden", body = [AppResponseError]),
+        (status = 404, description = "Not found", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError]),
     ),
     security(("jwt" = []))
 )]
 pub async fn count(
     Extension(state): Extension<AppState>,
-    Path(project_id): Path<i32>,
-    Query(param): Query<CaseQueryParam>,
+    headers: HeaderMap,
+    Query(params): Query<CaseQueryParam>,
 ) -> AppResult<Json<HashMap<String, i64>>> {
-    info!("controller layer case count group by module in project: {project_id:?}");
-    match case::count(&state, &project_id, &param).await {
-        Ok(resp) => Ok(Json(resp)),
+    info!("controller layer case count group with params: {params:?}");
+    let project_id = extract_project_id(&headers)?;
+    match case::count(&state, &project_id, &params).await {
+        Ok(resp) => {
+            info!("success get case count: {resp:?}");
+            Ok(Json(resp))
+        }
         Err(e) => Err(e),
     }
 }

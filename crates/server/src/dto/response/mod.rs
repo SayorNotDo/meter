@@ -5,7 +5,7 @@ use utoipa::ToSchema;
 use crate::{
     dao::entity::ElementDetail,
     entity::{
-        case::{FunctionalCase, TemplateField},
+        case::FunctionalCase,
         project::{Plan, Project},
         user::User,
     },
@@ -99,18 +99,6 @@ pub struct ListElementResponse {
 pub struct ListPlanResponse {
     pub next_page_token: String,
     pub list: Vec<Plan>,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct TemplateResponse {
-    pub id: i32,
-    pub name: String,
-    pub internal: bool,
-    pub description: Option<String>,
-    pub created_by: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: Option<DateTime<Utc>>,
-    pub fields: Vec<TemplateField>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
