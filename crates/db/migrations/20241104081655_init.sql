@@ -470,6 +470,7 @@ VALUES
 INSERT INTO
     field (
         name,
+        label,
         field_type,
         project_id,
         remark,
@@ -478,8 +479,9 @@ INSERT INTO
     )
 VALUES
     (
+        'caseNum',
         '用例编号',
-        'TEXT',
+        'INPUT',
         1,
         '',
         true,
@@ -493,6 +495,7 @@ VALUES
         )
     ),
     (
+        'priority',
         '等级',
         'SELECT',
         1,
@@ -508,8 +511,9 @@ VALUES
         )
     ),
     (
+        'title',
         '标题',
-        'TEXT',
+        'INPUT',
         1,
         '',
         true,
@@ -523,8 +527,9 @@ VALUES
         )
     ),
     (
+        'preRequisite',
         '前置条件',
-        'TEXT',
+        'INPUT',
         1,
         '',
         true,
@@ -538,8 +543,9 @@ VALUES
         )
     ),
     (
+        'step',
         '测试步骤',
-        'TEXT',
+        'INPUT',
         1,
         '',
         true,
@@ -553,8 +559,9 @@ VALUES
         )
     ),
     (
+        'expectedResult',
         '预期结果',
-        'TEXT',
+        'INPUT',
         1,
         '',
         true,
@@ -568,8 +575,9 @@ VALUES
         )
     ),
     (
+        'remark',
         '备注',
-        'TEXT',
+        'INPUT',
         1,
         '',
         true,
@@ -593,7 +601,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '等级'
+                name = 'priority'
         ),
         'P0',
         1,
@@ -613,7 +621,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '等级'
+                name = 'priority'
         ),
         'P1',
         2,
@@ -633,7 +641,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '等级'
+                name = 'priority'
         ),
         'P2',
         3,
@@ -671,7 +679,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '用例编号'
+                name = 'caseNum'
         ),
         true,
         '',
@@ -699,7 +707,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '标题'
+                name = 'title'
         ),
         true,
         '',
@@ -727,7 +735,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '等级'
+                name = 'priority'
         ),
         true,
         '',
@@ -755,7 +763,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '前置条件'
+                name = 'preRequisite'
         ),
         true,
         '',
@@ -783,7 +791,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '测试步骤'
+                name = 'step'
         ),
         true,
         '',
@@ -811,7 +819,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '预期结果'
+                name = 'expectedResult'
         ),
         true,
         '',
@@ -839,7 +847,7 @@ VALUES
             FROM
                 field
             WHERE
-                name = '备注'
+                name = 'remark'
         ),
         false,
         '',

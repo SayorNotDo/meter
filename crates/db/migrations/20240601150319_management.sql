@@ -121,7 +121,7 @@ CREATE TABLE functional_cases (
     name VARCHAR NOT NULL,
     module_id INT NOT NULL,
     template_id INT NOT NULL,
-    tags VARCHAR,
+    tags TEXT[],
     status VARCHAR NOT NULL DEFAULT 'UN_REVIEWED',
     created_at TIMESTAMP NOT NULL DEFAULT NOW (),
     updated_at TIMESTAMP,

@@ -14,9 +14,11 @@ pub struct CreateFunctionalCaseRequest {
     #[garde(skip)]
     pub template_id: i32,
     #[garde(skip)]
-    pub tags: Option<String>,
+    pub tags: Vec<String>,
     #[garde(length(min = 1))]
     pub fields: Vec<SelectedField>,
+    #[garde(skip)]
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
@@ -44,7 +46,7 @@ pub struct SelectedField {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub enum FieldValue {
     Select(i32),
-    Text(String),
+    Input(String),
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]

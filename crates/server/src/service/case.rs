@@ -71,8 +71,8 @@ pub async fn create_field(
     let field_id = case_dao.create_field(field, uid).await?;
     /* TODO: FieldOption Relations Insert */
     match field_type {
-        FieldType::Text => {
-            info!("fieldType `TEXT` no need to insert field option...")
+        FieldType::Input => {
+            info!("fieldType `INPUT` no need to insert field option...")
         }
         FieldType::Select => {
             if let Some(options) = request.options {
@@ -113,7 +113,7 @@ pub async fn update_field(
     field.remark = request.remark;
     /* update related FieldOption */
     match change_type {
-        FieldType::Text => {
+        FieldType::Input => {
             case_dao
                 .soft_delete_field_option_by_field_id(field.id, uid)
                 .await?
@@ -237,7 +237,7 @@ pub async fn create_functional_case(
         let field = case_dao.get_field_by_id(item.id).await?;
         let field_type = FieldType::from_str(&field.field_type);
         match (field_type, item.value) {
-            (FieldType::Text, FieldValue::Text(value)) => {
+            (FieldType::Input, FieldValue::Input(value)) => {
                 case_dao
                     .insert_case_field_relation_with_text(case_id, field.id, &value, uid)
                     .await?;
@@ -250,7 +250,7 @@ pub async fn create_functional_case(
             (FieldType::Unknown, _) => {
                 return Err(AppError::BadRequestError("Unknow fieldType".to_string()))
             }
-            (_, FieldValue::Text(_) | FieldValue::Select(_)) => {
+            (_, FieldValue::Input(_) | FieldValue::Select(_)) => {
                 return Err(AppError::BadRequestError(
                     "fieldType mismatch with fieldValue".to_string(),
                 ));
@@ -324,21 +324,10 @@ pub async fn get_functional_case(
     let client = state.pool.get().await?;
     let case_dao = CaseDao::new(&client);
     let case = case_dao.get_functional_case_by_id(case_id).await?;
-
-    let tags: Vec<String> = if let Some(d) = case.tags {
-        d.split(",")
-            .into_iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>()
-    } else {
-        return Err(AppError::BadRequestError(
-            "Invalid `field` tags".to_string(),
-        ));
-    };
     Ok(FunctionalCaseResponse {
         id: case.id,
         name: case.name,
-        tags,
+        tags: case.tags,
         template_id: case.template_id,
         module: case.module,
         status: case.status.to_string(),
@@ -433,20 +422,20 @@ pub async fn detail(state: &AppState, case_id: i32) -> AppResult<FunctionalCaseR
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
     let case = case_dao.get_functional_case_by_id(case_id).await?;
-    let tags: Vec<String> = if let Some(d) = case.tags {
-        d.split(",")
-            .into_iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>()
-    } else {
-        Vec::new()
-    };
+    // let tags: Vec<String> = if let Some(d) = case.tags {
+    //     d.split(",")
+    //         .into_iter()
+    //         .map(|s| s.to_string())
+    //         .collect::<Vec<_>>()
+    // } else {
+    //     Vec::new()
+    // };
     Ok(FunctionalCaseResponse {
         id: case.id,
         name: case.name,
         template_id: case.template_id,
         status: case.status.to_string(),
-        tags,
+        tags: case.tags,
         module: case.module,
         attach_info: case.attach_info,
         updated_at: case.updated_at,

@@ -39,13 +39,14 @@ macro_rules! impl_to_functional_case {
                 fn to_functional_case(&self) -> AppResult<FunctionalCase> {
                     let created_at = utils::time::to_utc(self.created_at);
                     let updated_at = utils::time::to_utc_or_default(self.updated_at);
+                    let tags: Vec<String> = self.tags.clone();
                     Ok(FunctionalCase {
                         id: self.id,
                         name: self.name.clone(),
                         module: from_value::<FileModule>(self.module.clone())?,
                         status: CaseStatus::from_str(&self.status),
                         template_id: self.template_id,
-                        tags: self.tags.clone(),
+                        tags,
                         attach_info: self.attach_info.clone(),
                         created_by: self.created_by.clone(),
                         created_at,
@@ -76,7 +77,6 @@ macro_rules! impl_to_template {
                 fn to_template(&self) -> AppResult<Template> {
                     let updated_at = utils::time::to_utc_or_default(self.updated_at);
                     let created_at = utils::time::to_utc(self.created_at);
-
                     Ok(Template {
                         id: self.id,
                         name: self.name.clone(),

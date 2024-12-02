@@ -26,7 +26,7 @@ SELECT
                                             'position', fo.position
                                         )
                                     ) FROM field_option fo
-                                    WHERE fo.field_id = tfr.id), '[]'
+                                    WHERE fo.field_id = tfr.field_id), '[]'
                     )
                     )
         ) FROM template_field_relation tfr
@@ -65,7 +65,7 @@ SELECT t.id,
                                                             )
                                                         )
                                                 FROM field_option fo
-                                                WHERE fo.field_id = tfr.id), '[]'
+                                                WHERE fo.field_id = tfr.field_id), '[]'
                                     )
                                )
                        )

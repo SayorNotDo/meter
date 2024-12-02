@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Multipart, Path, Query},
+    extract::{Path, Query},
     http::HeaderMap,
     Extension, Json,
 };
@@ -152,23 +152,16 @@ pub async fn get_template(
     security(("jwt" = []))
 )]
 pub async fn create_functional_case(
-    Extension(_state): Extension<AppState>,
-    _user: UserClaims,
-    mut multipart: Multipart,
-    // Json(request): Json<CreateFunctionalCaseRequest>,
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(request): Json<CreateFunctionalCaseRequest>,
 ) -> AppResult<Json<CreateEntityResponse>> {
-    info!("create functional case with request");
-    let field = multipart.next_field().await?;
-    if let Some(f) = field {
-        let data = f.bytes().await?;
-        info!("mutiplpart data: {data:?}");
-    };
-    // request.validate()?;
-    // match case::create_functional_case(&state, user.uid, request).await {
-    //     Ok(resp) => Ok(Json(CreateEntityResponse { id: resp })),
-    //     Err(e) => Err(e),
-    // }
-    Ok(Json(CreateEntityResponse { id: 0 }))
+    info!("create functional case with request: {request:?}");
+    request.validate()?;
+    match case::create_functional_case(&state, user.uid, request).await {
+        Ok(resp) => Ok(Json(CreateEntityResponse { id: resp })),
+        Err(e) => Err(e),
+    }
 }
 
 #[utoipa::path(

@@ -33,10 +33,11 @@ pub async fn test_success_create_functional_case(ctx: &mut SeedDbTestContext) {
         module_id: 1,
         template_id: 1,
         tags: Some(Faker.fake::<String>()),
+        description: None,
         fields: vec![
             SelectedField {
                 id: 1,
-                value: FieldValue::Text(Faker.fake::<String>()),
+                value: FieldValue::Input(Faker.fake::<String>()),
             },
             SelectedField {
                 id: 2,
@@ -44,23 +45,23 @@ pub async fn test_success_create_functional_case(ctx: &mut SeedDbTestContext) {
             },
             SelectedField {
                 id: 3,
-                value: FieldValue::Text(Faker.fake::<String>()),
+                value: FieldValue::Input(Faker.fake::<String>()),
             },
             SelectedField {
                 id: 4,
-                value: FieldValue::Text(Faker.fake::<String>()),
+                value: FieldValue::Input(Faker.fake::<String>()),
             },
             SelectedField {
                 id: 5,
-                value: FieldValue::Text(Faker.fake::<String>()),
+                value: FieldValue::Input(Faker.fake::<String>()),
             },
             SelectedField {
                 id: 6,
-                value: FieldValue::Text(Faker.fake::<String>()),
+                value: FieldValue::Input(Faker.fake::<String>()),
             },
             SelectedField {
                 id: 7,
-                value: FieldValue::Text(Faker.fake::<String>()),
+                value: FieldValue::Input(Faker.fake::<String>()),
             },
         ],
     };
@@ -113,6 +114,7 @@ pub async fn test_invalid_req_create_functional_case(ctx: &mut SeedDbTestContext
         module_id: 0,
         template_id: 1,
         tags: Some(Faker.fake::<String>()),
+        description: None,
         fields: vec![],
     };
 
@@ -143,6 +145,7 @@ pub async fn test_conflict_value_option_create_function_case(ctx: &mut SeedDbTes
         module_id: 1,
         template_id: 1,
         tags: Some(Faker.fake::<String>()),
+        description: None,
         fields: vec![SelectedField {
             id: 1,
             value: FieldValue::Select(1),
@@ -176,6 +179,7 @@ pub async fn test_conflict_value_text_create_function_case(ctx: &mut SeedDbTestC
         module_id: 1,
         template_id: 1,
         tags: Some(Faker.fake::<String>()),
+        description: None,
         fields: vec![SelectedField {
             id: 3,
             value: FieldValue::Select(1),

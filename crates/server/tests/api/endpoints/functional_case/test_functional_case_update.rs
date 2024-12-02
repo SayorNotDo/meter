@@ -31,6 +31,7 @@ pub async fn test_success_update_functional_case(ctx: &mut SeedDbTestContext) {
         module_id: 1,
         template_id: 1,
         tags: Some(Faker.fake::<String>()),
+        description: None,
         fields: vec![
             SelectedField {
                 id: 1,

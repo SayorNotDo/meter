@@ -1,4 +1,4 @@
---! insert_functional_case (tags?)
+--! insert_functional_case
 INSERT INTO functional_cases
 (
     name,
@@ -55,7 +55,7 @@ INSERT INTO case_issue_relation (
     :created_by
 );
 
---! get_functional_case_list : (updated_at?, updated_by?, tags?, attach_info?)
+--! get_functional_case_list : (updated_at?, updated_by?, attach_info?)
 SELECT fc.id,
        fc.name,
        fc.template_id,
@@ -138,7 +138,7 @@ FROM functional_cases fc
 WHERE
     fc.module_id = :module_id;
 
---! update_functional_case (tags?, updated_by?)
+--! update_functional_case (updated_by?)
 UPDATE functional_cases
     SET name = :name,
         tags = :tags,
@@ -148,7 +148,7 @@ UPDATE functional_cases
         updated_at = NOW()
 WHERE id = :case_id;
 
---! get_functional_case_by_name : (attach_info?, tags?, updated_at?, updated_by?)
+--! get_functional_case_by_name : (attach_info?, updated_at?, updated_by?)
 SELECT
     fc.id,
     fc.name,
@@ -199,7 +199,7 @@ LEFT JOIN users u
 WHERE
     fc.name = :case_name;
 
---! get_functional_case_by_id : (attach_info?, tags?, updated_at?, updated_by?)
+--! get_functional_case_by_id : (attach_info?, updated_at?, updated_by?)
 SELECT
     fc.id,
     fc.name,

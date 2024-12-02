@@ -10,7 +10,7 @@ pub struct FunctionalCase {
     pub name: String,
     pub module: FileModule,
     pub template_id: i32,
-    pub tags: Option<String>,
+    pub tags: Vec<String>,
     pub status: CaseStatus,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
@@ -71,15 +71,15 @@ impl Field {
 }
 
 pub enum FieldType {
-    Text,
     Select,
+    Input,
     Unknown,
 }
 
 impl FieldType {
     pub fn from_str(field_type: &str) -> Self {
         match field_type {
-            "TEXT" => FieldType::Text,
+            "INPUT" => FieldType::Input,
             "SELECT" => FieldType::Select,
             _ => FieldType::Unknown,
         }
@@ -110,7 +110,7 @@ pub struct TemplateField {
 }
 
 impl FunctionalCase {
-    pub fn new(name: &str, module: FileModule, template_id: i32, tags: Option<String>) -> Self {
+    pub fn new(name: &str, module: FileModule, template_id: i32, tags: Vec<String>) -> Self {
         FunctionalCase {
             id: 0,
             name: name.to_string(),
