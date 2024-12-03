@@ -3,7 +3,7 @@ use std::{
     path::Path,
 };
 use tokio::try_join;
-use tracing::info;
+use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
     dto::{
         request::{
             case::{
-                CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest, FieldValue,
+                CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest,
                 QueryFieldParam, UpdateFieldRequest, UpdateFunctionalCaseRequest,
             },
             CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
@@ -24,7 +24,7 @@ use crate::{
             ListFunctionalCaseResponse, RequirementInfoResponse,
         },
     },
-    entity::case::{Field, FieldType, FunctionalCase},
+    entity::case::{Field, FieldType, FieldValue, FunctionalCase},
     errors::{AppError, AppResult, Resource, ResourceType},
     service::{
         engine::{self, StepInfo},
@@ -211,6 +211,7 @@ pub async fn create_functional_case(
         .filter(|f| f.required)
         .map(|f| f.id)
         .collect();
+    warn!("=================>>> required_field_ids: {template_required_field_ids:?}");
 
     let template_optional_field_ids: HashSet<_> = template
         .fields
@@ -236,6 +237,7 @@ pub async fn create_functional_case(
         }
         let field = case_dao.get_field_by_id(item.id).await?;
         let field_type = FieldType::from_str(&field.field_type);
+        warn!("field: {item:?}");
         match (field_type, item.value) {
             (FieldType::Input, FieldValue::Input(value)) => {
                 case_dao

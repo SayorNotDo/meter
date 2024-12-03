@@ -511,22 +511,6 @@ VALUES
         )
     ),
     (
-        'title',
-        '标题',
-        'INPUT',
-        1,
-        '',
-        true,
-        (
-            SELECT
-                uuid
-            FROM
-                users
-            WHERE
-                username = '__system__'
-        )
-    ),
-    (
         'preRequisite',
         '前置条件',
         'INPUT',
@@ -707,34 +691,6 @@ VALUES
             FROM
                 field
             WHERE
-                name = 'title'
-        ),
-        true,
-        '',
-        (
-            SELECT
-                uuid
-            FROM
-                users
-            WHERE
-                username = '__system__'
-        )
-    ),
-    (
-        (
-            SELECT
-                id
-            FROM
-                template
-            WHERE
-                name = '功能测试用例模版'
-        ),
-        (
-            SELECT
-                id
-            FROM
-                field
-            WHERE
                 name = 'priority'
         ),
         true,
@@ -821,7 +777,7 @@ VALUES
             WHERE
                 name = 'expectedResult'
         ),
-        true,
+        false,
         '',
         (
             SELECT

@@ -16,13 +16,14 @@ pub struct FunctionalCase {
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
-    pub fields: Vec<Field>,
+    pub fields: Vec<CaseField>,
     pub attach_info: Option<String>,
 }
 
 #[derive(
     Debug, Serialize, strum::Display, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema,
 )]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum CaseStatus {
     UnReviewed,
     Unknown,
@@ -43,6 +44,18 @@ pub struct FieldOption {
     pub field_id: i32,
     pub value: String,
     pub position: i32,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
+pub struct CaseField {
+    pub id: i32,
+    pub name: String,
+    pub project_id: i32,
+    pub field_id: i32,
+    pub field_type: String,
+    pub remark: Option<String>,
+    pub value: FieldValue,
+    pub internal: bool,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
@@ -70,6 +83,7 @@ impl Field {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub enum FieldType {
     Select,
     Input,
@@ -84,6 +98,12 @@ impl FieldType {
             _ => FieldType::Unknown,
         }
     }
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
+pub enum FieldValue {
+    Select(i32),
+    Input(String),
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -102,6 +122,7 @@ pub struct Template {
 pub struct TemplateField {
     pub id: i32,
     pub name: String,
+    pub label: String,
     pub required: bool,
     pub field_type: String,
     pub internal: bool,

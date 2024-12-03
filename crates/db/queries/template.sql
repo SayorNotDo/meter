@@ -11,8 +11,9 @@ SELECT
     COALESCE(
         (SELECT JSON_AGG(
                     JSON_BUILD_OBJECT(
-                        'id', tfr.id,
+                        'id', f.id,
                         'name', f.name,
+                        'label', f.label,
                         'field_type', f.field_type,
                         'internal', f.internal,
                         'required', tfr.required,
@@ -49,8 +50,9 @@ SELECT t.id,
        COALESCE(
                (SELECT JSON_AGG(
                                JSON_BUILD_OBJECT(
-                                       'id', tfr.id,
+                                       'id', f.id,
                                        'name', f.name,
+                                       'label', f.label,
                                        'field_type' , f.field_type,
                                        'internal', f.internal,
                                        'required', tfr.required,

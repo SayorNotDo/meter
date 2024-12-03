@@ -4,7 +4,9 @@ use crate::{
     dao::entity::Script,
     dto::request::Issue,
     entity::{
-        case::{CaseStatus, Field, FieldOption, FunctionalCase, Template, TemplateField},
+        case::{
+            CaseField, CaseStatus, Field, FieldOption, FunctionalCase, Template, TemplateField,
+        },
         file::FileModule,
     },
     errors::{AppError, AppResult, Resource, ResourceType},
@@ -52,7 +54,7 @@ macro_rules! impl_to_functional_case {
                         created_at,
                         updated_by: self.updated_by.clone(),
                         updated_at,
-                        fields: from_value::<Vec<Field>>(self.fields.clone())?
+                        fields: from_value::<Vec<CaseField>>(self.fields.clone())?
                     })
                 }
             }
@@ -358,6 +360,7 @@ where
                 module_case_count.insert(item.module_name.clone(), item.case_count)
             })
             .collect::<Vec<_>>();
+        info!("finish get module_case_cout: {module_case_count:?}");
         Ok(module_case_count)
     }
 
