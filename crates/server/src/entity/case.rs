@@ -20,6 +20,31 @@ pub struct FunctionalCase {
     pub attach_info: Option<String>,
 }
 
+impl FunctionalCase {
+    pub fn new(name: &str, module: FileModule, template_id: i32, tags: Vec<String>) -> Self {
+        FunctionalCase {
+            id: 0,
+            name: name.to_string(),
+            module: FileModule {
+                id: module.id,
+                name: module.name,
+                module_type: module.module_type,
+                position: module.position,
+                parent_id: module.parent_id,
+            },
+            template_id,
+            tags,
+            status: CaseStatus::UnReviewed,
+            created_at: Utc::now(),
+            created_by: "".to_string(),
+            fields: vec![],
+            updated_at: None,
+            updated_by: None,
+            attach_info: None,
+        }
+    }
+}
+
 #[derive(
     Debug, Serialize, strum::Display, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema,
 )]
@@ -52,9 +77,10 @@ pub struct CaseField {
     pub name: String,
     pub project_id: i32,
     pub field_id: i32,
-    pub field_type: String,
+    pub field_type: FieldType,
     pub remark: Option<String>,
     pub value: FieldValue,
+    pub options: Option<Vec<FieldOption>>,
     pub internal: bool,
 }
 
@@ -128,29 +154,4 @@ pub struct TemplateField {
     pub internal: bool,
     pub default_value: Option<String>,
     pub options: Vec<FieldOption>,
-}
-
-impl FunctionalCase {
-    pub fn new(name: &str, module: FileModule, template_id: i32, tags: Vec<String>) -> Self {
-        FunctionalCase {
-            id: 0,
-            name: name.to_string(),
-            module: FileModule {
-                id: module.id,
-                name: module.name,
-                module_type: module.module_type,
-                position: module.position,
-                parent_id: module.parent_id,
-            },
-            template_id,
-            tags,
-            status: CaseStatus::UnReviewed,
-            created_at: Utc::now(),
-            created_by: "".to_string(),
-            updated_at: None,
-            updated_by: None,
-            fields: Vec::new(),
-            attach_info: None,
-        }
-    }
 }

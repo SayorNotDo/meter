@@ -19,9 +19,8 @@ use crate::{
             ListQueryParam,
         },
         response::{
-            case::{FunctionalCaseResponse, GetTemplateResponse},
-            CreateEntityResponse, CreateScriptResponse, DiagnoseResponse,
-            ListFunctionalCaseResponse, RequirementInfoResponse,
+            case::{FunctionalCaseResponse, GetTemplateResponse, ListFunctionalCaseResponse},
+            CreateEntityResponse, CreateScriptResponse, DiagnoseResponse, RequirementInfoResponse,
         },
     },
     entity::case::{Field, FieldType, FieldValue, FunctionalCase},
@@ -237,16 +236,16 @@ pub async fn create_functional_case(
         }
         let field = case_dao.get_field_by_id(item.id).await?;
         let field_type = FieldType::from_str(&field.field_type);
-        warn!("field: {item:?}");
         match (field_type, item.value) {
             (FieldType::Input, FieldValue::Input(value)) => {
                 case_dao
-                    .insert_case_field_relation_with_text(case_id, field.id, &value, uid)
+                    .insert_case_field_relation(case_id, field.id, &value, uid)
                     .await?;
             }
             (FieldType::Select, FieldValue::Select(option)) => {
+                let value = option.to_string();
                 case_dao
-                    .insert_case_field_relation_with_option(case_id, field.id, option, uid)
+                    .insert_case_field_relation(case_id, field.id, &value, uid)
                     .await?;
             }
             (FieldType::Unknown, _) => {
@@ -326,6 +325,7 @@ pub async fn get_functional_case(
     let client = state.pool.get().await?;
     let case_dao = CaseDao::new(&client);
     let case = case_dao.get_functional_case_by_id(case_id).await?;
+    let fields = case_dao.get_fields_by_case_id(case.id).await?;
     Ok(FunctionalCaseResponse {
         id: case.id,
         name: case.name,
@@ -338,7 +338,7 @@ pub async fn get_functional_case(
         updated_at: case.updated_at,
         updated_by: case.updated_by,
         attach_info: case.attach_info,
-        fields: case.fields,
+        fields,
     })
 }
 
@@ -394,9 +394,28 @@ pub async fn get_functional_case_list(
     let offset = page_num * page_size;
     let next_page_token = generate_page_token(page_size, page_num + 1)?;
     let case_dao = CaseDao::new(&transaction);
-    let list = case_dao
+    let functional_case_list = case_dao
         .get_functional_case_list(module_ids, page_size, offset)
         .await?;
+    let mut list: Vec<FunctionalCaseResponse> = Vec::new();
+    for case in functional_case_list.into_iter() {
+        let fields = case_dao.get_fields_by_case_id(case.id).await?;
+        list.push(FunctionalCaseResponse {
+            id: case.id,
+            name: case.name,
+            template_id: case.template_id,
+            module: case.module,
+            created_at: case.created_at,
+            created_by: case.created_by,
+            updated_at: case.updated_at,
+            updated_by: case.updated_by,
+            attach_info: case.attach_info,
+            fields,
+            tags: case.tags,
+            status: case.status.to_string(),
+        })
+    }
+
     transaction.commit().await?;
     Ok(ListFunctionalCaseResponse {
         next_page_token,
@@ -421,8 +440,8 @@ pub async fn count(
 
 pub async fn detail(state: &AppState, case_id: i32) -> AppResult<FunctionalCaseResponse> {
     info!("service layer for case detail with case id: {case_id:?}");
-    let mut client = state.pool.get().await?;
-    let case_dao = CaseDao::new(&mut client);
+    let client = state.pool.get().await?;
+    let case_dao = CaseDao::new(&client);
     let case = case_dao.get_functional_case_by_id(case_id).await?;
     // let tags: Vec<String> = if let Some(d) = case.tags {
     //     d.split(",")
@@ -432,6 +451,7 @@ pub async fn detail(state: &AppState, case_id: i32) -> AppResult<FunctionalCaseR
     // } else {
     //     Vec::new()
     // };
+    let fields = case_dao.get_fields_by_case_id(case_id).await?;
     Ok(FunctionalCaseResponse {
         id: case.id,
         name: case.name,
@@ -444,7 +464,7 @@ pub async fn detail(state: &AppState, case_id: i32) -> AppResult<FunctionalCaseR
         updated_by: case.updated_by,
         created_at: case.created_at,
         created_by: case.created_by,
-        fields: case.fields,
+        fields,
     })
 }
 

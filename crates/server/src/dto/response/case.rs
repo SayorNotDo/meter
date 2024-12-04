@@ -33,3 +33,9 @@ pub struct GetTemplateResponse {
     pub updated_at: Option<DateTime<Utc>>,
     pub fields: Vec<TemplateField>,
 }
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct ListFunctionalCaseResponse {
+    pub next_page_token: String,
+    pub list: Vec<FunctionalCaseResponse>,
+}

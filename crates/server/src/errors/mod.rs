@@ -104,7 +104,7 @@ pub enum AppError {
     #[error(transparent)]
     SpawnTaskError(#[from] tokio::task::JoinError),
     #[error("{0} convert error")]
-    TimeConvertError(Resource),
+    ConvertError(Resource),
     #[error(transparent)]
     TypeHeaderError(#[from] axum_extra::typed_header::TypedHeaderRejection),
     #[error(transparent)]
@@ -194,10 +194,10 @@ impl AppError {
                 vec![],
                 StatusCode::BAD_REQUEST,
             ),
-            TimeConvertError(_err) => (
-                "TIME_CONVERT_ERROR".to_string(),
-                None,
-                vec![],
+            ConvertError(resource) => (
+                format!("{resource}CONVERT_ERROR"),
+                Some(resource.resource_type as i32),
+                resource.details.clone(),
                 StatusCode::INTERNAL_SERVER_ERROR,
             ),
             ConfigError(_) => (

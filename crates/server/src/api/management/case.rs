@@ -20,9 +20,9 @@ use crate::{
             ListQueryParam, QueryTemplateParam,
         },
         response::{
-            case::{FunctionalCaseResponse, GetTemplateResponse},
+            case::{FunctionalCaseResponse, GetTemplateResponse, ListFunctionalCaseResponse},
             CreateEntityResponse, CreateScriptResponse, DiagnoseResponse, FileModuleResponse,
-            ListFunctionalCaseResponse, MessageResponse, RequirementInfoResponse,
+            MessageResponse, RequirementInfoResponse,
         },
     },
     entity::case::Field,

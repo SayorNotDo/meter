@@ -14,29 +14,16 @@ INSERT INTO functional_cases
   :created_by
 ) RETURNING id;
 
---! insert_case_field_relation_with_text
+--! insert_case_field_relation
 INSERT INTO functional_case_field_relation (
     case_id,
     field_id,
-    value,
+    field_value,
     created_by
 ) VALUES (
     :case_id,
     :field_id,
     :value,
-    :created_by
-) RETURNING id;
-
---! insert_case_field_relation_with_option
-INSERT INTO functional_case_field_relation (
-    case_id,
-    field_id,
-    option_id,
-    created_by
-) VALUES (
-    :case_id,
-    :field_id,
-    :option_id,
     :created_by
 ) RETURNING id;
 
@@ -55,6 +42,26 @@ INSERT INTO case_issue_relation (
     :created_by
 );
 
+--! get_fields_by_case_id : (remark?)
+SELECT fcfr.id,
+       f.name,
+       f.project_id,
+       fcfr.field_id,
+       f.field_type,
+       f.remark,
+       fcfr.field_value,
+       JSON_AGG(JSON_BUILD_OBJECT(
+            'id', fo.id,
+            'field_id', fo.field_id,
+            'value', fo.value,
+            'position', fo.position
+       )) AS options,
+       f.internal
+FROM functional_case_field_relation fcfr
+LEFT JOIN field f ON f.id = fcfr.field_id
+LEFT JOIN field_option fo ON f.id = fo.field_id
+WHERE fcfr.case_id = :case_id;
+
 --! get_functional_case_list : (updated_at?, updated_by?, attach_info?)
 SELECT fc.id,
        fc.name,
@@ -72,36 +79,7 @@ SELECT fc.id,
        fc.created_at,
        (SELECT username FROM users WHERE users.uuid = fc.created_by) AS created_by,
        fc.updated_at,
-       (SELECT username FROM users WHERE users.uuid = fc.updated_by) AS updated_by,
-       COALESCE(
-               (SELECT JSON_AGG(
-                               JSON_BUILD_OBJECT(
-                                       'id', tfr.id,
-                                       'name', f.name,
-                                       'internal', f.internal,
-                                       'project_id', f.project_id,
-                                       'field_id', f.id,
-                                       'field_type', f.field_type,
-                                       'required', tfr.required,
-                                       'default_value', tfr.default_value,
-                                       'options', COALESCE(
-                                               (SELECT JSON_AGG(
-                                                               JSON_BUILD_OBJECT(
-                                                                       'id', fo.id,
-                                                                       'field_id', fo.field_id,
-                                                                       'value', fo.value,
-                                                                       'position', fo.position
-                                                               )
-                                                       )
-                                                FROM field_option fo
-                                                WHERE fo.field_id = f.id), '[]'
-                                                  )
-                               )
-                       )
-                FROM template_field_relation tfr
-                LEFT JOIN field f ON tfr.field_id = f.id
-                WHERE tfr.template_id = fc.template_id), '[]'
-       ) AS fields
+       (SELECT username FROM users WHERE users.uuid = fc.updated_by) AS updated_by
 FROM functional_cases fc
 LEFT JOIN file_module fm ON fc.module_id = fm.id
 WHERE
@@ -162,28 +140,6 @@ SELECT
         'module_type', fm.module_type,
         'parent_id', fm.parent_id
     ) AS module,
-    COALESCE(
-        (SELECT JSON_AGG(
-                    JSON_BUILD_OBJECT(
-                        'id', tfr.id,
-                        'name', f.name,
-                        'internal', f.internal,
-                        'project_id', f.project_id,
-                        'field_type', f.field_type,
-                        'default_value', tfr.default_value,
-                        'options', COALESCE(
-                                    (SELECT JSON_AGG(
-                                        JSON_BUILD_OBJECT(
-                                            'id', fo.id,
-                                            'field_id', fo.field_id,
-                                            'value', fo.value,
-                                            'position', fo.position
-                                        )
-                                    ) FROM field_option fo WHERE fo.field_id =  tfr.id), '[]'
-                        )
-                    )
-        ) FROM template_field_relation tfr LEFT JOIN field f ON tfr.field_id = f.id)
-    ) AS fields,
     fc.attach_info,
     fc.status,
     fc.created_at,
@@ -213,35 +169,6 @@ SELECT
         'module_type', fm.module_type,
         'parent_id', fm.parent_id
     ) AS module,
-    COALESCE(
-            (SELECT JSON_AGG(
-                            JSON_BUILD_OBJECT(
-                                    'id', tfr.id,
-                                    'name', f.name,
-                                    'internal', f.internal,
-                                    'project_id', f.project_id,
-                                    'field_id', f.id,
-                                    'field_type', f.field_type,
-                                    'required', tfr.required,
-                                    'default_value', tfr.default_value,
-                                    'options', COALESCE(
-                                            (SELECT JSON_AGG(
-                                                            JSON_BUILD_OBJECT(
-                                                                    'id', fo.id,
-                                                                    'field_id', fo.field_id,
-                                                                    'value', fo.value,
-                                                                    'position', fo.position
-                                                            )
-                                                    )
-                                             FROM field_option fo
-                                             WHERE fo.field_id = tfr.id), '[]'
-                                               )
-                            )
-                    )
-             FROM template_field_relation tfr
-             LEFT JOIN field f ON tfr.field_id = f.id
-             WHERE tfr.template_id = fc.template_id), '[]'
-    ) AS fields,
     fc.attach_info,
     fc.status,
     fc.created_at,

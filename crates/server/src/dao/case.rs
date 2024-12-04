@@ -5,7 +5,8 @@ use crate::{
     dto::request::Issue,
     entity::{
         case::{
-            CaseField, CaseStatus, Field, FieldOption, FunctionalCase, Template, TemplateField,
+            CaseField, CaseStatus, Field, FieldOption, FieldType, FieldValue, FunctionalCase,
+            Template, TemplateField,
         },
         file::FileModule,
     },
@@ -52,15 +53,72 @@ macro_rules! impl_to_functional_case {
                         attach_info: self.attach_info.clone(),
                         created_by: self.created_by.clone(),
                         created_at,
+                        fields: vec![],
                         updated_by: self.updated_by.clone(),
                         updated_at,
-                        fields: from_value::<Vec<CaseField>>(self.fields.clone())?
                     })
                 }
             }
         )*
     };
 }
+
+fn convert_field_value(ori_value: &str, field_type: &FieldType) -> AppResult<FieldValue> {
+    match field_type {
+        FieldType::Input => Ok(FieldValue::Input(ori_value.to_string())),
+        FieldType::Select => {
+            let option_id = match ori_value.parse::<i32>() {
+                Ok(id) => id,
+                Err(_) => {
+                    return Err(AppError::ConvertError(Resource {
+                        details: vec![],
+                        resource_type: ResourceType::Field,
+                    }))
+                }
+            };
+            Ok(FieldValue::Select(option_id))
+        }
+        FieldType::Unknown => Err(AppError::ConvertError(Resource {
+            details: vec![],
+            resource_type: ResourceType::Field,
+        })),
+    }
+}
+
+trait ToCaseField {
+    fn to_case_field(&self) -> AppResult<CaseField>;
+}
+
+macro_rules! impl_to_case_field {
+    ($($t:ty), *) => {
+        $(
+            impl ToCaseField for $t {
+                fn to_case_field(&self) -> AppResult<CaseField> {
+                    let field_type = FieldType::from_str(&self.field_type);
+                    if let FieldType::Select(field_type) = field_type {
+                        let options = from_value::<Vec<FieldOption>>(self.options.clone())?;
+                    } else {
+                        let options = None;
+                    };
+                    let value = convert_field_value(&self.field_value, &field_type)?;
+                    Ok(CaseField {
+                        id: self.id,
+                        name: self.name.clone(),
+                        project_id: self.project_id,
+                        field_id: self.field_id,
+                        value,
+                        field_type,
+                        options,
+                        internal: self.internal,
+                        remark: self.remark.clone()
+                    })
+                }
+            }
+        )*
+    };
+}
+
+impl_to_case_field!(GetFieldsByCaseId);
 
 impl_to_functional_case!(
     GetFunctionalCaseById,
@@ -223,6 +281,16 @@ where
             })
             .collect::<Vec<_>>();
         Ok(fields)
+    }
+
+    pub async fn get_fields_by_case_id(&self, case_id: i32) -> AppResult<Vec<CaseField>> {
+        get_fields_by_case_id()
+            .bind(self.executor, &case_id)
+            .all()
+            .await?
+            .into_iter()
+            .map(|item| item.to_case_field())
+            .collect::<AppResult<Vec<_>>>()
     }
 
     pub async fn insert_field_option(
@@ -443,29 +511,15 @@ where
         Ok(())
     }
 
-    pub async fn insert_case_field_relation_with_text(
+    pub async fn insert_case_field_relation(
         &self,
         case_id: i32,
         field_id: i32,
         value: &str,
         created_by: Uuid,
     ) -> AppResult<i32> {
-        let id = insert_case_field_relation_with_text()
+        let id = insert_case_field_relation()
             .bind(self.executor, &case_id, &field_id, &value, &created_by)
-            .one()
-            .await?;
-        Ok(id)
-    }
-
-    pub async fn insert_case_field_relation_with_option(
-        &self,
-        case_id: i32,
-        field_id: i32,
-        option_id: i32,
-        created_by: Uuid,
-    ) -> AppResult<i32> {
-        let id = insert_case_field_relation_with_option()
-            .bind(self.executor, &case_id, &field_id, &option_id, &created_by)
             .one()
             .await?;
         Ok(id)

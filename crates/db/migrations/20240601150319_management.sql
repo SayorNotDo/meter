@@ -169,8 +169,7 @@ CREATE TABLE functional_case_field_relation (
     id SERIAL PRIMARY KEY,
     case_id INT NOT NULL,
     field_id INT NOT NULL,
-    value VARCHAR,
-    option_id INT,
+    field_value VARCHAR,
     created_at TIMESTAMP NOT NULL DEFAULT NOW (),
     created_by UUID NOT NULL,
     updated_at TIMESTAMP,
@@ -185,9 +184,7 @@ COMMENT ON COLUMN functional_case_field_relation.case_id IS '关联功能用例I
 
 COMMENT ON COLUMN functional_case_field_relation.field_id IS '关联字段ID';
 
-COMMENT ON COLUMN functional_case_field_relation.value IS '字段值';
-
-COMMENT ON COLUMN functional_case_field_relation.option_id IS '关联选项ID';
+COMMENT ON COLUMN functional_case_field_relation.field_value IS '关联字段值';
 
 COMMENT ON COLUMN functional_case_field_relation.created_at IS '创建时间';
 
