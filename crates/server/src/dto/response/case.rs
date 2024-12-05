@@ -1,5 +1,5 @@
 use crate::entity::{
-    case::{CaseField, TemplateField},
+    case::{CaseField, CaseResult, CaseStatus, TemplateField},
     file::FileModule,
 };
 use chrono::{DateTime, Utc};
@@ -13,13 +13,14 @@ pub struct FunctionalCaseResponse {
     pub tags: Vec<String>,
     pub template_id: i32,
     pub module: FileModule,
-    pub status: String,
+    pub status: CaseStatus,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
     pub updated_by: Option<String>,
     pub attach_info: Option<String>,
     pub fields: Vec<CaseField>,
+    pub last_execute_result: CaseResult,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

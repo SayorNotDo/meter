@@ -6,6 +6,8 @@ use std::time::Duration;
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use once_cell::sync::Lazy;
 
+pub mod case;
+
 pub const ENV_PREFIX: &str = "APP";
 
 // Development mode change 120 to 604800

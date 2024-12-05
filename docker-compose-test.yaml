@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: testpassword
       POSTGRES_DB: test_postgres
     ports:
-      - "5432:5432"
+      - "5435:5435"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -18,7 +18,7 @@ services:
   dbmate:
     image: ghcr.io/amacneil/dbmate:latest
     environment:
-      DATABASE_URL: postgresql://postgres:testpassword@db:5432/test_postgres?sslmode=disable
+      DATABASE_URL: postgresql://postgres:testpassword@db:5435/test_postgres?sslmode=disable
     volumes:
       - ./crates/db/migrations:/db/migrations
     depends_on:
@@ -35,7 +35,7 @@ services:
       REDIS_PASSWORD: testpassword
     command: ["redis-server", "--requirepass", "testpassword"]
     ports:
-      - "6379:6379"
+      - "6389:6389"
     networks:
       - network
 
@@ -43,6 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: meter-test
     command: ["cargo", "test", "--", "functional_case", "--color=always"]
     working_dir: /meter
     volumes:
@@ -64,7 +65,7 @@ services:
       mailpit:
         condition: service_started
     ports:
-      - "8888:80"
+      - "8880:80"
     networks:
       - network
 

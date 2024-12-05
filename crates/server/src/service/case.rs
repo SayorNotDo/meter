@@ -7,7 +7,7 @@ use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::{
-    constant::{DOCTOR_SCRIPT_PATH, PAGE_DECODE_KEY},
+    constant::{case::CASE_NUM, DOCTOR_SCRIPT_PATH, PAGE_DECODE_KEY},
     dao::{case::CaseDao, element::ElementDao, entity::Step, file::FileDao},
     dto::{
         request::{
@@ -23,7 +23,7 @@ use crate::{
             CreateEntityResponse, CreateScriptResponse, DiagnoseResponse, RequirementInfoResponse,
         },
     },
-    entity::case::{Field, FieldType, FieldValue, FunctionalCase},
+    entity::case::{CaseResult, Field, FieldType, FieldValue, FunctionalCase},
     errors::{AppError, AppResult, Resource, ResourceType},
     service::{
         engine::{self, StepInfo},
@@ -235,6 +235,10 @@ pub async fn create_functional_case(
             )));
         }
         let field = case_dao.get_field_by_id(item.id).await?;
+        /* Check whether field `case_num` is unique or not */
+        if &field.name == CASE_NUM {
+            case_dao.check_unique_by_case_num(&item.value).await?
+        }
         let field_type = FieldType::from_str(&field.field_type);
         match (field_type, item.value) {
             (FieldType::Input, FieldValue::Input(value)) => {
@@ -326,18 +330,23 @@ pub async fn get_functional_case(
     let case_dao = CaseDao::new(&client);
     let case = case_dao.get_functional_case_by_id(case_id).await?;
     let fields = case_dao.get_fields_by_case_id(case.id).await?;
+    let last_execute_result = case_dao
+        .get_last_execute_record_by_case_id(case.id)
+        .await
+        .map_or(CaseResult::UnExecuted, |f| f.result);
     Ok(FunctionalCaseResponse {
         id: case.id,
         name: case.name,
         tags: case.tags,
         template_id: case.template_id,
         module: case.module,
-        status: case.status.to_string(),
+        status: case.status,
         created_at: case.created_at,
         created_by: case.created_by,
         updated_at: case.updated_at,
         updated_by: case.updated_by,
         attach_info: case.attach_info,
+        last_execute_result,
         fields,
     })
 }
@@ -400,6 +409,10 @@ pub async fn get_functional_case_list(
     let mut list: Vec<FunctionalCaseResponse> = Vec::new();
     for case in functional_case_list.into_iter() {
         let fields = case_dao.get_fields_by_case_id(case.id).await?;
+        let last_execute_result = case_dao
+            .get_last_execute_record_by_case_id(case.id)
+            .await
+            .map_or(CaseResult::UnExecuted, |f| f.result);
         list.push(FunctionalCaseResponse {
             id: case.id,
             name: case.name,
@@ -410,9 +423,10 @@ pub async fn get_functional_case_list(
             updated_at: case.updated_at,
             updated_by: case.updated_by,
             attach_info: case.attach_info,
+            last_execute_result,
             fields,
             tags: case.tags,
-            status: case.status.to_string(),
+            status: case.status,
         })
     }
 
@@ -436,36 +450,6 @@ pub async fn count(
         _ => case_dao.count(project_id).await?,
     };
     Ok(hmap)
-}
-
-pub async fn detail(state: &AppState, case_id: i32) -> AppResult<FunctionalCaseResponse> {
-    info!("service layer for case detail with case id: {case_id:?}");
-    let client = state.pool.get().await?;
-    let case_dao = CaseDao::new(&client);
-    let case = case_dao.get_functional_case_by_id(case_id).await?;
-    // let tags: Vec<String> = if let Some(d) = case.tags {
-    //     d.split(",")
-    //         .into_iter()
-    //         .map(|s| s.to_string())
-    //         .collect::<Vec<_>>()
-    // } else {
-    //     Vec::new()
-    // };
-    let fields = case_dao.get_fields_by_case_id(case_id).await?;
-    Ok(FunctionalCaseResponse {
-        id: case.id,
-        name: case.name,
-        template_id: case.template_id,
-        status: case.status.to_string(),
-        tags: case.tags,
-        module: case.module,
-        attach_info: case.attach_info,
-        updated_at: case.updated_at,
-        updated_by: case.updated_by,
-        created_at: case.created_at,
-        created_by: case.created_by,
-        fields,
-    })
 }
 
 async fn get_step_list<T>(dao: &ElementDao<'_, T>, req: &Vec<Step>) -> AppResult<Vec<StepInfo>>

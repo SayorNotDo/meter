@@ -219,6 +219,53 @@ CREATE TABLE case_issue_relation (
 CREATE TRIGGER set_timestamp_case_issue_relation BEFORE
 UPDATE ON case_issue_relation FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp ();
 
+DROP TABLE IF EXISTS functional_case_execute_record;
+
+CREATE TABLE functional_case_execute_record (
+    id SERIAL PRIMARY KEY,
+    case_id INT NOT NULL,
+    result  VARCHAR NOT NULL,
+    attach_info VARCHAR,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL,
+    updated_at TIMESTAMP,
+    updated_by UUID,
+    deleted_at TIMESTAMP,
+    deleted_by UUID
+);
+
+-- create trigger: set updated_at field
+CREATE TRIGGER set_timestamp_functional_case_execute_record BEFORE
+UPDATE ON functional_case_execute_record FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp ();
+
+COMMENT ON COLUMN functional_case_execute_record.id IS '用例执行记录ID';
+COMMENT ON COLUMN functional_case_execute_record.case_id IS '关联用例ID';
+COMMENT ON COLUMN functional_case_execute_record.result IS '执行结果';
+COMMENT ON COLUMN functional_case_execute_record.attach_info IS '附加信息';
+COMMENT ON COLUMN functional_case_execute_record.created_at IS '创建时间';
+COMMENT ON COLUMN functional_case_execute_record.created_by IS '创建人';
+COMMENT ON COLUMN functional_case_execute_record.updated_at IS '更新时间';
+COMMENT ON COLUMN functional_case_execute_record.updated_by IS '更新人';
+COMMENT ON COLUMN functional_case_execute_record.deleted_at IS '删除时间';
+COMMENT ON COLUMN functional_case_execute_record.deleted_by IS '删除人';
+
+
+DROP TABLE IF EXISTS functional_case_alter_record;
+
+CREATE TABLE functional_case_alter_record (
+    id  SERIAL PRIMARY KEY,
+    case_id INT NOT NULL,
+    info VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by UUID NOT NULL
+);
+
+COMMENT ON COLUMN functional_case_alter_record.id IS '用例变更记录ID';
+COMMENT ON COLUMN functional_case_alter_record.case_id IS '关联用例ID';
+COMMENT ON COLUMN functional_case_alter_record.info IS '变更内容';
+COMMENT ON COLUMN functional_case_alter_record.created_at IS '变更时间';
+COMMENT ON COLUMN functional_case_alter_record.created_by IS '变更人';
+
 DROP TABLE IF EXISTS script_element_relation;
 
 CREATE TABLE script_element_relation (

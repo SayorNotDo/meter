@@ -45,6 +45,42 @@ impl FunctionalCase {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema)]
+pub struct CaseExecuteRecord {
+    pub id: i32,
+    pub case_id: i32,
+    pub result: CaseResult,
+    pub attach_info: String,
+    pub created_at: DateTime<Utc>,
+    pub created_by: String,
+    pub updated_at: Option<DateTime<Utc>>,
+    pub updated_by: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum CaseResult {
+    UnExecuted,
+    Passed,
+    Blocked,
+    Skipped,
+    Failed,
+    Unknown,
+}
+
+impl CaseResult {
+    pub fn from_str(result: &str) -> Self {
+        match result {
+            "UN_EXECUTED" => CaseResult::UnExecuted,
+            "PASSED" => CaseResult::Passed,
+            "BLOCKED" => CaseResult::Blocked,
+            "SKIPPED" => CaseResult::Skipped,
+            "FAILED" => CaseResult::Failed,
+            _ => CaseResult::Unknown,
+        }
+    }
+}
+
 #[derive(
     Debug, Serialize, strum::Display, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema,
 )]
@@ -74,14 +110,15 @@ pub struct FieldOption {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct CaseField {
     pub id: i32,
-    pub name: String,
+    pub field_name: String,
     pub project_id: i32,
     pub field_id: i32,
     pub field_type: FieldType,
     pub remark: Option<String>,
-    pub value: FieldValue,
+    pub field_value: FieldValue,
     pub options: Option<Vec<FieldOption>>,
     pub internal: bool,
+    pub required: bool,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]

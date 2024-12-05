@@ -5,8 +5,8 @@ use crate::{
     dto::request::Issue,
     entity::{
         case::{
-            CaseField, CaseStatus, Field, FieldOption, FieldType, FieldValue, FunctionalCase,
-            Template, TemplateField,
+            CaseExecuteRecord, CaseField, CaseResult, CaseStatus, Field, FieldOption, FieldType,
+            FieldValue, FunctionalCase, Template, TemplateField,
         },
         file::FileModule,
     },
@@ -95,22 +95,28 @@ macro_rules! impl_to_case_field {
             impl ToCaseField for $t {
                 fn to_case_field(&self) -> AppResult<CaseField> {
                     let field_type = FieldType::from_str(&self.field_type);
-                    if let FieldType::Select(field_type) = field_type {
-                        let options = from_value::<Vec<FieldOption>>(self.options.clone())?;
-                    } else {
-                        let options = None;
+                    let options = match field_type {
+                        FieldType::Select => {
+                            if let Some(o) = &self.options {
+                                Some(from_value::<Vec<FieldOption>>(o.clone())?)
+                            } else {
+                                Option::None
+                            }
+                        }
+                        _ => Option::None
                     };
-                    let value = convert_field_value(&self.field_value, &field_type)?;
+                    let field_value = convert_field_value(&self.field_value, &field_type)?;
                     Ok(CaseField {
                         id: self.id,
-                        name: self.name.clone(),
+                        field_name: self.name.clone(),
                         project_id: self.project_id,
                         field_id: self.field_id,
-                        value,
+                        field_value,
                         field_type,
                         options,
                         internal: self.internal,
-                        remark: self.remark.clone()
+                        remark: self.remark.clone(),
+                        required: self.required
                     })
                 }
             }
@@ -291,6 +297,36 @@ where
             .into_iter()
             .map(|item| item.to_case_field())
             .collect::<AppResult<Vec<_>>>()
+    }
+
+    pub async fn get_last_execute_record_by_case_id(
+        &self,
+        case_id: i32,
+    ) -> AppResult<CaseExecuteRecord> {
+        let record = get_last_execute_record_by_case_id()
+            .bind(self.executor, &case_id)
+            .opt()
+            .await?;
+        match record {
+            Some(r) => {
+                let updated_at = utils::time::to_utc_or_default(r.updated_at);
+                let created_at = utils::time::to_utc(r.created_at);
+                Ok(CaseExecuteRecord {
+                    id: r.id,
+                    case_id: r.case_id,
+                    result: CaseResult::from_str(&r.result),
+                    attach_info: r.attach_info,
+                    created_at,
+                    created_by: r.created_by,
+                    updated_at,
+                    updated_by: r.updated_by,
+                })
+            }
+            None => Err(AppError::NotFoundError(Resource {
+                details: vec![],
+                resource_type: ResourceType::Field,
+            })),
+        }
     }
 
     pub async fn insert_field_option(
@@ -541,6 +577,16 @@ where
                 created_by,
             )
             .await?;
+
+        Ok(())
+    }
+
+    pub async fn check_unique_by_field_id_and_value(
+        &self,
+        field_id: &i32,
+        field_value: &FieldValue,
+    ) -> AppResult {
+        if let FieldValue::Input(value) = field_value {}
         Ok(())
     }
 

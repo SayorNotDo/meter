@@ -27,6 +27,35 @@ INSERT INTO functional_case_field_relation (
     :created_by
 ) RETURNING id;
 
+--! insert_case_execute_record
+INSERT INTO functional_case_execute_record (
+    case_id,
+    result,
+    attach_info,
+    created_by
+) VALUES (
+    :case_id,
+    :result,
+    :attach_info,
+    :created_by
+) RETURNING id;
+
+--! get_last_execute_record_by_case_id : (updated_at?, updated_by?)
+SELECT  fcer.id,
+        fcer.case_id,
+        fcer.result,
+        fcer.attach_info,
+        fcer.created_at,
+        uc.username AS created_by,
+        fcer.updated_at,
+        uu.username AS updated_by
+FROM functional_case_execute_record fcer
+LEFT JOIN users uc ON uc.uuid = fcer.created_by
+LEFT JOIN users uu ON uu.uuid = fcer.updated_by
+WHERE case_id = :case_id
+ORDER BY fcer.created_at
+DESC LIMIT 1;
+
 --! insert_case_issue_relation
 INSERT INTO case_issue_relation (
     case_id,
@@ -42,7 +71,7 @@ INSERT INTO case_issue_relation (
     :created_by
 );
 
---! get_fields_by_case_id : (remark?)
+--! get_fields_by_case_id : (remark?, options?)
 SELECT fcfr.id,
        f.name,
        f.project_id,
@@ -50,17 +79,27 @@ SELECT fcfr.id,
        f.field_type,
        f.remark,
        fcfr.field_value,
-       JSON_AGG(JSON_BUILD_OBJECT(
+       (SELECT JSON_AGG(JSON_BUILD_OBJECT(
             'id', fo.id,
             'field_id', fo.field_id,
             'value', fo.value,
             'position', fo.position
-       )) AS options,
-       f.internal
+       )) FROM  field_option fo WHERE fo.field_id = fcfr.field_id) AS options,
+       f.internal,
+       tfr.required
 FROM functional_case_field_relation fcfr
 LEFT JOIN field f ON f.id = fcfr.field_id
-LEFT JOIN field_option fo ON f.id = fo.field_id
+LEFT JOIN template_field_relation tfr ON tfr.field_id = fcfr.field_id
 WHERE fcfr.case_id = :case_id;
+
+--! get_field_by_field_id_and_value
+SELECT  id
+FROM functional_case_field_relation fcfr
+WHERE field_id = :field_id
+AND field_value = :field_value
+AND deleted_at IS NULL
+AND deleted_by IS NULL;
+
 
 --! get_functional_case_list : (updated_at?, updated_by?, attach_info?)
 SELECT fc.id,
