@@ -1,18 +1,20 @@
 use serde::{Deserialize, Serialize};
+use strum::EnumIter;
 use utoipa::ToSchema;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct FileModule {
     pub id: i32,
     pub name: String,
-    pub module_type: String,
+    pub module_type: ModuleType,
     pub position: i32,
     pub parent_id: Option<i32>,
 }
 
 #[derive(
-    Debug, Serialize, strum::Display, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema,
+    Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema, Clone, Copy, EnumIter,
 )]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ModuleType {
     Case,
     Bug,
@@ -30,5 +32,11 @@ impl ModuleType {
             "ELEMENT" => ModuleType::Element,
             _ => ModuleType::Unknown,
         }
+    }
+}
+
+impl ToString for ModuleType {
+    fn to_string(&self) -> String {
+        format!("{:?}", self).to_ascii_uppercase()
     }
 }

@@ -42,6 +42,11 @@ pub struct UserInfoUpdateRequest {
     pub email: String,
 }
 
+#[derive(Debug, ToSchema, Serialize, Deserialize)]
+pub struct DeleteEntityRequest {
+    pub id: i32,
+}
+
 #[derive(Debug, Deserialize, Serialize, ToSchema, Clone, Validate)]
 pub struct DeleteRoleRequest {
     #[garde(length(min = 1))]

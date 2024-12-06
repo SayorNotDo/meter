@@ -1,5 +1,5 @@
 use crate::{
-    entity::file::FileModule,
+    entity::file::{FileModule, ModuleType},
     errors::{AppError, AppResult, Resource, ResourceType},
 };
 
@@ -19,7 +19,7 @@ macro_rules! impl_to_file_module {
                         id: self.id,
                         name: self.name.clone(),
                         position: self.position,
-                        module_type: self.module_type.clone(),
+                        module_type: ModuleType::from_str(&self.module_type),
                         parent_id: self.parent_id,
                     }
                 }
@@ -53,10 +53,10 @@ where
     pub async fn get_file_modules(
         &self,
         project_id: &i32,
-        module_type: &str,
+        module_type: ModuleType,
     ) -> AppResult<Vec<FileModule>> {
         let file_modules = get_file_modules()
-            .bind(self.executor, project_id, &module_type)
+            .bind(self.executor, project_id, &module_type.to_string())
             .all()
             .await?
             .into_iter()
@@ -82,10 +82,10 @@ where
     pub async fn get_root_module_by_id(
         &self,
         project_id: i32,
-        module_type: &str,
+        module_type: &ModuleType,
     ) -> AppResult<Vec<FileModule>> {
         let file_modules = get_root_module_by_id()
-            .bind(self.executor, &project_id, &module_type)
+            .bind(self.executor, &project_id, &module_type.to_string())
             .all()
             .await?
             .into_iter()
@@ -137,7 +137,7 @@ where
                 &project_id,
                 &file_module.name,
                 &file_module.position,
-                &file_module.module_type,
+                &file_module.module_type.to_string(),
                 &file_module.parent_id,
                 uid,
             )

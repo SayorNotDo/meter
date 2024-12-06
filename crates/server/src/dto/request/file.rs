@@ -8,8 +8,6 @@ pub struct CreateModuleRequest {
     #[garde(length(min = 1))]
     pub name: String,
     #[garde(skip)]
-    pub project_id: i32,
-    #[garde(skip)]
     pub parent_id: Option<i32>,
 }
 

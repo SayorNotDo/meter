@@ -16,8 +16,8 @@ use crate::{
                 QueryFieldParam, UpdateFieldRequest, UpdateFunctionalCaseRequest,
             },
             file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
-            CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
-            ListQueryParam, QueryTemplateParam,
+            CaseQueryParam, CreateScriptRequest, DeleteEntityRequest, DiagnoseRequest,
+            IssueRelationRequest, ListQueryParam, QueryTemplateParam,
         },
         response::{
             case::{FunctionalCaseResponse, GetTemplateResponse, ListFunctionalCaseResponse},
@@ -25,7 +25,7 @@ use crate::{
             MessageResponse, RequirementInfoResponse,
         },
     },
-    entity::case::Field,
+    entity::{case::Field, file::ModuleType},
     errors::{AppError, AppResponseError, AppResult},
     service::{self, case, file},
     state::AppState,
@@ -58,7 +58,7 @@ pub async fn get_module_list(
 ) -> AppResult<Json<Vec<FileModuleResponse>>> {
     info!("case module tree query param: {params:?}");
     let project_id = extract_project_id(&headers)?;
-    match file::get_file_module(&state, &project_id, "CASE".into(), params).await {
+    match file::get_file_module(&state, &project_id, ModuleType::Case, params).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             info!("Failed to get case module tree");
@@ -70,8 +70,9 @@ pub async fn get_module_list(
 #[utoipa::path(
     post,
     path = "/management/case/module",
+    request_body = CreateModuleRequest,
     responses(
-        (status = 200, description = "Success create case module", body = [MessageResponse]),
+        (status = 200, description = "Success create case module", body = [CreateEntityResponse]),
         (status = 400, description = "Invalid parameters", body = [AppResponseError]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
         (status = 500, description = "Internal server error", body = [AppResponseError])
@@ -86,8 +87,8 @@ pub async fn create_module(
 ) -> AppResult<Json<CreateEntityResponse>> {
     info!("case module create with request: {request:?}");
     request.validate()?;
-    validate_project_id(&headers, request.project_id)?;
-    match file::create_file_module(&state, user.uid, "CASE".into(), &request).await {
+    let project_id = extract_project_id(&headers)?;
+    match file::create_file_module(&state, project_id, user.uid, ModuleType::Case, &request).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }
@@ -205,6 +206,30 @@ pub async fn update_functional_case(
     let project_id = extract_project_id(&headers)?;
     match case::update_functional_case(&state, project_id, user.uid, request).await {
         Ok(_) => Ok(Json(MessageResponse::new("Success update functional case"))),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
+    delete,
+    path = "/management/case/functional-case",
+    request_body = DeleteEntityRequest,
+    responses(
+        (status = 200, description = "Success delete functional case", body = [MessageResponse]),
+        (status = 404, description = "Not found", body = [AppResponseError]),
+    ),
+security(("jwt" = []))
+)]
+pub async fn delete_functional_case(
+    Extension(state): Extension<AppState>,
+    headers: HeaderMap,
+    user: UserClaims,
+    Json(request): Json<DeleteEntityRequest>,
+) -> AppResult<Json<MessageResponse>> {
+    info!("delete functional case with request: {request:?}");
+    let project_id = extract_project_id(&headers)?;
+    match case::delete_functional_case(&state, project_id, user.uid, request).await {
+        Ok(_) => Ok(Json(MessageResponse::new("Success delete functional case"))),
         Err(e) => Err(e),
     }
 }

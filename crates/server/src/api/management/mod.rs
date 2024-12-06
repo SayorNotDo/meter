@@ -32,6 +32,10 @@ pub fn app() -> Router {
         )
         .route("/case/functional-case", put(case::update_functional_case))
         .route(
+            "/case/functional-case",
+            delete(case::delete_functional_case),
+        )
+        .route(
             "/case/functional-case/issue-relation",
             post(case::create_issue_relation),
         )

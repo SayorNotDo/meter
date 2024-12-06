@@ -4,7 +4,7 @@ use crate::{
         request::file::{CreateModuleRequest, QueryModuleParam},
         response::{CreateEntityResponse, FileModuleResponse},
     },
-    entity::file::FileModule,
+    entity::file::{FileModule, ModuleType},
     errors::{AppError, AppResult},
     state::AppState,
 };
@@ -12,29 +12,11 @@ use std::collections::HashMap;
 use tracing::info;
 use uuid::Uuid;
 
-#[derive(Debug)]
-enum ModuleType {
-    Case,
-    Plan,
-    Element,
-    Unknown,
-}
-
-impl ModuleType {
-    fn from_str(module_type: &str) -> Self {
-        match module_type {
-            "CASE" => ModuleType::Case,
-            "PLAN" => ModuleType::Plan,
-            "ELEMENT" => ModuleType::Element,
-            _ => ModuleType::Unknown,
-        }
-    }
-}
-
 pub async fn create_file_module(
     state: &AppState,
+    project_id: i32,
     uid: Uuid,
-    module_type: &str,
+    module_type: ModuleType,
     request: &CreateModuleRequest,
 ) -> AppResult<CreateEntityResponse> {
     let mut client = state.pool.get().await?;
@@ -52,7 +34,7 @@ pub async fn create_file_module(
             .map_err(|e| AppError::BadRequestError(e.to_string()))?
     } else {
         file_dao
-            .get_root_module_by_id(request.project_id, module_type)
+            .get_root_module_by_id(project_id, &module_type)
             .await
             .map_err(|e| AppError::BadRequestError(e.to_string()))?
     };
@@ -63,18 +45,18 @@ pub async fn create_file_module(
     };
 
     project_dao
-        .find_by_id(request.project_id)
+        .find_by_id(project_id)
         .await
         .map_err(|e| AppError::BadRequestError(e.to_string()))?;
     let file_module = FileModule {
         id: 0,
         name: request.name.clone(),
         position,
-        module_type: module_type.into(),
+        module_type,
         parent_id: request.parent_id,
     };
     let module_id = file_dao
-        .insert_file_module(&uid, request.project_id, &file_module)
+        .insert_file_module(&uid, project_id, &file_module)
         .await?;
     transaction.commit().await?;
     Ok(CreateEntityResponse { id: module_id })
@@ -83,7 +65,7 @@ pub async fn create_file_module(
 pub async fn get_file_module(
     state: &AppState,
     project_id: &i32,
-    module_type: &str,
+    module_type: ModuleType,
     params: QueryModuleParam,
 ) -> AppResult<Vec<FileModuleResponse>> {
     let mut file_module_tree = Vec::new();
@@ -102,8 +84,7 @@ pub async fn get_file_module(
     let mut module_map: HashMap<i32, FileModuleResponse> = HashMap::new();
     /* 初始化节点 */
     for item in file_modules.iter() {
-        let item_type = ModuleType::from_str(&item.module_type);
-        let count = match item_type {
+        let count = match item.module_type {
             ModuleType::Case => {
                 let case_dao = dao::case::CaseDao::new(&transaction);
                 case_dao.count_by_module_id(&item.id).await?
@@ -120,6 +101,9 @@ pub async fn get_file_module(
                 info!("unknown type");
                 0
             }
+            ModuleType::Bug => {
+                todo!("not implemented yet!");
+            }
         };
         module_map.insert(
             item.id,
@@ -127,7 +111,7 @@ pub async fn get_file_module(
                 id: item.id,
                 name: item.name.clone(),
                 path: "".to_string(),
-                module_type: item.module_type.clone(),
+                module_type: item.module_type,
                 parent_id: item.parent_id,
                 children: Vec::new(),
                 count,

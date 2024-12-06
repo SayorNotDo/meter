@@ -3,7 +3,7 @@ use std::{
     path::Path,
 };
 use tokio::try_join;
-use tracing::{info, warn};
+use tracing::info;
 use uuid::Uuid;
 
 use crate::{
@@ -15,8 +15,8 @@ use crate::{
                 CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest,
                 QueryFieldParam, UpdateFieldRequest, UpdateFunctionalCaseRequest,
             },
-            CaseQueryParam, CreateScriptRequest, DiagnoseRequest, IssueRelationRequest,
-            ListQueryParam,
+            CaseQueryParam, CreateScriptRequest, DeleteEntityRequest, DiagnoseRequest,
+            IssueRelationRequest, ListQueryParam,
         },
         response::{
             case::{FunctionalCaseResponse, GetTemplateResponse, ListFunctionalCaseResponse},
@@ -210,7 +210,6 @@ pub async fn create_functional_case(
         .filter(|f| f.required)
         .map(|f| f.id)
         .collect();
-    warn!("=================>>> required_field_ids: {template_required_field_ids:?}");
 
     let template_optional_field_ids: HashSet<_> = template
         .fields
@@ -237,7 +236,9 @@ pub async fn create_functional_case(
         let field = case_dao.get_field_by_id(item.id).await?;
         /* Check whether field `case_num` is unique or not */
         if &field.name == CASE_NUM {
-            case_dao.check_unique_by_case_num(&item.value).await?
+            case_dao
+                .check_unique_by_field_id_and_value(&field.id, &item.value)
+                .await?
         }
         let field_type = FieldType::from_str(&field.field_type);
         match (field_type, item.value) {
@@ -268,7 +269,6 @@ pub async fn create_functional_case(
             "Missing required field".to_string(),
         ));
     }
-
     transaction.commit().await?;
     Ok(case_id)
 }
@@ -308,6 +308,28 @@ pub async fn update_functional_case(
         }
         Err(e) => Err(e),
     }
+}
+
+pub async fn delete_functional_case(
+    state: &AppState,
+    project_id: i32,
+    deleted_by: Uuid,
+    request: DeleteEntityRequest,
+) -> AppResult {
+    info!("case service layer delete functional case with request: {request:?}, deleted_by: {deleted_by}, project_id: {project_id}");
+    let mut client = state.pool.get().await?;
+    let transaction = client.transaction().await?;
+    let case_dao = CaseDao::new(&transaction);
+    let case = case_dao.get_functional_case_by_id(request.id).await?;
+    case_dao
+        .soft_delete_functional_case(case.id, deleted_by)
+        .await?;
+    /*TODO: delete related-resource*/
+    case_dao
+        .soft_delete_case_field_relation_by_case_id(case.id, deleted_by)
+        .await?;
+    transaction.commit().await?;
+    Ok(())
 }
 
 pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) -> AppResult {

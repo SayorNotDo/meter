@@ -92,15 +92,6 @@ LEFT JOIN field f ON f.id = fcfr.field_id
 LEFT JOIN template_field_relation tfr ON tfr.field_id = fcfr.field_id
 WHERE fcfr.case_id = :case_id;
 
---! get_field_by_field_id_and_value
-SELECT  id
-FROM functional_case_field_relation fcfr
-WHERE field_id = :field_id
-AND field_value = :field_value
-AND deleted_at IS NULL
-AND deleted_by IS NULL;
-
-
 --! get_functional_case_list : (updated_at?, updated_by?, attach_info?)
 SELECT fc.id,
        fc.name,
@@ -165,6 +156,14 @@ UPDATE functional_cases
         updated_by = :updated_by,
         updated_at = NOW()
 WHERE id = :case_id;
+
+--! soft_delete_functional_case
+UPDATE functional_cases
+SET deleted_at = NOW(),
+    deleted_by = :deleted_by,
+    updated_by = :deleted_by
+WHERE id = :case_id;
+
 
 --! get_functional_case_by_name : (attach_info?, updated_at?, updated_by?)
 SELECT

@@ -7,6 +7,7 @@ use crate::{
         },
         response::{FileModuleResponse, ListElementResponse},
     },
+    entity::file::ModuleType,
     errors::AppResult,
     service::{element, file},
     state::AppState,
@@ -59,7 +60,7 @@ pub async fn tree(
         "controller layer query element list with params: {}",
         project_id
     );
-    match file::get_file_module(&state, &project_id, "ELEMENT".into(), params).await {
+    match file::get_file_module(&state, &project_id, ModuleType::Element, params).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             warn!("Failed to get element module tree");

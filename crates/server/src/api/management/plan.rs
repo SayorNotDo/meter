@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use axum::{
     extract::{Path, Query},
+    http::HeaderMap,
     Extension, Json,
 };
 
@@ -13,10 +14,11 @@ use crate::{
         },
         response::{CreateEntityResponse, FileModuleResponse, ListPlanResponse},
     },
+    entity::file::ModuleType,
     errors::{AppResponseError, AppResult},
     service::{file, plan},
     state::AppState,
-    utils::claim::UserClaims,
+    utils::{claim::UserClaims, header::extract_project_id},
 };
 
 use tracing::info;
@@ -50,7 +52,7 @@ pub async fn tree(
     Query(params): Query<QueryModuleParam>,
 ) -> AppResult<Json<Vec<FileModuleResponse>>> {
     info!("controller layer query with param: {project_id:?}");
-    match file::get_file_module(&state, &project_id, "PLAN".into(), params).await {
+    match file::get_file_module(&state, &project_id, ModuleType::Plan, params).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             info!("Failed to get plan module tree");
@@ -112,10 +114,12 @@ pub async fn list(
 pub async fn create_module(
     Extension(state): Extension<AppState>,
     user: UserClaims,
+    headers: HeaderMap,
     Json(request): Json<CreateModuleRequest>,
 ) -> AppResult<Json<CreateEntityResponse>> {
     info!("controller layer create module with body: {request:?}");
-    match file::create_file_module(&state, user.uid, "PLAN".into(), &request).await {
+    let project_id = extract_project_id(&headers)?;
+    match file::create_file_module(&state, project_id, user.uid, ModuleType::Plan, &request).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

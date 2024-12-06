@@ -5,7 +5,7 @@ use utoipa::ToSchema;
 use crate::{
     dao::entity::ElementDetail,
     entity::{
-        case::FunctionalCase,
+        file::ModuleType,
         project::{Plan, Project},
         user::User,
     },
@@ -73,7 +73,7 @@ pub struct FileModuleResponse {
     pub name: String,
     pub path: String,
     pub parent_id: Option<i32>,
-    pub module_type: String,
+    pub module_type: ModuleType,
     pub count: i32,
     pub children: Vec<FileModuleResponse>,
 }
@@ -81,12 +81,6 @@ pub struct FileModuleResponse {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ListUserResponse {
     pub list: Vec<User>,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct ListFunctionalCaseResponse {
-    pub next_page_token: String,
-    pub list: Vec<FunctionalCase>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

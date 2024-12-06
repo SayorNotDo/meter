@@ -14,7 +14,7 @@ use crate::{
     utils,
 };
 
-use db::queries::{case::*, template::*};
+use db::queries::{case::*, field::*, template::*};
 use serde_json::from_value;
 use tracing::info;
 use uuid::Uuid;
@@ -176,6 +176,7 @@ where
             .await?;
         match ret {
             Some(t) => t.to_template(),
+
             None => Err(AppError::NotFoundError(Resource {
                 details: vec![],
                 resource_type: ResourceType::File,
@@ -547,6 +548,13 @@ where
         Ok(())
     }
 
+    pub async fn soft_delete_functional_case(&self, case_id: i32, deleted_by: Uuid) -> AppResult {
+        soft_delete_functional_case()
+            .bind(self.executor, &deleted_by, &case_id)
+            .await?;
+        Ok(())
+    }
+
     pub async fn insert_case_field_relation(
         &self,
         case_id: i32,
@@ -559,6 +567,18 @@ where
             .one()
             .await?;
         Ok(id)
+    }
+
+    pub async fn soft_delete_case_field_relation_by_case_id(
+        &self,
+        case_id: i32,
+        deleted_by: Uuid,
+    ) -> AppResult {
+        soft_delete_field_relation_by_case_id()
+            .bind(self.executor, &deleted_by, &case_id)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn insert_case_issue_relation(
@@ -586,8 +606,26 @@ where
         field_id: &i32,
         field_value: &FieldValue,
     ) -> AppResult {
-        if let FieldValue::Input(value) = field_value {}
-        Ok(())
+        if let FieldValue::Input(value) = field_value {
+            let field: Option<GetFieldByIdAndValue> = get_field_by_id_and_value()
+                .bind(self.executor, field_id, value)
+                .opt()
+                .await?;
+            match field {
+                Some(f) => Err(AppError::ResourceExistsError(Resource {
+                    details: vec![(
+                        format!("field_type: {0}", f.name),
+                        format!("field_value: {0}", value.to_string()),
+                    )],
+                    resource_type: ResourceType::Field,
+                })),
+                None => Ok(()),
+            }
+        } else {
+            Err(AppError::BadRequestError(String::from(
+                "Invalid field_type",
+            )))
+        }
     }
 
     pub async fn insert_script(&self, script: Script) -> AppResult<i32> {
