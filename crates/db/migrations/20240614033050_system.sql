@@ -69,6 +69,7 @@ CREATE TABLE template_field_relation (
     template_id INT NOT NULL,
     field_id INT NOT NULL,
     default_value VARCHAR,
+    unique_required BOOLEAN DEFAULT FALSE,
     required BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW (),
     created_by UUID NOT NULL,
@@ -92,6 +93,8 @@ COMMENT ON COLUMN template_field_relation.field_id IS '关联字段ID';
 COMMENT ON COLUMN template_field_relation.required IS '是否为必填字段';
 
 COMMENT ON COLUMN template_field_relation.default_value IS '默认值';
+
+COMMENT ON COLUMN template_field_relation.unique_required IS 'Key unique';
 
 COMMENT ON COLUMN template_field_relation.created_at IS '创建时间';
 

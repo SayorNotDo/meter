@@ -201,7 +201,7 @@ pub async fn create_functional_case(
     let module = file_dao.get_module_by_id(request.module_id).await?;
     /* insert into functional_cases */
     let case = FunctionalCase::new(&request.name, module, request.template_id, request.tags);
-    /* check template is exist or not, otherwise return not found err */
+    /* check template exist or not, otherwise return not found err */
     let template = case_dao.get_template_by_id(case.template_id).await?;
 
     let mut template_required_field_ids: HashSet<_> = template
@@ -226,7 +226,7 @@ pub async fn create_functional_case(
     let case_id = case_dao.insert_functional_case(case, uid).await?;
     /* bind relationship between case with custom_field through table: [functional_case_field_relation] */
     for item in request.fields.into_iter() {
-        /* get fielld by field_id */
+        /* get field by field_id */
         if !allowed_field_ids.contains(&item.id) {
             return Err(AppError::BadRequestError(format!(
                 "Field id `{}` not allowed",
@@ -234,7 +234,7 @@ pub async fn create_functional_case(
             )));
         }
         let field = case_dao.get_field_by_id(item.id).await?;
-        /* Check whether field `case_num` is unique or not */
+        /* Check whether field is unique or not while field is unique_required is true */
         if &field.name == CASE_NUM {
             case_dao
                 .check_unique_by_field_id_and_value(&field.id, &item.value)
@@ -254,7 +254,7 @@ pub async fn create_functional_case(
                     .await?;
             }
             (FieldType::Unknown, _) => {
-                return Err(AppError::BadRequestError("Unknow fieldType".to_string()))
+                return Err(AppError::BadRequestError("Unknown fieldType".to_string()))
             }
             (_, FieldValue::Input(_) | FieldValue::Select(_)) => {
                 return Err(AppError::BadRequestError(

@@ -122,6 +122,7 @@ CREATE TABLE functional_cases (
     module_id INT NOT NULL,
     template_id INT NOT NULL,
     tags TEXT[],
+    edit_type VARCHAR NOT NULL default 'STEP',
     status VARCHAR NOT NULL DEFAULT 'UN_REVIEWED',
     created_at TIMESTAMP NOT NULL DEFAULT NOW (),
     updated_at TIMESTAMP,
@@ -148,7 +149,7 @@ COMMENT ON COLUMN functional_cases.template_id IS '功能测试用例所属模�
 COMMENT ON COLUMN functional_cases.tags IS '功能测试用例标签';
 
 COMMENT ON COLUMN functional_cases.status IS '功能测试用例状态';
-
+COMMENT ON COLUMN functional_cases.edit_type IS 'Edit Type';
 COMMENT ON COLUMN functional_cases.created_at IS '创建时间';
 
 COMMENT ON COLUMN functional_cases.updated_at IS '更新时间';

@@ -39,7 +39,6 @@ pub fn app() -> Router {
             "/case/functional-case/issue-relation",
             post(case::create_issue_relation),
         )
-        // .route("/case/list/:project_id", get(case::list))
         .route("/case/script/generate", post(case::create_script))
         .route("/case/environment/diagnose", post(case::env_diagnose))
         .route("/case/info/requirement/:project_id", get(case::info))

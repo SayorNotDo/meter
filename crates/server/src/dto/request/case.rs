@@ -14,6 +14,8 @@ pub struct CreateFunctionalCaseRequest {
     #[garde(skip)]
     pub template_id: i32,
     #[garde(skip)]
+    pub edit_type: String,
+    #[garde(skip)]
     pub tags: Vec<String>,
     #[garde(length(min = 1))]
     pub fields: Vec<SelectedField>,
