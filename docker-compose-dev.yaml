@@ -8,7 +8,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,11 +20,11 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:dev_password@db:5432/dev_postgres?sslmode=disable
     volumes:
-      - ./crates/db/migrations:/db/migrations
+      - shared_data:/db/migrations
     depends_on:
       db:
         condition: service_healthy
-    command: ["up"]
+    command: [ "up" ]
     networks:
       - net
 
@@ -33,7 +33,7 @@ services:
     restart: unless-stopped
     environment:
       - REDIS_PASSWORD=dev_password
-    command: ["redis-server", "--requirepass", "dev_password"]
+    command: [ "redis-server", "--requirepass", "dev_password" ]
     ports:
       - "6379:6379"
     networks:
@@ -45,6 +45,7 @@ services:
       dockerfile: Dockerfile
     working_dir: /meter
     volumes:
+      - shared_data:/meter/crates/db/migrations
       - ./crates:/meter/crates
       - ./settings:/meter/settings
       - ./static:/meter/static
@@ -53,7 +54,7 @@ services:
       APP_PROFILE: dev
       RUST_BACKTRACE: 1
       RUST_LOG: debug
-    command: ["./run-dev.sh"]
+    command: [ "./run-dev.sh" ]
     depends_on:
       db:
         condition: service_healthy

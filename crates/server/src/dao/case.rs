@@ -49,6 +49,7 @@ macro_rules! impl_to_functional_case {
                         module: from_value::<FileModule>(self.module.clone())?,
                         status: CaseStatus::from_str(&self.status),
                         template_id: self.template_id,
+                        edit_type: self.edit_type.clone(),
                         tags,
                         attach_info: self.attach_info.clone(),
                         created_by: self.created_by.clone(),

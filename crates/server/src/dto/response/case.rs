@@ -14,6 +14,7 @@ pub struct FunctionalCaseResponse {
     pub template_id: i32,
     pub module: FileModule,
     pub status: CaseStatus,
+    pub edit_type: String,
     pub created_at: DateTime<Utc>,
     pub created_by: String,
     pub updated_at: Option<DateTime<Utc>>,
