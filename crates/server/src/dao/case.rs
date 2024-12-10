@@ -470,6 +470,11 @@ where
         Ok(module_case_count)
     }
 
+    pub async fn count_case(&self, project_id: i32) -> AppResult<i32> {
+        let count = count_case().bind(self.executor, &project_id).await?;
+        Ok(count)
+    }
+
     pub async fn count_by_module_id(&self, module_id: &i32) -> AppResult<i32> {
         let count = count_by_module_id()
             .bind(self.executor, module_id)
@@ -552,6 +557,17 @@ where
     pub async fn soft_delete_functional_case(&self, case_id: i32, deleted_by: Uuid) -> AppResult {
         soft_delete_functional_case()
             .bind(self.executor, &deleted_by, &case_id)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn soft_delete_functional_case_by_module_id(
+        &self,
+        module_id: i32,
+        deleted_by: Uuid,
+    ) -> AppResult {
+        soft_delete_functional_case_by_module_id()
+            .bind(self.executor, &deleted_by, &module_id)
             .await?;
         Ok(())
     }

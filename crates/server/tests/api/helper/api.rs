@@ -2,9 +2,11 @@ use super::result::AppResponseResult;
 use crate::unwrap;
 use anyhow::Ok;
 
+use file::UpdateModuleRequest;
 use log_derive::logfn;
 use reqwest::StatusCode;
 
+use serde_json::json;
 use server::{
     configure::server::ConfigHTTP,
     constant::{HTTP, PROJECT_ID},
@@ -293,6 +295,30 @@ impl Api {
             .await?;
 
         Ok((resp.status(), resp.json().await?))
+    }
+
+    #[logfn(Info)]
+    pub async fn update_case_module(
+        &self,
+        token: &str,
+        project_id: i32,
+        req: &UpdateModuleRequest,
+    ) -> anyhow::Result<(StatusCode, AppResponseResult<MessageResponse>)> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.append(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {token}").parse()?,
+        );
+
+        headers.append(PROJECT_ID, project_id.to_string().parse()?);
+        let resp = HTTP
+            .put(format!("{}/management/case/module", self.addr))
+            .headers(headers)
+            .json(req)
+            .send()
+            .await?;
+
+        OK((resp.status(), resp.json().await?))
     }
 
     #[logfn(Info)]

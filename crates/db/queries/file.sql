@@ -7,6 +7,8 @@ WITH RECURSIVE file_module_tree AS (SELECT id,
                                     FROM file_module
                                     WHERE project_id = :project_id
                                     AND module_type = :module_type
+                                    AND deleted_at IS NULL
+                                    AND deleted_by IS NULL
                                     UNION ALL
                                     SELECT f.id,
                                            f.name,
@@ -57,7 +59,8 @@ RETURNING id;
 --! soft_delete_by_id
 UPDATE file_module
 SET deleted_at = NOW(),
-    deleted_by = :deleted_by
+    deleted_by = :deleted_by,
+    updated_by = :deleted_by
 WHERE id = :module_id;
 
 --! get_file_module_by_id : (parent_id?)
@@ -69,3 +72,10 @@ SELECT
     parent_id
 FROM file_module
 WHERE id = :id AND deleted_at IS NULL AND deleted_by IS NULL;
+
+--! update_file_module (parent_id?) :
+UPDATE  file_module
+SET     name = :name,
+        parent_id = :parent_id,
+        updated_by = :updated_by
+WHERE   id = :module_id;

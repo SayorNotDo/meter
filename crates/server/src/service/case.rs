@@ -333,13 +333,17 @@ pub async fn delete_functional_case(
 }
 
 pub async fn delete_by_module_id(state: &AppState, uid: Uuid, module_id: i32) -> AppResult {
+    info!("case service layer delete case module with {module_id}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let file_dao = FileDao::new(&transaction);
-
-    file_dao.soft_delete_by_id(uid, module_id).await?;
+    let case_dao = CaseDao::new(&transaction);
+    let module = file_dao.get_module_by_id(module_id).await?;
+    file_dao.soft_delete_by_id(uid, module.id).await?;
+    case_dao
+        .soft_delete_functional_case_by_module_id(module.id, uid)
+        .await?;
     transaction.commit().await?;
-
     Ok(())
 }
 

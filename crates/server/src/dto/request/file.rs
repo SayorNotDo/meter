@@ -11,6 +11,16 @@ pub struct CreateModuleRequest {
     pub parent_id: Option<i32>,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
+pub struct UpdateModuleRequest {
+    #[garde(skip)]
+    pub id: i32,
+    #[garde(length(min = 1))]
+    pub name: String,
+    #[garde(skip)]
+    pub parent_id: Option<i32>,
+}
+
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct DeleteModuleRequest {
     pub id: i32,

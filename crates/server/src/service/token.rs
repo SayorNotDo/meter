@@ -1,15 +1,16 @@
-use crate::constant::REFRESH_TOKEN_DECODE_KEY;
-use crate::constant::{
-    ACCESS_TOKEN_ENCODE_KEY, EXPIRE_REFRESH_TOKEN_SECS, EXPIRE_SESSION_CODE_SECS, PAGE_ENCODE_KEY,
-    REFRESH_TOKEN_ENCODE_KEY,
+use crate::{
+    constant::{
+        ACCESS_TOKEN_ENCODE_KEY, EXPIRE_REFRESH_TOKEN_SECS, EXPIRE_SESSION_CODE_SECS,
+        PAGE_ENCODE_KEY, REFRESH_TOKEN_DECODE_KEY, REFRESH_TOKEN_ENCODE_KEY,
+    },
+    dao::user,
+    dto::{request::RefreshTokenRequest, response::user::TokenResponse},
+    errors::AppResult,
+    service,
+    state::AppState,
+    utils::claim::{PageClaims, UserClaims},
 };
-use crate::dao::user;
-use crate::dto::request::RefreshTokenRequest;
-use crate::dto::response::user::TokenResponse;
-use crate::errors::AppResult;
-use crate::service;
-use crate::state::AppState;
-use crate::utils::claim::{PageClaims, UserClaims};
+
 use tracing::info;
 use uuid::Uuid;
 

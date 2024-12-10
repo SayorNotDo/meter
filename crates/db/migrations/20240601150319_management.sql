@@ -139,29 +139,18 @@ UPDATE ON functional_cases FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp 
 
 -- comments
 COMMENT ON COLUMN functional_cases.id IS '功能测试用例ID';
-
 COMMENT ON COLUMN functional_cases.name IS '功能测试用例名称';
-
 COMMENT ON COLUMN functional_cases.module_id IS '功能测试用例所属模块ID';
-
 COMMENT ON COLUMN functional_cases.template_id IS '功能测试用例所属模版ID';
-
 COMMENT ON COLUMN functional_cases.tags IS '功能测试用例标签';
-
 COMMENT ON COLUMN functional_cases.status IS '功能测试用例状态';
-COMMENT ON COLUMN functional_cases.edit_type IS 'Edit Type';
+COMMENT ON COLUMN functional_cases.edit_type IS '用例编辑模式';
 COMMENT ON COLUMN functional_cases.created_at IS '创建时间';
-
 COMMENT ON COLUMN functional_cases.updated_at IS '更新时间';
-
 COMMENT ON COLUMN functional_cases.created_by IS '创建人';
-
 COMMENT ON COLUMN functional_cases.updated_by IS '更新人';
-
 COMMENT ON COLUMN functional_cases.deleted_at IS '删除时间';
-
 COMMENT ON COLUMN functional_cases.deleted_by IS '删除人';
-
 COMMENT ON COLUMN functional_cases.attach_info IS '附加信息';
 
 DROP TABLE IF EXISTS functional_case_field_relation;

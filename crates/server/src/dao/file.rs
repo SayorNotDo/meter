@@ -65,6 +65,20 @@ where
         Ok(file_modules)
     }
 
+    pub async fn update_file_module(&self, module: FileModule, updated_by: Uuid) -> AppResult {
+        update_file_module()
+            .bind(
+                self.executor,
+                &module.name,
+                &module.parent_id,
+                &updated_by,
+                &module.id,
+            )
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn get_module_by_id(&self, module_id: i32) -> AppResult<FileModule> {
         let ret = get_file_module_by_id()
             .bind(self.executor, &module_id)

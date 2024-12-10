@@ -15,7 +15,9 @@ use crate::{
                 CreateFieldRequest, CreateFunctionalCaseRequest, DeleteFieldRequest,
                 QueryFieldParam, UpdateFieldRequest, UpdateFunctionalCaseRequest,
             },
-            file::{CreateModuleRequest, DeleteModuleRequest, QueryModuleParam},
+            file::{
+                CreateModuleRequest, DeleteModuleRequest, QueryModuleParam, UpdateModuleRequest,
+            },
             CaseQueryParam, CreateScriptRequest, DeleteEntityRequest, DiagnoseRequest,
             IssueRelationRequest, ListQueryParam, QueryTemplateParam,
         },
@@ -95,6 +97,25 @@ pub async fn create_module(
 }
 
 #[utoipa::path(
+    put,
+    path = "/management/case/module",
+    request_body = UpdateModuleRequest,
+    responses(),
+    security(("jwt" = []))
+)]
+pub async fn update_module(
+    Extension(state): Extension<AppState>,
+    user: UserClaims,
+    Json(request): Json<UpdateModuleRequest>,
+) -> AppResult<Json<MessageResponse>> {
+    info!("case controller layer update module with {request:?}");
+    match file::update_file_module(&state, user.uid, ModuleType::Case, request).await {
+        Ok(_) => Ok(Json(MessageResponse::new("success update module"))),
+        Err(e) => Err(e),
+    }
+}
+
+#[utoipa::path(
     delete,
     path = "/management/case/module",
     responses(
@@ -107,10 +128,7 @@ pub async fn delete_module(
     user: UserClaims,
     Json(request): Json<DeleteModuleRequest>,
 ) -> AppResult<Json<MessageResponse>> {
-    info!(
-        "controller layer delete case module with module_id: {}",
-        request.id
-    );
+    info!("controller layer delete case module with module_id: {request:?}",);
     match service::case::delete_by_module_id(&state, user.uid, request.id).await {
         Ok(_) => Ok(Json(MessageResponse::new("Success delete case module"))),
         Err(e) => Err(e),
@@ -218,7 +236,7 @@ pub async fn update_functional_case(
         (status = 200, description = "Success delete functional case", body = [MessageResponse]),
         (status = 404, description = "Not found", body = [AppResponseError]),
     ),
-security(("jwt" = []))
+    security(("jwt" = []))
 )]
 pub async fn delete_functional_case(
     Extension(state): Extension<AppState>,

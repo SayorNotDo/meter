@@ -1,7 +1,7 @@
 use crate::{
-    dao,
+    dao::{self, file::FileDao},
     dto::{
-        request::file::{CreateModuleRequest, QueryModuleParam},
+        request::file::{CreateModuleRequest, QueryModuleParam, UpdateModuleRequest},
         response::{CreateEntityResponse, FileModuleResponse},
     },
     entity::file::{FileModule, ModuleType},
@@ -60,6 +60,24 @@ pub async fn create_file_module(
         .await?;
     transaction.commit().await?;
     Ok(CreateEntityResponse { id: module_id })
+}
+
+pub async fn update_file_module(
+    state: &AppState,
+    uid: Uuid,
+    _module_type: ModuleType,
+    request: UpdateModuleRequest,
+) -> AppResult {
+    info!("case service layer update file module with {request:?} by user: {uid}");
+    let client = state.pool.get().await?;
+    let file_dao = FileDao::new(&client);
+    let mut module = file_dao.get_module_by_id(request.id).await?;
+    module.name = request.name;
+    if request.parent_id.is_some() {
+        module.parent_id = request.parent_id;
+    }
+    file_dao.update_file_module(module, uid).await?;
+    Ok(())
 }
 
 pub async fn get_file_module(

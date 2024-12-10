@@ -141,6 +141,12 @@ WHERE
     fm.project_id = :project_id AND fc.deleted_by IS NOT NULL
 GROUP BY fm.name;
 
+--! count_case
+SELECT COUNT(*)
+FROM functional_cases
+WHERE module_id IN (SELECT id FROM file_module WHERE project_id = :project_id)
+AND deleted_at IS NULL AND deleted_by IS NULL;
+
 --! count_by_module_id
 SELECT
     COUNT(fc.id) AS count
@@ -165,6 +171,18 @@ SET deleted_at = NOW(),
     updated_by = :deleted_by
 WHERE id = :case_id;
 
+--! soft_delete_functional_case_by_module_id
+WITH case_soft_delete AS (UPDATE functional_cases
+SET deleted_at = NOW(),
+    deleted_by = :deleted_by,
+    updated_by = :deleted_by
+WHERE module_id = :module_id
+RETURNING id)
+UPDATE functional_case_field_relation
+SET deleted_at = NOW(),
+    deleted_by = :deleted_by,
+    updated_by = :deleted_by
+WHERE case_id IN (SELECT id FROM case_soft_delete);
 
 --! get_functional_case_by_name : (attach_info?, updated_at?, updated_by?)
 SELECT

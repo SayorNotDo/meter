@@ -16,6 +16,7 @@ pub fn app() -> Router {
         )
         .route("/project/member/list/:project_id", get(project::members))
         .route("/case/module", get(case::get_module_list))
+        .route("/case/module", put(case::update_module))
         .route("/case/module", post(case::create_module))
         .route("/case/module", delete(case::delete_module))
         .route("/case/count", get(case::count))
