@@ -44,5 +44,6 @@ SELECT
 FROM plans p
 WHERE p.module_id = ANY(SELECT fm.id FROM file_module fm WHERE fm.id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
 AND p.deleted = FALSE
-LIMIT :page_size
-OFFSET :offset;
+AND p.id >= :start_id
+ORDER BY p.id
+LIMIT :page_size;

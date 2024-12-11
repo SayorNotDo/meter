@@ -58,14 +58,18 @@ pub async fn list(
     info!("service layer for list with project_id: {project_id:?}, param: {param:?}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
-    let (page_size, page_num) = match &param.page_token {
+    let (page_size, page_num, last_item_id) = match &param.page_token {
         Some(token) => {
             let page_claims = PageClaims::decode(token.as_str(), &PAGE_DECODE_KEY)?.claims;
-            (page_claims.page_size, page_claims.page_num)
+            (
+                page_claims.page_size,
+                page_claims.page_num,
+                page_claims.last_item_id,
+            )
         }
         None => {
             let page_size = param.page_size.unwrap_or(10);
-            (page_size, 0)
+            (page_size, 1, 0)
         }
     };
     let module_id = if let Some(id) = param.module_id {
@@ -77,12 +81,15 @@ pub async fn list(
             .await?
     };
     info!("===>> module_id: {module_id:?}");
-    let offset = page_num * page_size;
-    let next_page_token = generate_page_token(page_size, page_num + 1)?;
     let plan_dao = PlanDao::new(&transaction);
     let list = plan_dao
-        .get_plan_list(&module_id, &page_size, &offset)
+        .get_plan_list(&module_id, &page_size, &last_item_id)
         .await?;
+    let next_cursor = match list.last() {
+        Some(l) => l.id,
+        None => 0,
+    };
+    let next_page_token = generate_page_token(page_size, page_num + 1, next_cursor)?;
     transaction.commit().await?;
     Ok(ListPlanResponse {
         next_page_token,

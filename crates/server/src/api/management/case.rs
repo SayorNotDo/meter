@@ -362,7 +362,7 @@ pub async fn get_field_list(
 
 #[utoipa::path(
     get,
-    path = "/case/info/requirement/{project_id}",
+    path = "/case/info/requirement",
     responses(
         (status = 200, description = "Get related pr info"),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),
@@ -373,9 +373,10 @@ pub async fn get_field_list(
 )]
 pub async fn info(
     Extension(state): Extension<AppState>,
-    Path(project_id): Path<i32>,
+    headers: HeaderMap,
 ) -> AppResult<Json<RequirementInfoResponse>> {
-    info!("case related information with project_id: {project_id:?}");
+    info!("case controller layer query related information");
+    let project_id = extract_project_id(&headers)?;
     match case::info(&state, &project_id).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
@@ -401,7 +402,7 @@ pub async fn get_functional_case_list(
 ) -> AppResult<Json<ListFunctionalCaseResponse>> {
     info!("controller layer query case list with param: {param:?}");
     let project_id = extract_project_id(&headers)?;
-    match case::get_functional_case_list(&state, &project_id, &param).await {
+    match case::get_functional_case_list(&state, &project_id, param).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

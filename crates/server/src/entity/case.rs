@@ -113,6 +113,7 @@ pub struct FieldOption {
 pub struct CaseField {
     pub id: i32,
     pub field_name: String,
+    pub label: String,
     pub project_id: i32,
     pub field_id: i32,
     pub field_type: FieldType,

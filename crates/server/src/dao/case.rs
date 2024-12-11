@@ -109,6 +109,7 @@ macro_rules! impl_to_case_field {
                     let field_value = convert_field_value(&self.field_value, &field_type)?;
                     Ok(CaseField {
                         id: self.id,
+                        label: self.label.clone(),
                         field_name: self.name.clone(),
                         project_id: self.project_id,
                         field_id: self.field_id,
@@ -403,6 +404,14 @@ where
         Ok(())
     }
 
+    pub async fn get_query_cursor(&self, offset: i64) -> AppResult<i32> {
+        let id = get_query_cursor()
+            .bind(self.executor, &offset)
+            .one()
+            .await?;
+        Ok(id)
+    }
+
     pub async fn soft_delete_field_option(&self, id: i32, deleted_by: Uuid) -> AppResult {
         soft_delete_field_option()
             .bind(self.executor, &deleted_by, &id)
@@ -426,11 +435,11 @@ where
     pub async fn get_functional_case_list(
         &self,
         module_ids: Vec<i32>,
+        last_item_id: i32,
         page_size: i64,
-        offset: i64,
     ) -> AppResult<Vec<FunctionalCase>> {
         let case_list = get_functional_case_list()
-            .bind(self.executor, &module_ids, &page_size, &offset)
+            .bind(self.executor, &module_ids, &last_item_id, &page_size)
             .all()
             .await?
             .into_iter()
@@ -470,9 +479,12 @@ where
         Ok(module_case_count)
     }
 
-    pub async fn count_case(&self, project_id: i32) -> AppResult<i32> {
-        let count = count_case().bind(self.executor, &project_id).await?;
-        Ok(count)
+    pub async fn count_case(&self, project_id: &i32) -> AppResult<i32> {
+        let count = count_case().bind(self.executor, project_id).opt().await?;
+        match count {
+            Some(c) => Ok(c as i32),
+            None => Ok(0),
+        }
     }
 
     pub async fn count_by_module_id(&self, module_id: &i32) -> AppResult<i32> {

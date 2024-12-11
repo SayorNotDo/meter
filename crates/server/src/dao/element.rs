@@ -65,10 +65,10 @@ where
         &self,
         module_id: &Vec<i32>,
         page_size: &i64,
-        offset: &i64,
+        last_item_id: &i32,
     ) -> AppResult<Vec<ElementDetail>> {
         let element_list = get_element_list()
-            .bind(self.executor, module_id, page_size, offset)
+            .bind(self.executor, module_id, last_item_id, page_size)
             .all()
             .await?
             .into_iter()

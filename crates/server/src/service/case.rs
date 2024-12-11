@@ -7,7 +7,7 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::{
-    constant::{case::CASE_NUM, DOCTOR_SCRIPT_PATH, PAGE_DECODE_KEY},
+    constant::{case::CASE_NUM, DOCTOR_SCRIPT_PATH},
     dao::{case::CaseDao, element::ElementDao, entity::Step, file::FileDao},
     dto::{
         request::{
@@ -27,10 +27,9 @@ use crate::{
     errors::{AppError, AppResult, Resource, ResourceType},
     service::{
         engine::{self, StepInfo},
-        token::generate_page_token,
+        token::{generate_page_token, parse_page_token},
     },
     state::AppState,
-    utils::claim::PageClaims,
 };
 
 pub async fn template(state: &AppState, project_id: i32) -> AppResult<GetTemplateResponse> {
@@ -286,7 +285,6 @@ pub async fn update_functional_case(
     let file_dao = FileDao::new(&transaction);
     let module = file_dao.get_module_by_id(request.module_id).await?;
     let mut case = case_dao.get_functional_case_by_id(request.case_id).await?;
-    info!("===>> : {case:?}");
     /* Setter */
     case.name = request.name;
     case.module = module;
@@ -403,19 +401,24 @@ pub async fn info(_state: &AppState, _project_id: &i32) -> AppResult<Requirement
 pub async fn get_functional_case_list(
     state: &AppState,
     project_id: &i32,
-    param: &ListQueryParam,
+    param: ListQueryParam,
 ) -> AppResult<ListFunctionalCaseResponse> {
     info!("service layer for list with path_param: {project_id:?}, query_param: {param:?}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
-    let (page_size, page_num) = match &param.page_token {
-        Some(token) => {
-            let page_claims = PageClaims::decode(token.as_str(), &PAGE_DECODE_KEY)?.claims;
-            (page_claims.page_size, page_claims.page_num)
-        }
+    let case_dao = CaseDao::new(&transaction);
+    let (page_size, page_num, last_item_id) = match param.page_token {
+        Some(page_token) => parse_page_token(page_token)?,
         None => {
-            let page_size = param.page_size.unwrap_or(10);
-            (page_size, 0)
+            let page_size = param.page_size.unwrap_or(10).clamp(1, 100);
+            let page_num = param.page_num.unwrap_or(1).max(1);
+            let offset = (page_num - 1) * page_size;
+            let last_item_id = if offset > 0 {
+                case_dao.get_query_cursor(offset).await?
+            } else {
+                0
+            };
+            (page_size, page_num, last_item_id)
         }
     };
     let module_ids = if let Some(id) = param.module_id {
@@ -427,12 +430,15 @@ pub async fn get_functional_case_list(
             .get_root_module_id(project_id, "CASE".into())
             .await?
     };
-    let offset = page_num * page_size;
-    let next_page_token = generate_page_token(page_size, page_num + 1)?;
-    let case_dao = CaseDao::new(&transaction);
+    let total = case_dao.count_case(project_id).await?;
     let functional_case_list = case_dao
-        .get_functional_case_list(module_ids, page_size, offset)
+        .get_functional_case_list(module_ids, last_item_id, page_size)
         .await?;
+    let next_cursor = match functional_case_list.last() {
+        Some(l) => l.id,
+        None => 0,
+    };
+    let next_page_token = generate_page_token(page_size, page_num + 1, next_cursor)?;
     let mut list: Vec<FunctionalCaseResponse> = Vec::new();
     for case in functional_case_list.into_iter() {
         let fields = case_dao.get_fields_by_case_id(case.id).await?;
@@ -457,11 +463,11 @@ pub async fn get_functional_case_list(
             status: case.status,
         })
     }
-
     transaction.commit().await?;
     Ok(ListFunctionalCaseResponse {
         next_page_token,
         list,
+        total,
     })
 }
 

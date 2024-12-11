@@ -82,6 +82,7 @@ pub struct QueryTemplateParam {
 #[serde(rename_all = "camelCase")]
 pub struct ListQueryParam {
     pub module_id: Option<i32>,
+    pub page_num: Option<i64>,
     pub page_size: Option<i64>,
     pub page_token: Option<String>,
 }

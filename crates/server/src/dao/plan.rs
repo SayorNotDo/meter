@@ -40,10 +40,10 @@ where
         &self,
         module_id: &Vec<i32>,
         page_size: &i64,
-        page_offset: &i64,
+        last_item_id: &i32,
     ) -> AppResult<Vec<Plan>> {
         let plan_list = get_plan_list()
-            .bind(self.executor, module_id, page_size, page_offset)
+            .bind(self.executor, module_id, last_item_id, page_size)
             .all()
             .await?
             .into_iter()

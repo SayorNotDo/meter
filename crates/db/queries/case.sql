@@ -71,27 +71,6 @@ INSERT INTO case_issue_relation (
     :created_by
 );
 
---! get_fields_by_case_id : (remark?, options?)
-SELECT fcfr.id,
-       f.name,
-       f.project_id,
-       fcfr.field_id,
-       f.field_type,
-       f.remark,
-       fcfr.field_value,
-       (SELECT JSON_AGG(JSON_BUILD_OBJECT(
-            'id', fo.id,
-            'field_id', fo.field_id,
-            'value', fo.value,
-            'position', fo.position
-       )) FROM  field_option fo WHERE fo.field_id = fcfr.field_id) AS options,
-       f.internal,
-       tfr.required
-FROM functional_case_field_relation fcfr
-LEFT JOIN field f ON f.id = fcfr.field_id
-LEFT JOIN template_field_relation tfr ON tfr.field_id = fcfr.field_id
-WHERE fcfr.case_id = :case_id;
-
 --! get_functional_case_list : (updated_at?, updated_by?, attach_info?)
 SELECT fc.id,
        fc.name,
@@ -114,9 +93,18 @@ SELECT fc.id,
 FROM functional_cases fc
 LEFT JOIN file_module fm ON fc.module_id = fm.id
 WHERE
-(fc.module_id = ANY(:module_id) OR fm.parent_id = ANY(:module_id)) AND fc.deleted_at IS NULL AND fc.deleted_by IS NULL
-LIMIT :page_size
-OFFSET :offset;
+(fc.module_id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
+AND fc.deleted_at IS NULL
+AND fc.deleted_by IS NULL
+AND fc.id > :start_id
+ORDER BY fc.id
+LIMIT :page_size;
+
+--! get_query_cursor
+SELECT id
+FROM functional_cases
+ORDER BY id
+LIMIT 1 OFFSET :offset;
 
 --! count
 SELECT

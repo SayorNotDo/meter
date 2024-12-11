@@ -42,7 +42,7 @@ pub fn app() -> Router {
         )
         .route("/case/script/generate", post(case::create_script))
         .route("/case/environment/diagnose", post(case::env_diagnose))
-        .route("/case/info/requirement/:project_id", get(case::info))
+        .route("/case/info/requirement", get(case::info))
         .route("/element", post(element::create))
         .route("/element/:element_id", get(element::info))
         .route("/element/module/tree/:project", get(element::tree))

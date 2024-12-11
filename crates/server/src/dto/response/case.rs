@@ -38,6 +38,7 @@ pub struct GetTemplateResponse {
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ListFunctionalCaseResponse {
+    pub total: i32,
     pub next_page_token: String,
     pub list: Vec<FunctionalCaseResponse>,
 }

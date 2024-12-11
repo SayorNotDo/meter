@@ -62,5 +62,5 @@ SELECT  e.id,
 FROM elements e
 WHERE e.module_id = ANY(SELECT fm.id FROM file_module fm WHERE fm.id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
 AND e.deleted = FALSE
-LIMIT :page_size
-OFFSET :offset;
+AND e.id >= :start_id
+LIMIT :page_size;
