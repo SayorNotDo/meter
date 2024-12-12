@@ -15,6 +15,12 @@ SET
 WHERE
     id = :id;
 
+--! get_query_cursor
+SELECT id
+FROM elements
+ORDER BY id
+LIMIT 1 OFFSET :offset;
+
 
 --! get_element : (value?)
 SELECT

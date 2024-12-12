@@ -96,7 +96,10 @@ pub async fn get_file_module(
         let module = file_dao.get_module_by_id(module_id).await?;
         vec![module]
     } else {
-        file_dao.get_file_modules(project_id, module_type).await?
+        let deleted = params.deleted.unwrap_or(false);
+        file_dao
+            .get_file_modules(project_id, module_type, deleted)
+            .await?
     };
     /* 创建HashMap 用于快速查找父节点 */
     let mut module_map: HashMap<i32, FileModuleResponse> = HashMap::new();
@@ -139,6 +142,7 @@ pub async fn get_file_module(
     info!("original data for module_map: {module_map:?}");
     /* 构建树结构 */
     for item in file_modules.iter() {
+        // 一般情况下不存在parent_id为0，此处增加一定的容错逻辑
         if item.parent_id.is_none() || Some(0) == item.parent_id {
             if let Some(mut root) = module_map.remove(&item.id) {
                 build_tree(&mut root, &mut module_map);
@@ -165,6 +169,7 @@ fn build_tree(node: &mut FileModuleResponse, module_map: &mut HashMap<i32, FileM
     for id in children_ids {
         if let Some(mut child) = module_map.remove(&id) {
             build_tree(&mut child, module_map);
+            node.count += child.count;
             node.children.push(child);
         }
     }

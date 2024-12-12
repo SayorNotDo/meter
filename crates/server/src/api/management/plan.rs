@@ -98,7 +98,7 @@ pub async fn list(
     Query(param): Query<ListQueryParam>,
 ) -> AppResult<Json<ListPlanResponse>> {
     info!("controller layer plan list query with project_id: {project_id:?}");
-    match plan::list(&state, &project_id, &param).await {
+    match plan::get_plan_list(&state, &project_id, param).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => Err(e),
     }

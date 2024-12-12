@@ -27,15 +27,21 @@ pub struct CreateFunctionalCaseRequest {
 #[serde(rename_all = "camelCase")]
 pub struct UpdateFunctionalCaseRequest {
     #[garde(skip)]
-    pub case_id: i32,
+    pub id: i32,
     #[garde(length(min = 1))]
     pub name: String,
     #[garde(skip)]
     pub module_id: i32,
     #[garde(skip)]
-    pub tags: Option<String>,
+    pub template_id: i32,
+    #[garde(skip)]
+    pub edit_type: String,
+    #[garde(skip)]
+    pub tags: Vec<String>,
     #[garde(length(min = 1))]
     pub fields: Vec<SelectedField>,
+    #[garde(skip)]
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

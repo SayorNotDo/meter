@@ -54,9 +54,15 @@ where
         &self,
         project_id: &i32,
         module_type: ModuleType,
+        deleted: bool,
     ) -> AppResult<Vec<FileModule>> {
         let file_modules = get_file_modules()
-            .bind(self.executor, project_id, &module_type.to_string())
+            .bind(
+                self.executor,
+                project_id,
+                &module_type.to_string(),
+                &deleted,
+            )
             .all()
             .await?
             .into_iter()
@@ -126,6 +132,18 @@ where
         module_type: &str,
     ) -> AppResult<Vec<i32>> {
         let module_id_list = get_root_module()
+            .bind(self.executor, project_id, &module_type)
+            .all()
+            .await?;
+        Ok(module_id_list)
+    }
+
+    pub async fn get_all_module_id(
+        &self,
+        project_id: &i32,
+        module_type: &str,
+    ) -> AppResult<Vec<i32>> {
+        let module_id_list = get_all_module_id()
             .bind(self.executor, project_id, &module_type)
             .all()
             .await?;

@@ -7,8 +7,8 @@ WITH RECURSIVE file_module_tree AS (SELECT id,
                                     FROM file_module
                                     WHERE project_id = :project_id
                                     AND module_type = :module_type
-                                    AND deleted_at IS NULL
-                                    AND deleted_by IS NULL
+                                    AND (:deleted AND deleted_at IS NOT NULL AND deleted_by IS NOT NULL)
+                                        OR (NOT :deleted AND deleted_at IS NULL AND deleted_by IS NULL)
                                     UNION ALL
                                     SELECT f.id,
                                            f.name,
@@ -49,6 +49,15 @@ WHERE
     AND project_id = :project_id
     AND module_type = :module_type;
 
+--! get_all_module_id
+SELECT
+    id
+FROM
+    file_module
+WHERE
+    project_id = :project_id
+AND
+    module_type = :module_type;
 
 --! insert_file_module (parent_id?)
 INSERT INTO

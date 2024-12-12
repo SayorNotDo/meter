@@ -30,4 +30,5 @@ pub struct DeleteModuleRequest {
 #[serde(rename_all = "camelCase")]
 pub struct QueryModuleParam {
     pub module_id: Option<i32>,
+    pub deleted: Option<bool>,
 }

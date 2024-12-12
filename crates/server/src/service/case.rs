@@ -30,6 +30,7 @@ use crate::{
         token::{generate_page_token, parse_page_token},
     },
     state::AppState,
+    utils::{claim::PageClaims, parse_ids},
 };
 
 pub async fn template(state: &AppState, project_id: i32) -> AppResult<GetTemplateResponse> {
@@ -284,7 +285,7 @@ pub async fn update_functional_case(
     let case_dao = CaseDao::new(&transaction);
     let file_dao = FileDao::new(&transaction);
     let module = file_dao.get_module_by_id(request.module_id).await?;
-    let mut case = case_dao.get_functional_case_by_id(request.case_id).await?;
+    let mut case = case_dao.get_functional_case_by_id(request.id).await?;
     /* Setter */
     case.name = request.name;
     case.module = module;
@@ -403,11 +404,11 @@ pub async fn get_functional_case_list(
     project_id: &i32,
     param: ListQueryParam,
 ) -> AppResult<ListFunctionalCaseResponse> {
-    info!("service layer for list with path_param: {project_id:?}, query_param: {param:?}");
+    info!("service layer for list with project_id: {project_id:?}, query_param: {param:?}");
     let mut client = state.pool.get().await?;
     let transaction = client.transaction().await?;
     let case_dao = CaseDao::new(&transaction);
-    let (page_size, page_num, last_item_id) = match param.page_token {
+    let page_claims = match param.page_token {
         Some(page_token) => parse_page_token(page_token)?,
         None => {
             let page_size = param.page_size.unwrap_or(10).clamp(1, 100);
@@ -418,27 +419,40 @@ pub async fn get_functional_case_list(
             } else {
                 0
             };
-            (page_size, page_num, last_item_id)
+            let module_ids = match param.module_ids {
+                Some(ids) => parse_ids(&ids)?,
+                None => {
+                    let file_dao = FileDao::new(&transaction);
+                    file_dao
+                        .get_all_module_id(project_id, "CASE".into())
+                        .await?
+                }
+            };
+            PageClaims::new(page_size, page_num, last_item_id, module_ids)
         }
     };
-    let module_ids = if let Some(id) = param.module_id {
-        vec![id]
-    } else {
-        /* get root module_id while related query param is null */
-        let file_dao = FileDao::new(&transaction);
-        file_dao
-            .get_root_module_id(project_id, "CASE".into())
-            .await?
-    };
-    let total = case_dao.count_case(project_id).await?;
+    let total = case_dao
+        .count_case_by_module_ids(&page_claims.module_ids)
+        .await?;
+    let deleted = param.deleted.unwrap_or(false);
     let functional_case_list = case_dao
-        .get_functional_case_list(module_ids, last_item_id, page_size)
+        .get_functional_case_list(
+            &page_claims.module_ids,
+            page_claims.last_item_id,
+            page_claims.page_size,
+            deleted,
+        )
         .await?;
     let next_cursor = match functional_case_list.last() {
         Some(l) => l.id,
         None => 0,
     };
-    let next_page_token = generate_page_token(page_size, page_num + 1, next_cursor)?;
+    let next_page_token = generate_page_token(
+        page_claims.page_size,
+        page_claims.page_num + 1,
+        next_cursor,
+        page_claims.module_ids,
+    )?;
     let mut list: Vec<FunctionalCaseResponse> = Vec::new();
     for case in functional_case_list.into_iter() {
         let fields = case_dao.get_fields_by_case_id(case.id).await?;

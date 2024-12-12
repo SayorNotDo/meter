@@ -41,10 +41,6 @@ use tracing::info;
 #[utoipa::path(
     get,
     path = "/case/module",
-    params(
-        ("project_id", description = "path parameter"),
-        ("module_id", description = "query parameter")
-    ),
     responses(
         (status = 200, description = "Success get case module tree", body = [Vec<FileModuleResponse>]),
         (status = 401, description = "Unauthorized user", body = [AppResponseError]),

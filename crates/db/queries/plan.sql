@@ -4,6 +4,11 @@ INSERT INTO plans
 VALUES(:name, :project_id, :description, :module_id, :created_by, :start_date, :end_date)
 RETURNING id;
 
+--! get_query_cursor
+SELECT id
+FROM plans
+ORDER BY id
+LIMIT 1 OFFSET :offset;
 
 --! count_by_module_id
 SELECT

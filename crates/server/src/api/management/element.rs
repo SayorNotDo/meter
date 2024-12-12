@@ -84,7 +84,7 @@ pub async fn list(
         "controller layer query element list with params: {}",
         project_id
     );
-    match element::list(&state, &project_id, &param).await {
+    match element::get_element_list(&state, &project_id, param).await {
         Ok(resp) => Ok(Json(resp)),
         Err(e) => {
             warn!("Failed to get element list");

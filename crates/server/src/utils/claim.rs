@@ -103,14 +103,16 @@ pub struct PageClaims {
     pub page_size: i64,
     pub page_num: i64,
     pub last_item_id: i32,
+    pub module_ids: Vec<i32>,
 }
 
 impl PageClaims {
-    pub fn new(page_size: i64, page_num: i64, last_item_id: i32) -> Self {
+    pub fn new(page_size: i64, page_num: i64, last_item_id: i32, module_ids: Vec<i32>) -> Self {
         Self {
             page_size,
             page_num,
             last_item_id,
+            module_ids,
         }
     }
 

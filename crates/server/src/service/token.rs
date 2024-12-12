@@ -42,16 +42,18 @@ pub fn generate_tokens(uuid: Uuid, session_id: Uuid) -> AppResult<TokenResponse>
     ))
 }
 
-pub fn generate_page_token(page_size: i64, page_num: i64, last_item_id: i32) -> AppResult<String> {
-    let page_token = PageClaims::new(page_size, page_num, last_item_id).encode(&PAGE_ENCODE_KEY)?;
+pub fn generate_page_token(
+    page_size: i64,
+    page_num: i64,
+    last_item_id: i32,
+    module_ids: Vec<i32>,
+) -> AppResult<String> {
+    let page_token =
+        PageClaims::new(page_size, page_num, last_item_id, module_ids).encode(&PAGE_ENCODE_KEY)?;
     Ok(page_token)
 }
 
-pub fn parse_page_token(page_token: String) -> AppResult<(i64, i64, i32)> {
+pub fn parse_page_token(page_token: String) -> AppResult<PageClaims> {
     let page_claims = PageClaims::decode(&page_token, &PAGE_DECODE_KEY)?.claims;
-    Ok((
-        page_claims.page_size,
-        page_claims.page_num,
-        page_claims.last_item_id,
-    ))
+    Ok(page_claims)
 }

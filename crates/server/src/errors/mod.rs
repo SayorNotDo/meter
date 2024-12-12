@@ -1,5 +1,7 @@
 pub mod custom_extractor;
 
+use std::num::ParseIntError;
+
 use axum::{
     extract::rejection::JsonRejection,
     http::StatusCode,
@@ -141,6 +143,12 @@ impl From<argon2::password_hash::Error> for AppError {
     }
 }
 
+impl From<ParseIntError> for AppError {
+    fn from(err: ParseIntError) -> Self {
+        AppError::BadRequestError(err.to_string())
+    }
+}
+
 impl AppError {
     pub fn response(self) -> (StatusCode, AppResponseError) {
         use AppError::*;
@@ -272,10 +280,10 @@ impl AppError {
                 vec![],
                 StatusCode::INTERNAL_SERVER_ERROR,
             ),
-            BadRequestError(_err) => (
+            BadRequestError(err) => (
                 "BAD_REQUEST_ERROR".to_string(),
                 None,
-                vec![],
+                vec![("details".to_string(), err)],
                 StatusCode::BAD_REQUEST,
             ),
             InvalidInputError(err) => (

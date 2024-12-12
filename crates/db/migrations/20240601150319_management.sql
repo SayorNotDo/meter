@@ -17,23 +17,14 @@ CREATE TABLE projects (
 
 -- comments
 COMMENT ON COLUMN projects.id IS '项目ID';
-
 COMMENT ON COLUMN projects.name IS '项目名称';
-
 COMMENT ON COLUMN projects.created_at IS '创建时间';
-
 COMMENT ON COLUMN projects.updated_at IS '更新时间';
-
 COMMENT ON COLUMN projects.created_by IS '创建人';
-
 COMMENT ON COLUMN projects.updated_by IS '更新人';
-
 COMMENT ON COLUMN projects.deleted_at IS '删除时间';
-
 COMMENT ON COLUMN projects.deleted_by IS '删除人';
-
 COMMENT ON COLUMN projects.description IS '项目描述';
-
 COMMENT ON COLUMN projects.module_setting IS '模块设置';
 
 -- create trigger: set updated_at field
@@ -66,33 +57,19 @@ UPDATE ON plans FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp ();
 
 -- comments
 COMMENT ON COLUMN plans.id IS '测试计划ID';
-
 COMMENT ON COLUMN plans.name IS '测试计划名称';
-
 COMMENT ON COLUMN plans.project_id IS '关联项目ID';
-
 COMMENT ON COLUMN plans.description IS '测试计划描述';
-
 COMMENT ON COLUMN plans.module_id IS '所属模块ID';
-
 COMMENT ON COLUMN plans.created_at IS '创建时间';
-
 COMMENT ON COLUMN plans.created_by IS '创建人';
-
 COMMENT ON COLUMN plans.updated_at IS '更新时间';
-
 COMMENT ON COLUMN plans.updated_by IS '更新人';
-
 COMMENT ON COLUMN plans.deleted IS '是否删除';
-
 COMMENT ON COLUMN plans.deleted_at IS '删除时间';
-
 COMMENT ON COLUMN plans.deleted_by IS '删除人';
-
 COMMENT ON COLUMN plans.start_date IS '起始日期';
-
 COMMENT ON COLUMN plans.end_date IS '结束日期';
-
 DROP TABLE IF EXISTS plan_case_relation;
 
 CREATE TABLE plan_case_relation (
@@ -105,13 +82,9 @@ CREATE TABLE plan_case_relation (
 
 -- comments
 COMMENT ON COLUMN plan_case_relation.id IS '计划-用例关联关系ID';
-
 COMMENT ON COLUMN plan_case_relation.plan_id IS '测试计划ID';
-
 COMMENT ON COLUMN plan_case_relation.case_id IS '测试用例ID';
-
 COMMENT ON COLUMN plan_case_relation.created_at IS '创建时间';
-
 COMMENT ON COLUMN plan_case_relation.created_by IS '创建人';
 
 DROP TABLE IF EXISTS functional_cases;

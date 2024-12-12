@@ -434,12 +434,19 @@ where
 
     pub async fn get_functional_case_list(
         &self,
-        module_ids: Vec<i32>,
+        module_ids: &Vec<i32>,
         last_item_id: i32,
         page_size: i64,
+        deleted: bool,
     ) -> AppResult<Vec<FunctionalCase>> {
         let case_list = get_functional_case_list()
-            .bind(self.executor, &module_ids, &last_item_id, &page_size)
+            .bind(
+                self.executor,
+                &module_ids,
+                &deleted,
+                &last_item_id,
+                &page_size,
+            )
             .all()
             .await?
             .into_iter()
@@ -479,8 +486,8 @@ where
         Ok(module_case_count)
     }
 
-    pub async fn count_case(&self, project_id: &i32) -> AppResult<i32> {
-        let count = count_case().bind(self.executor, project_id).opt().await?;
+    pub async fn count_case_by_module_ids(&self, module_ids: &Vec<i32>) -> AppResult<i32> {
+        let count = count_case().bind(self.executor, module_ids).opt().await?;
         match count {
             Some(c) => Ok(c as i32),
             None => Ok(0),

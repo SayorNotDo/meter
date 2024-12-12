@@ -61,6 +61,14 @@ where
         }
     }
 
+    pub async fn get_query_cursor(&self, offset: i64) -> AppResult<i32> {
+        let id = get_query_cursor()
+            .bind(self.executor, &offset)
+            .one()
+            .await?;
+        Ok(id)
+    }
+
     pub async fn get_element_list(
         &self,
         module_id: &Vec<i32>,

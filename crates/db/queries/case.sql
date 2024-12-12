@@ -93,9 +93,9 @@ SELECT fc.id,
 FROM functional_cases fc
 LEFT JOIN file_module fm ON fc.module_id = fm.id
 WHERE
-(fc.module_id = ANY(:module_id) OR fm.parent_id = ANY(:module_id))
-AND fc.deleted_at IS NULL
-AND fc.deleted_by IS NULL
+fc.module_id = ANY(:module_id)
+AND (:deleted AND fc.deleted_at IS NOT NULL AND fc.deleted_by IS NOT NULL)
+    OR (NOT :deleted AND fc.deleted_at IS NULL AND fc.deleted_by IS NULL)
 AND fc.id > :start_id
 ORDER BY fc.id
 LIMIT :page_size;
@@ -132,7 +132,7 @@ GROUP BY fm.name;
 --! count_case
 SELECT COUNT(*)
 FROM functional_cases
-WHERE module_id IN (SELECT id FROM file_module WHERE project_id = :project_id)
+WHERE module_id = ANY(:module_id)
 AND deleted_at IS NULL AND deleted_by IS NULL;
 
 --! count_by_module_id
