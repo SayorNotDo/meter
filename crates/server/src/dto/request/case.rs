@@ -48,6 +48,7 @@ pub struct UpdateFunctionalCaseRequest {
 #[serde(rename_all = "camelCase")]
 pub struct SelectedField {
     pub id: i32,
+    pub required: bool,
     pub value: FieldValue,
 }
 

@@ -83,13 +83,21 @@ impl CaseResult {
     }
 }
 
-#[derive(
-    Debug, Serialize, strum::Display, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema,
-)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, ToSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum CaseStatus {
     UnReviewed,
     Unknown,
+}
+
+impl ToString for CaseStatus {
+    fn to_string(&self) -> String {
+        let status_str = match self {
+            CaseStatus::UnReviewed => "UN_REVIEWED",
+            CaseStatus::Unknown => "UNKNOWN",
+        };
+        format!("{}", status_str)
+    }
 }
 
 impl CaseStatus {

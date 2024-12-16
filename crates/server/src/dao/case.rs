@@ -126,7 +126,7 @@ macro_rules! impl_to_case_field {
     };
 }
 
-impl_to_case_field!(GetFieldsByCaseId);
+impl_to_case_field!(GetFieldsByCaseId, GetCaseField);
 
 impl_to_functional_case!(
     GetFunctionalCaseById,
@@ -519,7 +519,10 @@ where
         }
     }
 
-    pub async fn get_functional_case_by_name(self, case_name: String) -> AppResult<FunctionalCase> {
+    pub async fn get_functional_case_by_name(
+        &self,
+        case_name: String,
+    ) -> AppResult<FunctionalCase> {
         let ret = get_functional_case_by_name()
             .bind(self.executor, &case_name)
             .opt()
@@ -555,7 +558,7 @@ where
 
     pub async fn update_functional_case(
         &self,
-        case: FunctionalCase,
+        case: &FunctionalCase,
         updated_by: Uuid,
     ) -> AppResult {
         update_functional_case()
@@ -603,6 +606,19 @@ where
             .one()
             .await?;
         Ok(id)
+    }
+
+    pub async fn update_case_field_relation(
+        &self,
+        id: i32,
+        value: &str,
+        updated_by: Uuid,
+    ) -> AppResult {
+        update_functional_case_field_relation()
+            .bind(self.executor, &value, &updated_by, &id)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn soft_delete_case_field_relation_by_case_id(
@@ -661,6 +677,25 @@ where
             Err(AppError::BadRequestError(String::from(
                 "Invalid field_type",
             )))
+        }
+    }
+
+    pub async fn get_case_field_by_case_id_and_field_id(
+        &self,
+        field_id: i32,
+        case_id: i32,
+    ) -> AppResult<CaseField> {
+        let ret = get_case_field()
+            .bind(self.executor, &case_id, &field_id)
+            .opt()
+            .await?;
+
+        match ret {
+            Some(f) => f.to_case_field(),
+            None => Err(AppError::NotFoundError(Resource {
+                resource_type: ResourceType::Field,
+                details: vec![],
+            })),
         }
     }
 

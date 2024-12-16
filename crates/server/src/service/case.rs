@@ -1,7 +1,5 @@
-use std::{
-    collections::{HashMap, HashSet},
-    path::Path,
-};
+use std::{collections::HashMap, path::Path};
+
 use tokio::try_join;
 use tracing::info;
 use uuid::Uuid;
@@ -23,7 +21,7 @@ use crate::{
             CreateEntityResponse, CreateScriptResponse, DiagnoseResponse, RequirementInfoResponse,
         },
     },
-    entity::case::{CaseResult, Field, FieldType, FieldValue, FunctionalCase},
+    entity::case::{CaseResult, Field, FieldType, FieldValue, FunctionalCase, TemplateField},
     errors::{AppError, AppResult, Resource, ResourceType},
     service::{
         engine::{self, StepInfo},
@@ -179,14 +177,23 @@ pub async fn get_field_list(
     let mut client = state.pool.get().await?;
     let case_dao = CaseDao::new(&mut client);
     /* Fields with options */
-    let fields = match params.field_id {
-        Some(field_id) => {
-            let field = case_dao.get_field_by_id(field_id).await?;
-            vec![field]
+    if let Some(id) = params.field_id {
+        return Ok(vec![case_dao.get_field_by_id(id).await?]);
+    }
+    case_dao.get_fields(project_id).await
+}
+
+fn field_classify(field_set: Vec<TemplateField>) -> AppResult<(Vec<i32>, Vec<i32>)> {
+    let mut template_required_field_ids = Vec::new();
+    let mut allowed_field_ids = Vec::new();
+
+    for field in field_set {
+        if field.required {
+            template_required_field_ids.push(field.id);
         }
-        None => case_dao.get_fields(project_id).await?,
-    };
-    Ok(fields)
+        allowed_field_ids.push(field.id);
+    }
+    Ok((template_required_field_ids, allowed_field_ids))
 }
 
 pub async fn create_functional_case(
@@ -204,25 +211,18 @@ pub async fn create_functional_case(
     /* check template exist or not, otherwise return not found err */
     let template = case_dao.get_template_by_id(case.template_id).await?;
 
-    let mut template_required_field_ids: HashSet<_> = template
+    let (template_required_field_ids, allowed_field_ids) = field_classify(template.fields)?;
+    let request_field_ids: Vec<i32> = request
         .fields
         .iter()
         .filter(|f| f.required)
         .map(|f| f.id)
         .collect();
-
-    let template_optional_field_ids: HashSet<_> = template
-        .fields
-        .iter()
-        .filter(|f| !f.required)
-        .map(|f| f.id)
-        .collect();
-
-    let allowed_field_ids: HashSet<_> = template_required_field_ids
-        .union(&template_optional_field_ids)
-        .cloned()
-        .collect();
-
+    if request_field_ids != template_required_field_ids {
+        return Err(AppError::BadRequestError(
+            "Missing require field".to_string(),
+        ));
+    }
     let case_id = case_dao.insert_functional_case(case, uid).await?;
     /* bind relationship between case with custom_field through table: [functional_case_field_relation] */
     for item in request.fields.into_iter() {
@@ -234,7 +234,7 @@ pub async fn create_functional_case(
             )));
         }
         let field = case_dao.get_field_by_id(item.id).await?;
-        /* Check whether field is unique or not while field is unique_required is true */
+        /* TODO: Check whether field is unique or not while field is unique_required is true */
         if &field.name == CASE_NUM {
             case_dao
                 .check_unique_by_field_id_and_value(&field.id, &item.value)
@@ -262,12 +262,6 @@ pub async fn create_functional_case(
                 ));
             }
         }
-        template_required_field_ids.remove(&item.id);
-    }
-    if !template_required_field_ids.is_empty() {
-        return Err(AppError::BadRequestError(
-            "Missing required field".to_string(),
-        ));
     }
     transaction.commit().await?;
     Ok(case_id)
@@ -290,19 +284,49 @@ pub async fn update_functional_case(
     case.name = request.name;
     case.module = module;
     /* Update case */
-    match case_dao.get_functional_case_by_name(case.name).await {
-        Ok(r) => {
-            if r.id != case.id {
-                Err(AppError::ResourceExistsError(Resource {
-                    details: vec![],
-                    resource_type: ResourceType::Case,
-                }))
-            } else {
-                Ok(())
+    match case_dao
+        .get_functional_case_by_name(case.name.clone())
+        .await
+    {
+        Ok(r) if r.id != case.id => Err(AppError::ResourceExistsError(Resource {
+            details: vec![],
+            resource_type: ResourceType::Case,
+        })),
+        Ok(_) | Err(AppError::NotFoundError { .. }) => {
+            case_dao.update_functional_case(&case, updated_by).await?;
+            /* functional_case_field_realtion update */
+            for item in request.fields.into_iter() {
+                let field = case_dao
+                    .get_case_field_by_case_id_and_field_id(item.id, case.id)
+                    .await?;
+                match (field.field_type, item.value) {
+                    (FieldType::Input, FieldValue::Input(value)) => {
+                        if field.field_name == CASE_NUM {
+                            case_dao
+                                .check_unique_by_field_id_and_value(
+                                    &field.id,
+                                    &FieldValue::Input(value.clone()),
+                                )
+                                .await?
+                        }
+                        case_dao
+                            .update_case_field_relation(field.id, &value, updated_by)
+                            .await?;
+                    }
+                    (FieldType::Select, FieldValue::Select(option)) => {
+                        let value = option.to_string();
+                        case_dao
+                            .update_case_field_relation(field.id, &value, updated_by)
+                            .await?;
+                    }
+                    (_, FieldValue::Input(_) | FieldValue::Select(_)) => {
+                        return Err(AppError::BadRequestError(
+                            "mismatch field_value".to_string(),
+                        ));
+                    }
+                }
             }
-        }
-        Err(AppError::NotFoundError { .. }) => {
-            info!("case modify name haven't been used");
+            transaction.commit().await?;
             Ok(())
         }
         Err(e) => Err(e),

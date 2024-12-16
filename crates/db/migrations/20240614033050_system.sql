@@ -94,7 +94,7 @@ COMMENT ON COLUMN template_field_relation.required IS '是否为必填字段';
 
 COMMENT ON COLUMN template_field_relation.default_value IS '默认值';
 
-COMMENT ON COLUMN template_field_relation.unique_required IS 'Key unique';
+COMMENT ON COLUMN template_field_relation.unique_required IS '字段是否需要唯一';
 
 COMMENT ON COLUMN template_field_relation.created_at IS '创建时间';
 

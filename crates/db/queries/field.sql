@@ -38,3 +38,34 @@ FROM functional_case_field_relation fcfr
 LEFT JOIN field f ON f.id = fcfr.field_id
 LEFT JOIN template_field_relation tfr ON tfr.field_id = fcfr.field_id
 WHERE fcfr.case_id = :case_id;
+
+
+--! update_functional_case_field_relation
+UPDATE  functional_case_field_relation
+SET     field_value = :field_value,
+        updated_by = :updated_by
+WHERE id = :id;
+
+
+--! get_case_field : (remark?, options?)
+SELECT  fcfr.id,
+        f.name,
+        f.label,
+        f.project_id,
+        fcfr.field_id,
+        f.field_type,
+        f.remark,
+        fcfr.field_value,
+        (SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                'id', fo.id,
+                'field_id', fo.field_id,
+                'value', fo.value,
+                'position', fo.position
+        )) FROM field_option fo WHERE fo.field_id = fcfr.field_id) AS options,
+        f.internal,
+        tfr.required
+FROM functional_case_field_relation fcfr
+LEFT JOIN field f ON f.id = fcfr.field_id
+LEFT JOIN template_field_relation tfr ON tfr.field_id = fcfr.field_id
+WHERE fcfr.case_id = :case_id
+AND fcfr.field_id = :id;
