@@ -283,6 +283,7 @@ pub async fn update_functional_case(
     /* Setter */
     case.name = request.name;
     case.module = module;
+    case.tags = request.tags;
     /* Update case */
     match case_dao
         .get_functional_case_by_name(case.name.clone())
