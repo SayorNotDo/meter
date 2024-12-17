@@ -93,8 +93,8 @@ pub enum CaseStatus {
 impl ToString for CaseStatus {
     fn to_string(&self) -> String {
         let status_str = match self {
-            CaseStatus::UnReviewed => "UN_REVIEWED",
-            CaseStatus::Unknown => "UNKNOWN",
+            Self::UnReviewed => "UN_REVIEWED",
+            Self::Unknown => "UNKNOWN",
         };
         format!("{}", status_str)
     }
@@ -117,6 +117,11 @@ pub struct FieldOption {
     pub position: i32,
 }
 
+pub trait FieldInfo {
+    fn required(&self) -> bool;
+    fn id(&self) -> i32;
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
 pub struct CaseField {
     pub id: i32,
@@ -130,6 +135,25 @@ pub struct CaseField {
     pub options: Option<Vec<FieldOption>>,
     pub internal: bool,
     pub required: bool,
+    pub unique_required: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SelectedField {
+    pub id: i32,
+    pub required: bool,
+    pub value: FieldValue,
+}
+
+impl FieldInfo for SelectedField {
+    fn id(&self) -> i32 {
+        self.id
+    }
+
+    fn required(&self) -> bool {
+        self.required
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ToSchema)]
@@ -198,8 +222,19 @@ pub struct TemplateField {
     pub name: String,
     pub label: String,
     pub required: bool,
+    pub unique_required: bool,
     pub field_type: String,
     pub internal: bool,
     pub default_value: Option<String>,
     pub options: Vec<FieldOption>,
+}
+
+impl FieldInfo for TemplateField {
+    fn id(&self) -> i32 {
+        self.id
+    }
+
+    fn required(&self) -> bool {
+        self.required
+    }
 }

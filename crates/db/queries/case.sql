@@ -94,8 +94,8 @@ FROM functional_cases fc
 LEFT JOIN file_module fm ON fc.module_id = fm.id
 WHERE
 fc.module_id = ANY(:module_id)
-AND (:deleted AND fc.deleted_at IS NOT NULL AND fc.deleted_by IS NOT NULL)
-    OR (NOT :deleted AND fc.deleted_at IS NULL AND fc.deleted_by IS NULL)
+AND ((:deleted AND fc.deleted_at IS NOT NULL AND fc.deleted_by IS NOT NULL)
+    OR (NOT :deleted AND fc.deleted_at IS NULL AND fc.deleted_by IS NULL))
 AND fc.id > :start_id
 ORDER BY fc.id
 LIMIT :page_size;

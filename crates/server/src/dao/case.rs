@@ -118,7 +118,8 @@ macro_rules! impl_to_case_field {
                         options,
                         internal: self.internal,
                         remark: self.remark.clone(),
-                        required: self.required
+                        required: self.required,
+                        unique_required: self.unique_required
                     })
                 }
             }
@@ -439,6 +440,7 @@ where
         page_size: i64,
         deleted: bool,
     ) -> AppResult<Vec<FunctionalCase>> {
+        info!("sql parameters: {module_ids:?}, {last_item_id}, {page_size}, {deleted}");
         let case_list = get_functional_case_list()
             .bind(
                 self.executor,

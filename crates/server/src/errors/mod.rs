@@ -1,4 +1,5 @@
 pub mod custom_extractor;
+pub mod message;
 
 use std::num::ParseIntError;
 

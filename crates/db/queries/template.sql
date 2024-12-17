@@ -17,6 +17,7 @@ SELECT
                         'field_type', f.field_type,
                         'internal', f.internal,
                         'required', tfr.required,
+                        'unique_required', tfr.unique_required,
                         'default_value', tfr.default_value,
                         'options', COALESCE(
                                     (SELECT JSON_AGG(
@@ -56,6 +57,7 @@ SELECT t.id,
                                        'field_type' , f.field_type,
                                        'internal', f.internal,
                                        'required', tfr.required,
+                                       'unique_required', tfr.unique_required,
                                        'default_value', tfr.default_value,
                                        'options', COALESCE(
                                                     (SELECT JSON_AGG(

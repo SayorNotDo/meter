@@ -5,7 +5,7 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::{
-    constant::{case::CASE_NUM, DOCTOR_SCRIPT_PATH},
+    constant::DOCTOR_SCRIPT_PATH,
     dao::{case::CaseDao, element::ElementDao, entity::Step, file::FileDao},
     dto::{
         request::{
@@ -21,8 +21,8 @@ use crate::{
             CreateEntityResponse, CreateScriptResponse, DiagnoseResponse, RequirementInfoResponse,
         },
     },
-    entity::case::{CaseResult, Field, FieldType, FieldValue, FunctionalCase, TemplateField},
-    errors::{AppError, AppResult, Resource, ResourceType},
+    entity::case::{CaseResult, Field, FieldInfo, FieldType, FieldValue, FunctionalCase},
+    errors::{message::*, AppError, AppResult, Resource, ResourceType},
     service::{
         engine::{self, StepInfo},
         token::{generate_page_token, parse_page_token},
@@ -78,12 +78,14 @@ pub async fn create_field(
                 }
             } else {
                 return Err(AppError::BadRequestError(
-                    "Field `options` required".to_string(),
+                    FieldException::Require.to_string(),
                 ));
             }
         }
         FieldType::Unknown => {
-            return Err(AppError::BadRequestError("Unknown fieldType".to_string()))
+            return Err(AppError::BadRequestError(
+                FieldException::UnknownType.to_string(),
+            ))
         }
     }
     transaction.commit().await?;
@@ -103,7 +105,9 @@ pub async fn update_field(
     let change_type = FieldType::from_str(&request.field_type);
     let mut field = case_dao.get_field_by_id(request.id).await?;
     if project_id != field.project_id {
-        return Err(AppError::ForbiddenError("Access denied".to_string()));
+        return Err(AppError::ForbiddenError(
+            UserException::Forbidden.to_string(),
+        ));
     };
     field.name = request.name;
     field.field_type = request.field_type;
@@ -132,12 +136,14 @@ pub async fn update_field(
                 }
             } else {
                 return Err(AppError::BadRequestError(
-                    "Field `oprtions` required".to_string(),
+                    FieldException::Require.to_string(),
                 ));
             }
         }
         FieldType::Unknown => {
-            return Err(AppError::BadRequestError("Unknown field type".to_string()))
+            return Err(AppError::BadRequestError(
+                FieldException::UnknownType.to_string(),
+            ))
         }
     };
     case_dao.update_field(field, uid).await?;
@@ -157,7 +163,9 @@ pub async fn delete_field(
     let case_dao = CaseDao::new(&transaction);
     let field = case_dao.get_field_by_id(request.id).await?;
     if field.project_id != project_id {
-        return Err(AppError::ForbiddenError("Access denied".to_string()));
+        return Err(AppError::ForbiddenError(
+            UserException::Forbidden.to_string(),
+        ));
     }
     case_dao.soft_delete_field(request.id, uid).await?;
     if let FieldType::Select = FieldType::from_str(&field.field_type) {
@@ -183,15 +191,18 @@ pub async fn get_field_list(
     case_dao.get_fields(project_id).await
 }
 
-fn field_classify(field_set: Vec<TemplateField>) -> AppResult<(Vec<i32>, Vec<i32>)> {
+fn field_classify<T>(field_set: &Vec<T>) -> AppResult<(Vec<i32>, Vec<i32>)>
+where
+    T: FieldInfo,
+{
     let mut template_required_field_ids = Vec::new();
     let mut allowed_field_ids = Vec::new();
 
     for field in field_set {
-        if field.required {
-            template_required_field_ids.push(field.id);
+        if field.required() {
+            template_required_field_ids.push(field.id());
         }
-        allowed_field_ids.push(field.id);
+        allowed_field_ids.push(field.id());
     }
     Ok((template_required_field_ids, allowed_field_ids))
 }
@@ -211,31 +222,30 @@ pub async fn create_functional_case(
     /* check template exist or not, otherwise return not found err */
     let template = case_dao.get_template_by_id(case.template_id).await?;
 
-    let (template_required_field_ids, allowed_field_ids) = field_classify(template.fields)?;
-    let request_field_ids: Vec<i32> = request
-        .fields
-        .iter()
-        .filter(|f| f.required)
-        .map(|f| f.id)
-        .collect();
-    if request_field_ids != template_required_field_ids {
+    let (template_required_field_ids, allowed_field_ids) = field_classify(&template.fields)?;
+    let (request_required_field_ids, request_ids) = field_classify(&request.fields)?;
+    if request_required_field_ids != template_required_field_ids {
         return Err(AppError::BadRequestError(
-            "Missing require field".to_string(),
+            FieldException::Require.to_string(),
+        ));
+    }
+    if !request_ids.iter().all(|i| allowed_field_ids.contains(i)) {
+        return Err(AppError::BadRequestError(
+            FieldException::NotAllowed.to_string(),
         ));
     }
     let case_id = case_dao.insert_functional_case(case, uid).await?;
     /* bind relationship between case with custom_field through table: [functional_case_field_relation] */
     for item in request.fields.into_iter() {
         /* get field by field_id */
-        if !allowed_field_ids.contains(&item.id) {
-            return Err(AppError::BadRequestError(format!(
-                "Field id `{}` not allowed",
-                item.id
-            )));
-        }
         let field = case_dao.get_field_by_id(item.id).await?;
         /* TODO: Check whether field is unique or not while field is unique_required is true */
-        if &field.name == CASE_NUM {
+        if template
+            .fields
+            .iter()
+            .find(|i| &i.name == &field.name)
+            .is_some_and(|f| f.unique_required)
+        {
             case_dao
                 .check_unique_by_field_id_and_value(&field.id, &item.value)
                 .await?
@@ -253,12 +263,9 @@ pub async fn create_functional_case(
                     .insert_case_field_relation(case_id, field.id, &value, uid)
                     .await?;
             }
-            (FieldType::Unknown, _) => {
-                return Err(AppError::BadRequestError("Unknown fieldType".to_string()))
-            }
             (_, FieldValue::Input(_) | FieldValue::Select(_)) => {
                 return Err(AppError::BadRequestError(
-                    "fieldType mismatch with fieldValue".to_string(),
+                    FieldException::Mismatch.to_string(),
                 ));
             }
         }
@@ -302,7 +309,7 @@ pub async fn update_functional_case(
                     .await?;
                 match (field.field_type, item.value) {
                     (FieldType::Input, FieldValue::Input(value)) => {
-                        if field.field_name == CASE_NUM {
+                        if field.unique_required {
                             case_dao
                                 .check_unique_by_field_id_and_value(
                                     &field.id,
@@ -322,7 +329,7 @@ pub async fn update_functional_case(
                     }
                     (_, FieldValue::Input(_) | FieldValue::Select(_)) => {
                         return Err(AppError::BadRequestError(
-                            "mismatch field_value".to_string(),
+                            FieldException::Mismatch.to_string(),
                         ));
                     }
                 }
@@ -453,6 +460,7 @@ pub async fn get_functional_case_list(
                         .await?
                 }
             };
+            info!("===================>>> module ids: {:?}", module_ids);
             PageClaims::new(page_size, page_num, last_item_id, module_ids)
         }
     };

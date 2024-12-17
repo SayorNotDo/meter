@@ -33,7 +33,8 @@ SELECT fcfr.id,
             'position', fo.position
        )) FROM  field_option fo WHERE fo.field_id = fcfr.field_id) AS options,
        f.internal,
-       tfr.required
+       tfr.required,
+       tfr.unique_required
 FROM functional_case_field_relation fcfr
 LEFT JOIN field f ON f.id = fcfr.field_id
 LEFT JOIN template_field_relation tfr ON tfr.field_id = fcfr.field_id
@@ -63,7 +64,8 @@ SELECT  fcfr.id,
                 'position', fo.position
         )) FROM field_option fo WHERE fo.field_id = fcfr.field_id) AS options,
         f.internal,
-        tfr.required
+        tfr.required,
+        tfr.unique_required
 FROM functional_case_field_relation fcfr
 LEFT JOIN field f ON f.id = fcfr.field_id
 LEFT JOIN template_field_relation tfr ON tfr.field_id = fcfr.field_id

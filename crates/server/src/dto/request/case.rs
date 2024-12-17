@@ -2,7 +2,7 @@ use garde::Validate;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 
-use crate::entity::case::{FieldOption, FieldValue};
+use crate::entity::case::{FieldOption, SelectedField};
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -42,14 +42,6 @@ pub struct UpdateFunctionalCaseRequest {
     pub fields: Vec<SelectedField>,
     #[garde(skip)]
     pub description: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct SelectedField {
-    pub id: i32,
-    pub required: bool,
-    pub value: FieldValue,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
