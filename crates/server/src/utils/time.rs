@@ -1,6 +1,17 @@
 use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc};
 use time::{Date, OffsetDateTime, PrimitiveDateTime};
 
+#[macro_export]
+macro_rules! elapsed {
+    ($func:expr) => {{
+        let start = std::time::Instant::now();
+        let result = $func;
+        println!("Time elapsed in function is: {:?}", start.elapsed());
+
+        result
+    }};
+}
+
 pub fn to_utc(original_time: PrimitiveDateTime) -> DateTime<Utc> {
     let timestamp = original_time.assume_utc().unix_timestamp_nanos();
     DateTime::from_timestamp_nanos(timestamp as i64)

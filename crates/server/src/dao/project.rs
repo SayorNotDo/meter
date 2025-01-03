@@ -4,7 +4,6 @@ use crate::{
     utils::time::{to_utc, to_utc_or_default},
 };
 use db::queries::project::*;
-use garde::rules::AsStr;
 use uuid::Uuid;
 
 use super::entity::ProjectMember;
@@ -77,22 +76,14 @@ where
     }
 
     #[allow(dead_code)]
-    pub async fn insert(&self, object: &Project) -> AppResult<i32> {
-        let description = match &object.description {
-            Some(s) => s.as_str(),
-            None => "".as_str(),
-        };
-        let module_setting = match &object.module_setting {
-            Some(s) => s.as_str(),
-            None => "".as_str(),
-        };
+    pub async fn insert(&self, project: &Project) -> AppResult<i32> {
         let project_id = insert_project()
             .bind(
                 self.executor,
-                &object.name,
-                &object.created_by,
-                &description,
-                &module_setting,
+                &project.name,
+                &project.created_by,
+                &project.description,
+                &project.module_setting,
             )
             .one()
             .await?;

@@ -13,6 +13,9 @@ path = "src/lib.rs"
 name = "server"
 path = "src/main.rs"
 
+[package.metadata.cargo-udeps.ignore]
+normal = ["db"]
+
 [dependencies]
 axum = { version = "0.7.9", features = ["multipart"] }
 db = { path = "../db" }
@@ -37,14 +40,14 @@ tracing-subscriber = { version = "0.3.18", features = [
 ] }
 tracing-appender = "0.2.3"
 tracing = { version = "0.1.40", features = ["attributes"] }
-tracing-opentelemetry = "0.27.0"
-opentelemetry_sdk = { version = "0.26.0", features = ["rt-tokio"] }
-opentelemetry-stdout = "0.26.0"
-opentelemetry-otlp = { version = "0.26.0", features = [
-    "http-json",
-    "reqwest-client",
-] }
-opentelemetry = "0.26.0"
+# tracing-opentelemetry = "0.27.0"
+# opentelemetry_sdk = { version = "0.26.0", features = ["rt-tokio"] }
+# opentelemetry-stdout = "0.26.0"
+# opentelemetry-otlp = { version = "0.26.0", features = [
+#     "http-json",
+#     "reqwest-client",
+# ] }
+# opentelemetry = "0.26.0"
 
 # Backtrace in panic hook
 backtrace = "0.3.71"
@@ -91,10 +94,10 @@ reqwest = { version = "0.12.5", features = ["json", "multipart", "stream"] }
 
 # log
 log = "0.4.22"
-log-derive = "0.4.1"
 
 fake = { version = "2.10.0", features = ["derive", "uuid", "chrono"] }
 
 [dev-dependencies]
+log-derive = "0.4.1"
 wiremock = "0.6.2"
 test-context = "0.3.0"

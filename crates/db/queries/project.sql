@@ -95,7 +95,7 @@ FROM users u
 WHERE p.id = :project_id;
 
 
---! insert_project
+--! insert_project (description?, module_setting?)
 INSERT INTO projects (name,
                       created_by,
                       description,
