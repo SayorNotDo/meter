@@ -27,7 +27,7 @@ template_path = "./static/templates"
 [smtp]
 host = "smtp.gmail.com"
 port = 587
-username = "chenwentao@datatower.ai"
-password = "vvth rzea cmvg tqyg"
+username = ""
+password = ""
 tls_off = true
 protocol = "local"

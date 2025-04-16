@@ -16,7 +16,7 @@ toml = "0.8.13"
 
 [dependencies]
 cornucopia_async = "0.6.0"
-redis = { version = "0.27.5", features = ["tokio-comp"] }
+redis = { workspace = true }
 tokio-postgres = { version = "0.7.10", features = [
     "with-uuid-1",
     "with-time-0_3",
@@ -37,10 +37,7 @@ time = { version = "0.3.36", default-features = false, features = [
     "formatting",
 ] }
 
-tokio = { version = "1.41.0", default-features = false, features = [
-    "macros",
-    "rt-multi-thread",
-] }
+tokio = { workspace = true }
 
 uuid = { version = "1.8.0", features = ["serde", "v4"] }
 

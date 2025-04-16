@@ -1,5 +1,4 @@
 use axum::{
-    async_trait,
     extract::{rejection::JsonRejection, FromRequest, MatchedPath, Request},
     http::StatusCode,
     RequestPartsExt,
@@ -8,7 +7,6 @@ use serde_json::{json, Value};
 
 pub struct CustomJson<T>(pub T);
 
-#[async_trait]
 impl<S, T> FromRequest<S> for CustomJson<T>
 where
     axum::Json<T>: FromRequest<S, Rejection = JsonRejection>,

@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::RequestPartsExt;
@@ -60,7 +59,6 @@ impl UserClaims {
     }
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for UserClaims
 where
     S: Send + Sync,

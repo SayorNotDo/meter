@@ -155,7 +155,7 @@ pub async fn get_template(
 
 #[utoipa::path(
     post,
-    path = "/management/case/functional_case",
+    path = "/management/case/functional-case",
     request_body = CreateFunctionalCaseRequest,
     responses(
         (status = 200, description = "Success create functional case", body = [CreateEntityResponse]),

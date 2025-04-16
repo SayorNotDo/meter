@@ -14,6 +14,6 @@ pub fn app() -> Router {
         .route("/auth/token/refresh", post(auth::token_refresh))
         .route("/user/info", get(user::info))
         .route("/user/info", put(user::update))
-        .route("/user/list/:project_id", get(user::list))
-        .route("/user/role/list/:project_id", get(user::role_list))
+        .route("/user/list/{project_id}", get(user::list))
+        .route("/user/role/list/{project_id}", get(user::role_list))
 }

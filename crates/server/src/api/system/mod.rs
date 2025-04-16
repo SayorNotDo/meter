@@ -17,7 +17,10 @@ pub fn app() -> Router {
             get(user::role_permission_list),
         )
         .route("/user/role", post(user::create_role))
-        .route("/user/role/:role_id", get(user::get_role))
-        .route("/user/role/permission/:role_id", get(user::role_permission))
+        .route("/user/role/{role_id}", get(user::get_role))
+        .route(
+            "/user/role/permission/{role_id}",
+            get(user::role_permission),
+        )
         .route("/user/role", delete(user::delete_role))
 }

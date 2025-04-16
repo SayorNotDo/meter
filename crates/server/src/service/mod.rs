@@ -6,6 +6,7 @@ pub mod permission;
 pub mod plan;
 pub mod project;
 mod redis;
+pub mod schedule;
 pub mod session;
 pub mod token;
 pub mod user;

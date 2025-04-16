@@ -71,7 +71,7 @@ pub async fn tree(
 
 #[utoipa::path(
     get,
-    path = "/element/list/:project_id",
+    path = "/element/list/{project_id}",
     responses(),
     security(("jwt" = []))
 )]
@@ -95,7 +95,7 @@ pub async fn list(
 
 #[utoipa::path(
     get,
-    path = "/management/element/count/:project_id",
+    path = "/management/element/count/{project_id}",
     params(ElementQueryParam),
     responses(),
     security(("jwt" = []))

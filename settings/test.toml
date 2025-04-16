@@ -27,6 +27,6 @@ template_path = "./static/templates"
 [smtp]
 host = "mailpit"
 port = 1025
-username = "test@datatower.ai"
-password = "test1234"
+username = ""
+password = ""
 protocol = "local"
